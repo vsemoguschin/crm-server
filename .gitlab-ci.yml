@@ -1,0 +1,66 @@
+# You can copy and paste this template into a new `.gitlab-ci.yml` file.
+# You should not add this template to an existing `.gitlab-ci.yml` file by using the `include:` keyword.
+#
+# To contribute improvements to CI/CD templates, please follow the Development guide at:
+# https://docs.gitlab.com/ee/development/cicd/templates.html
+# This specific template is located at:
+
+.app_settings: &app_settings
+  - APP_VERSION=${APP_VERSION:-$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA}
+  - IMAGE_NAME=$CI_DOCKER_USER/$CI_DOCKER_NAME
+  - IMAGE_TAG=$IMAGE_NAME:$APP_VERSION
+
+before_script:
+  - *app_settings
+
+default:
+  cache: &global_cache
+    key:
+      files:
+        - package-lock.json
+    policy: pull-push
+    paths:
+      - node_modules/
+
+stages:
+  - install
+  - build_image
+  - run
+
+job:
+  stage: install
+  only:
+    - main
+    - merge
+  script:
+    - npm i
+  cache:
+    <<: *global_cache
+    policy: pull
+  artifacts:
+    paths:
+      - node_modules
+
+job_build_image:
+  stage: build_image
+  only:
+    - main
+    - merge
+  script:
+    - docker login -u $CI_DOCKER_USER -p $CI_DOCKER_PWD
+    - docker build -t $IMAGE_TAG .
+    - docker image tag $IMAGE_TAG $IMAGE_NAME:latest
+    - docker push $IMAGE_NAME:latest
+    - docker logout
+    # - cd /root
+    # - docker-compose down server_app
+    # - docker-compose up server_app -d
+#
+#job_run:
+#  stage: run
+#  needs: [ job_build_image ]
+#  #  only:
+#  #    - merge_requests
+#  script:
+#    - docker-compose -f /root/docker-compose.yml up -d server
+
