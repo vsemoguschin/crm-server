@@ -6,11 +6,14 @@ const Order = require('./orders/ordersModel');
 const TokenSchema = require('./token/tokenModel');
 const Dop = require('./dops/dopsModel');
 const Delivery = require('./deliveries/deliveriesModel');
-const Departaments = require('./departments/departamentsModel');
+const {WorkSpace, workSpacesList} = require('./workSpaces/workSpacesModel');
 const { Stage, stageList } = require('./stages/stagesModel');
 
 User.hasMany(Deal);
 Deal.belongsTo(User);
+
+User.hasOne(WorkSpace);
+User.belongsTo(WorkSpace);
 
 User.hasMany(Client);
 Client.belongsTo(User);
@@ -42,6 +45,9 @@ Stage.belongsTo(Deal);
 Delivery.hasMany(Order);
 Order.belongsTo(Delivery);
 
+WorkSpace.hasMany(Order);
+Order.belongsTo(WorkSpace)
+
 
 module.exports = {
     User,
@@ -52,7 +58,9 @@ module.exports = {
     Payment,
     stageList,
     Stage,
-    Delivery
+    Delivery,
+    WorkSpace,
+    workSpacesList,
 }
 
 

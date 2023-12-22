@@ -1,5 +1,5 @@
 const sequelize = require('../db');
-const { DataTypes, BOOLEAN } = require('sequelize');
+const { DataTypes } = require('sequelize');
 
 const DeliveryMethods = ['sdek', 'post', 'courier', 'baltCourier', 'self'];
 const DeliveryTypes = [true, false]; // boolen

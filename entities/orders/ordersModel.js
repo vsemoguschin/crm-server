@@ -25,6 +25,7 @@ const allowedFeilds = {
     street: { type: DataTypes.BOOLEAN, defaultValue: false },
     acrylic: { type: DataTypes.BOOLEAN, defaultValue: false },
     laminate: { type: DataTypes.BOOLEAN, defaultValue: false },
+    backlight: { type: DataTypes.BOOLEAN, defaultValue: false }, // подсветка
     holeType: { type: DataTypes.STRING },
     fittings: { type: DataTypes.STRING },
     milling: { type: DataTypes.JSON }, //id, fullName, img

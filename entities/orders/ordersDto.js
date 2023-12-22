@@ -1,4 +1,4 @@
-class OrderDto {
+module.exports = class OrderDto {
     constructor(model) {
         this.feildsForCreate = {
             name: model.name,
@@ -40,5 +40,3 @@ class OrderDto {
         return { ...this.feildsForCreate }
     }
 }
-
-module.exports = new OrderDto();

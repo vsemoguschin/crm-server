@@ -1,9 +1,16 @@
 const ApiError = require("../../error/apiError");
-const rolesPermissions = require("./usersPermissions");
-const rolesList = require("./usersRoles");
+const usersModelDto = require('./usersModelDto');
+const rolesPermissions = require('./usersPermissions');
 const checkImgFormat = require("../../checking/checkImgFormat");
 const uuid = require("uuid");
 const checkUserEmailAndPassword = require("../../utils/checkUserEmailAndPassword");
+const productUsers = [
+  'RP',
+  'FRZ',
+  'LAM',
+  'MASTER',
+  'PACKER',
+]
 
 class UsersRouterMiddleware {
   create(req, res, next) {
@@ -14,35 +21,34 @@ class UsersRouterMiddleware {
       id: requesterId,
       ownersList: requesterOwnersList,
     } = req.user;
-    const { email, fullName, role, info } = req.body;
+    const { role } = req.body;
 
     try {
       const permission = rolesPermissions.createUser(requesterRole, role);
       if (!permission) {
         throw ApiError.Forbidden("Нет доступа");
       };
-
-      if (!email || !fullName || !role || !req?.files?.img) {
-        throw ApiError.BadRequest("Забыл что то указать");
-      }
+      const userDatas = new usersModelDto({ ...req.body }).check();
+      if (!userDatas || !req?.files?.img) {
+        throw ApiError.BadRequest('Забыл что то указать');
+      };
+      if (productUsers.some(user=>user==role) && userDatas.workSpaceId == 1) {
+        throw ApiError.BadRequest('Забыл указать пространство');
+      };
       const { img } = req.files;
       const imgFormat = checkImgFormat(img.name);
       if (!imgFormat) {
         throw ApiError.BadRequest("Не верный формат изображения")
       };
 
-      const avatar = "user_" + uuid.v4() + imgFormat;
+      userDatas.avatar = "user_" + uuid.v4() + imgFormat;
+      userDatas.password = userDatas.email;
 
       // fs.writeFileSync(__dirname, '..', '/static/', req.files.img.data, {encoding:'utf16le'})
       // avatar.mv(path.resolve(__dirname, '..', 'static/users_avatars', fileName))
       req.newUser = {
-        email,
-        password: email,
-        fullName,
-        role,
-        avatar,
+        ...userDatas,
         status: "offline",
-        info,
         owner: {
           id: requesterId,
           fullName: requesterFullName,
