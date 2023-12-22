@@ -1,11 +1,13 @@
 const allows = {
-  ADMIN: ["ADMIN", "KD", "RR", "ROP", "MOP", "ROV", "MOV", "ROD", "DEZ",],
-  KD: ["RR", "ROP", "MOP"],
+  ADMIN: ["ADMIN", "KD", "DO", "ROP", "MOP", "ROV", "MOV", "ROD", "DEZ", //коммерческий и руководящие
+  'FRZ'],
+  KD: ["DO", "ROP", "MOP"],
   RR: ["ROP", "MOP"],
   ROP: ["MOP"],
   MOP: [],
   DIZ: [],
 };
+
 class RolesPermissions {
   createUser(requester, roleRequest) {
     if (allows[requester].some(role => role === roleRequest)) {

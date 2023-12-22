@@ -13,7 +13,7 @@ class OrdersRouterMiddleware {
             if (!permission) {
                 throw ApiError.Forbidden("Нет доступа")
             };
-            const taskDatas = OrderDto({ ...req.body }).check();
+            const taskDatas = new OrderDto({ ...req.body }).check();
             if (!taskDatas || req?.files && !req?.files?.img) {
                 throw ApiError.BadRequest('Забыл что то указать');
             };
@@ -22,7 +22,7 @@ class OrdersRouterMiddleware {
                 throw ApiError.BadRequest("Не верный формат изображения")
             };
             let preview = uuid.v4() + imgFormat;
-            req.new_task = {
+            req.new_order = {
                 ...taskDatas,
                 preview,
                 userId: req.user.id,

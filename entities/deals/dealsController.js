@@ -49,7 +49,12 @@ class dealsController {
                                 ['id','name']
                         },
                         {
-                            association: 'tasks',
+                            association: 'order',
+                            attributes:
+                                ['id','name']
+                        },
+                        {
+                            association: 'dops',
                             attributes:
                                 ['id','name']
                         }

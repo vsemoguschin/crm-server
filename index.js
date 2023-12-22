@@ -9,7 +9,7 @@ const sequelize = require("./entities/db");
 const router = require("./routes/index");
 const errorHandling = require("./middleware/ErrorHandlingMiddleware");
 const cookieParser = require("cookie-parser");
-const { User, Stage, stageList } = require("./entities/association");
+const { User, Stage, stageList, WorkSpace, workSpacesList } = require("./entities/association");
 const { where } = require("sequelize");
 const { resolve6 } = require("dns/promises");
 
@@ -23,7 +23,6 @@ const createLog = (req, res, next) => {
 };
 // app.use(createLog);
 
-app.options("*", cors());
 app.use(
   cors({
     credentials: true,
@@ -46,9 +45,25 @@ const start = async () => {
   try {
     // await sequelize.drop();
     await sequelize.authenticate();
-    // await sequelize.sync({ alter: true });
+    // await sequelize.sync({ alter: true, force: true });
     const hashPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 3); //хешируем пароль
 
+    //создание стадий заказов
+    for (let i = 0; i < stageList.length; i++) {
+      await Stage.findOrCreate(
+        {
+          where: { title: stageList[i].title },
+          defaults: stageList[i]
+        })
+    };
+    //создание отделений(города производств)
+    for (let i = 0; i < workSpacesList.length; i++) {
+      await WorkSpace.findOrCreate(
+        {
+          where: { name: workSpacesList[i].name },
+          defaults: workSpacesList[i]
+        })
+    };
 
     const [admin, created] = await User.findOrCreate({
       where: { email: process.env.ADMIN_EMAIL },
@@ -64,16 +79,9 @@ const start = async () => {
           role: process.env.ADMIN_ROLE,
           ownersList: [],
         },
+        workSpaceId: 1
       },
     });
-
-    for (let i = 0; i < stageList.length; i++) {
-      await Stage.findOrCreate(
-        {
-          where: { title: stageList[i].title },
-          defaults: stageList[i]
-        })
-    };
 
     app.listen(PORT, () => console.log(`${PORT}`));
   } catch (error) {
@@ -86,7 +94,8 @@ const one = 6;
 const two = 8;
 const send = "8";
 const res = send == 6 || send == 8 ? +send : false;
-console.log(res);
+// console.log(res);
+
 
 class TaskDto {
   constructor(model) {
@@ -114,11 +123,11 @@ class TaskDto {
   check() {
     for (const feild in this.feildsForCreate) {
           if (this.feildsForCreate[feild] == undefined) {
-              console.log(false);
+              // console.log(false);
               return false
           };
       };
-      console.log({ ...this.feildsForCreate });
+      // console.log({ ...this.feildsForCreate });
       return { ...this.feildsForCreate }
   }
 }

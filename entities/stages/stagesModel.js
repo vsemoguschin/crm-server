@@ -1,14 +1,14 @@
 const sequelize = require('../db')
 const { DataTypes } = require('sequelize');
 const stageList = [
-    // { title: 'created' },
+    { title: 'created' },
     { title: 'milled' },
     { title: 'laminated' },
-    // { title: 'production' },
-    { title: 'done' },
+    { title: 'producted' },
     { title: 'packed' },
-    // { title: 'delivered' },
+    { title: 'delivered' },
     // { title: 'paid' },
+    { title: 'defective' }, //брак
 ];
 
 const Stage = sequelize.define('stage', {

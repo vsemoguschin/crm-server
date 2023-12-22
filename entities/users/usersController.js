@@ -33,7 +33,7 @@ class UsersController {
       // await diskService.saveAvatar(filePath);
       //
       // fs.unlinkSync('public/' + filePath);
-
+      //что нужно вернуть?
       return res.json(user);
     } catch (e) {
       next(e);
@@ -63,6 +63,13 @@ class UsersController {
             },
           },
           attributes: { exclude: ["password"] },
+          include: [
+            {
+              association: 'workSpace',
+              attributes:
+                ['id', 'name']
+            }
+          ]
         });
       }
       if (!user) {
