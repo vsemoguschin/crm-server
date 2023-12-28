@@ -8,13 +8,13 @@ const clientsRouter = require("../entities/clients/clientsRouter");
 const dealsRouter = require("../entities/deals/dealsRouter");
 const paymentsRouter = require("../entities/payments/paymentsRouter");
 const dopsRouter = require("../entities/dops/dopsRouter");
+const orderRouter = require("../entities/orders/ordersRouter");
 const profileRouter = require("./profileRouter");
-// const orderRouter = require('./orderRouter');
 
 router.use(
   "/",
   authRouter, //роутер авторизации
-  AuthMiddleware, //проверка авторизации
+  AuthMiddleware //проверка авторизации
 );
 router.use("/users", usersRouter);
 router.use("/clients", clientsRouter);
@@ -22,10 +22,8 @@ router.use("/deals", dealsRouter);
 router.use("/profile", profileRouter);
 router.use("/payments", paymentsRouter);
 router.use("/dops", dopsRouter);
-// router.use('/order', orderRouter);
-// router.use('/order', orderRouter);
+router.use("/orders", orderRouter);
 
 //git commit --amend --no-edit // позлей изменения в предыдущий коммит
 //git commit --amend -m 'text' // Изменить коммит на новый
 module.exports = router;
-
