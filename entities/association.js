@@ -6,7 +6,7 @@ const Order = require('./orders/ordersModel');
 const TokenSchema = require('./token/tokenModel');
 const Dop = require('./dops/dopsModel');
 const Delivery = require('./deliveries/deliveriesModel');
-const {WorkSpace, workSpacesList} = require('./workSpaces/workSpacesModel');
+const { WorkSpace, workSpacesList } = require('./workSpaces/workSpacesModel');
 const { Stage, stageList } = require('./stages/stagesModel');
 
 User.hasMany(Deal);
@@ -31,7 +31,7 @@ Client.hasMany(Deal);
 Deal.belongsTo(Client);
 
 Deal.hasMany(Order);
-Order.belongsTo(Deal);
+Order.hasOne(Deal);
 
 Deal.hasMany(Dop);
 Dop.belongsTo(Deal);
@@ -46,23 +46,18 @@ Delivery.hasMany(Order);
 Order.belongsTo(Delivery);
 
 WorkSpace.hasMany(Order);
-Order.belongsTo(WorkSpace)
-
+Order.belongsTo(WorkSpace);
 
 module.exports = {
-    User,
-    Client,
-    Deal,
-    Order,
-    Dop,
-    Payment,
-    stageList,
-    Stage,
-    Delivery,
-    WorkSpace,
-    workSpacesList,
-}
-
-
-
-
+  User,
+  Client,
+  Deal,
+  Order,
+  Dop,
+  Payment,
+  stageList,
+  Stage,
+  Delivery,
+  WorkSpace,
+  workSpacesList,
+};
