@@ -1,7 +1,7 @@
 const ApiError = require('../../error/apiError');
 const dealsPermissions = require('./dealsPermissions');
 const uuid = require('uuid');
-const checkImgFormat = require('../../checking/checkImgFormat');
+const checkFormat = require('../../checking/checkFormat');
 
 class DealsRouterMiddleware {
   create(req, res, next) {
@@ -9,25 +9,30 @@ class DealsRouterMiddleware {
     const requester = req.user.role;
     const requesterID = req.user.id;
     const { title, price, deadline, clientId, sellDate, description } = req.body;
-    const { img } = req.files;
+    const { img, draft } = req.files;
     try {
       const permission = dealsPermissions.check(requester);
       if (!permission) {
         throw ApiError.Forbidden('Нет доступа');
       }
 
-      if (!title || !price || !deadline || !sellDate || (req?.files && !req?.files?.img)) {
+      if (!title || !price || !deadline || !sellDate || (req?.files && !req?.files?.img) || !req?.files?.draft) {
         throw ApiError.BadRequest('Забыл что то указать');
       }
       if (price && isNaN(price)) {
         throw ApiError.BadRequest('Не верное price');
       }
-      const imgFormat = checkImgFormat(img.name);
+      const imgFormat = checkFormat(img.name);
       if (!imgFormat) {
         throw ApiError.BadRequest('Не верный формат изображения');
       }
+      const draftFormat = checkFormat(draft.name, ['dws', 'dxf', 'dwg']);
+      if (!draftFormat) {
+        throw ApiError.BadRequest('Не верный формат макета');
+      }
 
       let preview = uuid.v4() + imgFormat;
+      let draftName = uuid.v4() + draftFormat;
       req.new_deal = {
         title,
         price,
@@ -37,6 +42,7 @@ class DealsRouterMiddleware {
         status: 'created',
         description,
         preview,
+        draft: draftName,
         clothing_method: 'ping',
         userId: req.user.id,
       };
