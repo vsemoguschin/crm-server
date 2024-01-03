@@ -6,6 +6,7 @@ const Order = require('./orders/ordersModel');
 const TokenSchema = require('./token/tokenModel');
 const Dop = require('./dops/dopsModel');
 const Delivery = require('./deliveries/deliveriesModel');
+const File = require('./files/filesModel');
 const { WorkSpace, workSpacesList } = require('./workSpaces/workSpacesModel');
 const { Stage, stageList } = require('./stages/stagesModel');
 
@@ -39,14 +40,27 @@ Dop.belongsTo(Deal);
 Deal.hasMany(Payment);
 Payment.belongsTo(Deal);
 
-Deal.hasOne(Stage);
-Stage.belongsTo(Deal);
+Order.belongsTo(Stage);
 
 Delivery.hasMany(Order);
 Order.belongsTo(Delivery);
 
 WorkSpace.hasMany(Order);
 Order.belongsTo(WorkSpace);
+
+// Files
+File.hasOne(User);
+User.hasMany(File);
+const OrderUserAssociation = Order.belongsToMany(User, { through: 'orderUsers', as: 'executors' });
+const UserOrderAssociation = User.belongsToMany(Order, { through: 'userOrders' });
+
+File.hasOne(Deal);
+Deal.hasMany(File);
+const DraftAssociation = Deal.belongsTo(File, { as: 'draft', foreignKey: 'draftId' });
+const DraftOrderAssociation = Order.belongsTo(File, { as: 'draft', foreignKey: 'draftId' });
+
+File.hasOne(Order);
+Order.hasMany(File);
 
 module.exports = {
   User,
@@ -59,5 +73,11 @@ module.exports = {
   Stage,
   Delivery,
   WorkSpace,
+  File,
   workSpacesList,
+  DraftAssociation,
+  DraftOrderAssociation,
+  UserOrderAssociation,
+  OrderUserAssociation,
+  DraftOrderAssociation,
 };

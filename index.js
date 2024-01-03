@@ -22,7 +22,6 @@ const createLog = (req, res, next) => {
   next();
 };
 // app.use(createLog);
-
 app.use(
   cors({
     credentials: true,
@@ -37,7 +36,12 @@ app.use(
   }),
 );
 app.use('/public', express.static(path.join(__dirname, '/public')));
-app.use(fileUpload({}));
+app.use(
+  fileUpload({
+    defCharset: 'utf8',
+    defParamCharset: 'utf8',
+  }),
+);
 app.use('/api', router);
 app.use(errorHandling);
 
@@ -47,12 +51,12 @@ const start = async () => {
     if (isDrop) {
       await sequelize.drop();
       await sequelize.authenticate();
-      await sequelize.sync({ alter: true, force: true });
+      await sequelize.sync({ alter: true, force: true, searchPath: 'public' });
 
       //создание стадий заказов
       for (let i = 0; i < stageList.length; i++) {
         await Stage.findOrCreate({
-          where: { title: stageList[i].title },
+          where: { title: stageList[i].title, description: stageList[i].description },
           defaults: stageList[i],
         });
       }
@@ -97,6 +101,7 @@ const one = 6;
 const two = 8;
 const send = '8';
 const res = send == 6 || send == 8 ? +send : false;
+
 // console.log(res);
 
 class TaskDto {
@@ -122,6 +127,7 @@ class TaskDto {
       // dealId: model.dealId,
     };
   }
+
   check() {
     for (const feild in this.feildsForCreate) {
       if (this.feildsForCreate[feild] == undefined) {

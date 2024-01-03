@@ -1,5 +1,5 @@
 const ApiError = require('../../error/apiError');
-const { Deal, User, Client, Payment } = require('../association');
+const { Deal, User, Client, Payment, File, DraftAssociation, Stage, OrderUserAssociation } = require('../association');
 const fs = require('fs-extra');
 const diskService = require('../../services/diskService');
 const getPaginationData = require('../../utils/getPaginationData');
@@ -9,11 +9,23 @@ class dealsController {
   async create(req, res, next) {
     try {
       const { new_deal } = req;
-      const { preview } = new_deal;
-      const { img } = req.files;
-      const deal = await Deal.create(new_deal);
-      const filePath = 'deals/' + preview;
-      fs.writeFileSync('public/' + filePath, img.data, (err) => {
+      const { preview, draft } = new_deal;
+      const { img, draft: draftFile } = req.files;
+      const draftData = { name: draftFile.name, size: draftFile.size, url: draft };
+      new_deal.draft = draftData;
+
+      const deal = await Deal.create(new_deal, {
+        include: {
+          association: DraftAssociation,
+          as: 'draft',
+        },
+      });
+      fs.writeFileSync(`public/deals/${preview}`, img.data, (err) => {
+        if (err) {
+          throw ApiError.BadRequest('Wrong');
+        }
+      });
+      fs.writeFileSync(`public/deals/${draft}`, draftFile.data, (err) => {
         if (err) {
           throw ApiError.BadRequest('Wrong');
         }
@@ -41,13 +53,28 @@ class dealsController {
             attributes: ['id', 'fullName'],
           },
           {
+            association: 'orders',
+            include: [
+              {
+                model: Stage,
+                as: 'stage',
+              },
+              {
+                association: OrderUserAssociation,
+              },
+            ],
+          },
+          {
             association: 'payments',
             attributes: ['id', 'name'],
           },
-          // {
-          //   association: "order",
-          //   attributes: ["id", "name"],
-          // },
+          {
+            association: 'files',
+            attributes: ['id', 'name'],
+          },
+          {
+            association: 'draft',
+          },
           {
             association: 'dops',
             attributes: ['id', 'name'],
@@ -60,10 +87,10 @@ class dealsController {
     }
   }
   async getList(req, res, next) {
-    const { userId, clientId, pageNumber, size } = req.query;
+    const { userId, clientId, pageNumber, size, status } = req.query;
     const { limit, offset } = getPagination(pageNumber, size);
     try {
-      const filter = clearEmptyFields({ userId, clientId });
+      const filter = clearEmptyFields({ userId, clientId, status });
       //по периодам(месяц, день, неделя , ...) может есть у sequelize
       // сделки юзеров и их юзеров
       //т.е. найти всех юзеров включая их сделки
@@ -81,6 +108,10 @@ class dealsController {
             model: Client,
             as: 'client',
             attributes: ['id', 'fullName'],
+          },
+          {
+            association: 'orders',
+            attributes: ['id', 'name', 'deadline'],
           },
         ],
         limit,

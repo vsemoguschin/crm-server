@@ -1,18 +1,34 @@
-const uuid = require("uuid");
-const path = require("path");
-const { Order } = require("../association");
+const uuid = require('uuid');
+const path = require('path');
+const { Order, DraftOrderAssociation, Stage, User, UserOrderAssociation, OrderUserAssociation } = require('../association');
+const getPagination = require('../../utils/getPagination');
+const getPaginationData = require('../../utils/getPaginationData');
+const fs = require('fs');
+const { Op } = require('sequelize');
 
 class OrdersController {
-  async getOne(req, res, next) {
+  async create(req, res, next) {
     try {
       const { new_order } = req;
       const { preview } = new_order;
       const { img } = req.files;
-      const order = await Order.create(new_order);
-      const filePath = "orders/" + preview;
-      fs.writeFileSync("public/" + filePath, img.data, (err) => {
+      const order = await Order.create(new_order, {
+        include: [
+          {
+            association: DraftOrderAssociation,
+            as: 'draft',
+          },
+          OrderUserAssociation,
+        ],
+      });
+      const user = await User.findByPk(req.user.id);
+
+      order.addExecutors(user);
+
+      const filePath = 'orders/' + preview;
+      fs.writeFileSync('public/' + filePath, img.data, (err) => {
         if (err) {
-          throw ApiError.BadRequest("Wrong");
+          throw ApiError.BadRequest('Wrong');
         }
       });
       return res.json(order);
@@ -34,47 +50,51 @@ class OrdersController {
     const { limit, offset } = getPagination(pageNumber, pageSize);
 
     try {
-      const order = queryOrder ? [[key, queryOrder]] : ["createdAt"];
+      const order = queryOrder ? [[key, queryOrder]] : [['createdAt', 'DESC']];
 
       const whereFilters = fieldSearch
         ? {
-            [Op.and]: [
-              {
-                [fieldSearch]: {
-                  [Op.iRegexp]: fieldSearchValue,
-                },
-              },
-            ],
+            [fieldSearch]: {
+              [Op.iRegexp]: fieldSearchValue,
+            },
           }
         : {};
 
+      const whereDeals = {
+        dealId: fieldSearchValue,
+      };
+
       const squelizeBody = {
-        where: { ...whereFilters },
+        where: fieldSearch === 'dealId' ? whereDeals : whereFilters,
         order,
         limit,
         offset,
+        include: {
+          model: Stage,
+          as: 'stage',
+        },
       };
 
       const orders = await Order.findAndCountAll(squelizeBody);
 
-      const response = getPaginationData(
-        orders,
-        pageNumber,
-        pageSize,
-        "orders"
-      );
+      const response = getPaginationData(orders, pageNumber, pageSize, 'orders');
       return res.json(response);
     } catch (e) {
       next(e);
     }
     //сортировка по дате
   }
-  async create(req, res, next) {
-    const { name, description } = req.body;
-    const { img } = req.files;
-    const fileName = uuid.v4() + ".jpg";
-    img.mv(path.resolve(__dirname, "..", "static", fileName));
-    res.json("create");
+  async getOne(req, res, next) {
+    const order = await Order.findOne({
+      where: { id: req.body.id },
+      include: [
+        {
+          model: Stage,
+        },
+        OrderUserAssociation,
+      ],
+    });
+    res.json(order);
   }
 }
 

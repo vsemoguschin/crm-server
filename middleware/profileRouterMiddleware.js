@@ -1,4 +1,4 @@
-const checkUserEmailAndPassword = require("../utils/checkUserEmailAndPassword");
+const checkUserEmailAndPassword = require('../checking/checkUserEmailAndPassword');
 
 class ProfileRouterMiddleware {
   updateProfile(req, res, next) {
