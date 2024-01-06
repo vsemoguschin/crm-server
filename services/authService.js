@@ -1,20 +1,19 @@
-const ApiError = require("../error/apiError");
-const User = require("../entities/users/usersModel");
-const tokenService = require("../services/tokenService");
-const UserDto = require("../dtos/userDto");
-const bcrypt = require("bcrypt");
+const ApiError = require('../error/apiError');
+const User = require('../entities/users/usersModel');
+const tokenService = require('../services/tokenService');
+const UserDto = require('../dtos/userDto');
+const bcrypt = require('bcrypt');
 
 class AuthController {
   async login(email, password) {
-    const user = await User.findOne({ where: { email: email } });
-
+    const user = await User.scope(['fullScope']).findOne({ where: { email: email } });
     if (!user) {
-      throw ApiError.BadRequest("Пользователь не найден");
+      throw ApiError.BadRequest('Пользователь не найден');
     }
 
     const comparePassword = bcrypt.compareSync(password, user.password); //сравниваем пароли
     if (!comparePassword) {
-      throw ApiError.BadRequest("Неверный логин или пароль");
+      throw ApiError.BadRequest('Неверный логин или пароль');
     }
     const userDto = new UserDto(user);
     const tokens = tokenService.generateTokens({ ...userDto });

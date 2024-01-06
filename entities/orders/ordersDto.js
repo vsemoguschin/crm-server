@@ -1,13 +1,16 @@
 module.exports = class OrderDto {
   constructor(model) {
-    this.feildsForCreate = {
+    this.fieldsForCreate = {
       name: model.name,
       deadline: model.deadline,
       neonWidth: model.neonWidth || 6,
       neonLength: model.neonLength,
+      trackNumber: model.trackNumber,
       boardWidth: model.boardWidth,
       boardHeight: model.boardHeight,
       wireLength: model.wireLength,
+      count: model.count,
+      deliveryType: model.deliveryType,
       holeType: model.holeType,
       fittings: model.fittings,
       dimer: model.dimer || false,
@@ -15,10 +18,9 @@ module.exports = class OrderDto {
       street: model.street || false,
       acrylic: model.acrylic || false,
       laminate: model.laminate || false,
-
       dealId: model.dealId,
     };
-    this.feildsForSearch = {
+    this.fieldsForSearch = {
       dealId: model.dealId,
       userId: model.userId,
       dimer: model.dimer,
@@ -29,13 +31,13 @@ module.exports = class OrderDto {
     };
   }
   check() {
-    for (const feild in this.feildsForCreate) {
-      if (this.feildsForCreate[feild] == undefined) {
-        console.log(false, feild);
+    for (const field in this.fieldsForCreate) {
+      if (field === 'trackNumber') continue;
+      if (this.fieldsForCreate[field] == undefined) {
+        console.log(false, field);
         return false;
       }
     }
-    console.log({ ...this.feildsForCreate });
-    return { ...this.feildsForCreate };
+    return { ...this.fieldsForCreate };
   }
 };

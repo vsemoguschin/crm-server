@@ -16,6 +16,7 @@ class OrdersRouterMiddleware {
         throw ApiError.Forbidden('Нет доступа');
       }
       const deal = await Deal.findOne({ where: { id: req.body.dealId } });
+      console.log(req.body);
       const taskDatas = new OrderDto({ ...req.body, deadline: deal.dataValues.deadline, workSpaceId: req.user.workspace }).check();
       if (!taskDatas || (req?.files && !req?.files?.img)) {
         throw ApiError.BadRequest('Забыл что то указать');
@@ -31,6 +32,7 @@ class OrdersRouterMiddleware {
         preview,
         userId: req.user.id,
       };
+
       next();
     } catch (e) {
       next(e);
@@ -67,6 +69,19 @@ class OrdersRouterMiddleware {
     } catch (e) {
       next(e);
     }
+  }
+  update(req, res, next) {
+    const img = req.files?.img;
+    req.newOrder = req.body;
+    if (img) {
+      const imgFormat = checkFormat(img.name);
+      if (!imgFormat) {
+        throw ApiError.BadRequest('Не верный формат изображения');
+      }
+      let preview = uuid.v4() + imgFormat;
+      req.newOrder.preview = preview;
+    }
+    next();
   }
 }
 

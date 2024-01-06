@@ -40,6 +40,7 @@ app.use(
   fileUpload({
     defCharset: 'utf8',
     defParamCharset: 'utf8',
+    useTempFiles: true,
   }),
 );
 app.use('/api', router);
@@ -53,14 +54,14 @@ const start = async () => {
       await sequelize.authenticate();
       await sequelize.sync({ alter: true, force: true, searchPath: 'public' });
 
-      //создание стадий заказов
+      // создание стадий заказов
       for (let i = 0; i < stageList.length; i++) {
         await Stage.findOrCreate({
-          where: { title: stageList[i].title, description: stageList[i].description },
+          where: { title: stageList[i].title, job: stageList[i].job },
           defaults: stageList[i],
         });
       }
-      //создание отделений(города производств)
+      // создание отделений(города производств)
       for (let i = 0; i < workSpacesList.length; i++) {
         await WorkSpace.findOrCreate({
           where: { name: workSpacesList[i].name },
@@ -68,7 +69,7 @@ const start = async () => {
         });
       }
 
-      const hashPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 3); //хешируем пароль
+      const hashPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 3); // хешируем пароль
       const [admin, created] = await User.findOrCreate({
         where: { email: process.env.ADMIN_EMAIL },
         defaults: {

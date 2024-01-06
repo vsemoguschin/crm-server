@@ -5,6 +5,8 @@ const getPagination = require('../../utils/getPagination');
 const getPaginationData = require('../../utils/getPaginationData');
 const fs = require('fs');
 const { Op } = require('sequelize');
+const removeNotAllowedFields = require('../../utils/removeNotAllowedFields');
+const { log } = require('console');
 
 class OrdersController {
   async create(req, res, next) {
@@ -21,16 +23,16 @@ class OrdersController {
           OrderUserAssociation,
         ],
       });
-      const user = await User.findByPk(req.user.id);
+      // const user = await User.findByPk(req.user.id);
 
-      order.addExecutors(user);
+      await order.addExecutors([1]);
 
-      const filePath = 'orders/' + preview;
-      fs.writeFileSync('public/' + filePath, img.data, (err) => {
-        if (err) {
-          throw ApiError.BadRequest('Wrong');
-        }
-      });
+      img.mv(path.resolve('public/orders/' + preview));
+      // fs.writeFileSync('public/' + filePath, img.data, (err) => {
+      //   if (err) {
+      //     throw ApiError.BadRequest('Wrong');
+      //   }
+      // });
       return res.json(order);
     } catch (e) {
       next(e);
@@ -69,10 +71,13 @@ class OrdersController {
         order,
         limit,
         offset,
-        include: {
-          model: Stage,
-          as: 'stage',
-        },
+        include: [
+          {
+            model: Stage,
+            as: 'stage',
+          },
+          OrderUserAssociation,
+        ],
       };
 
       const orders = await Order.findAndCountAll(squelizeBody);
@@ -86,7 +91,7 @@ class OrdersController {
   }
   async getOne(req, res, next) {
     const order = await Order.findOne({
-      where: { id: req.body.id },
+      where: { id: req.params.id },
       include: [
         {
           model: Stage,
@@ -95,6 +100,52 @@ class OrdersController {
       ],
     });
     res.json(order);
+  }
+  async update(req, res, next) {
+    const img = req.files?.img;
+    const data = req.newOrder;
+    const updateData = removeNotAllowedFields(data, [
+      'name',
+      'preview',
+      'description',
+      'stageId',
+      'trackNumber',
+      'count',
+      'dimer',
+      'laminate',
+      'smart',
+      'paidDelivery',
+      'street',
+      'backlight',
+      'acrylic',
+      'material',
+      'holeType',
+      'fittings',
+      'wireLength',
+      'neonWidth',
+      'neonLength',
+      'boardWidth',
+      'boardHeight',
+      'deliveryInfo',
+      'deliveryType',
+    ]);
+
+    await Order.findOne({
+      where: { id: req.params.id },
+    }).then(async (res) => {
+      if (res.preview && img) {
+        fs.rm(path.resolve('public/orders/' + res.preview), (error) => {
+          console.log(error);
+        });
+      }
+      if (!updateData.preview) delete updateData.preview;
+
+      Object.assign(res, updateData);
+      res.save();
+      if (img) img.mv(path.resolve('public/orders/' + data.preview));
+    });
+
+    return res.json('ok');
   }
 }
 

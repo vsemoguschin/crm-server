@@ -3,12 +3,13 @@ const { DataTypes } = require('sequelize');
 
 const stageList = [
   // { title: 'created' },
-  { title: 'Фрезеровка', description: 'milling' }, // Фрезеровка
-  { title: 'Упаковка', description: 'package' }, // Упаковка
-  { title: 'Пленка', description: 'millwright' }, // Пленка
-  { title: 'Сборка', description: 'fitter' }, // Сборка
-  { title: 'Готова к отправке', description: 'ready' }, // Готова к отправке
-  { title: 'Доставка', description: 'delivery' }, // Доставка
+  { title: 'Фрезеровка', job: 'milling' }, // Фрезеровка
+  { title: 'Упаковка', job: 'package' }, // Упаковка
+  { title: 'Пленка', job: 'millwright' }, // Пленка
+  { title: 'Сборка', job: 'fitter' }, // Сборка
+  { title: 'Готова к отправке', job: 'ready' }, // Готова к отправке
+  { title: 'Доставка', job: 'delivery' }, // Доставка
+  { title: 'Выполнен', job: 'done' }, // Доставка
   // { title: 'paid' },
 ];
 
@@ -28,7 +29,7 @@ const stageList = [
 const Stage = sequelize.define('stage', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   title: { type: DataTypes.STRING, allowNull: false, unique: true },
-  description: { type: DataTypes.STRING },
+  job: { type: DataTypes.STRING },
 });
 
 module.exports = {
