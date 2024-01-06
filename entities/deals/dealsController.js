@@ -1,10 +1,12 @@
 const ApiError = require('../../error/apiError');
 const { Deal, User, Client, Payment, File, DraftAssociation, Stage, OrderUserAssociation } = require('../association');
 const fs = require('fs-extra');
+const path = require('path');
 const diskService = require('../../services/diskService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
 const clearEmptyFields = require('../../utils/clearEmptyFields');
+
 class dealsController {
   async create(req, res, next) {
     try {
@@ -20,21 +22,18 @@ class dealsController {
           as: 'draft',
         },
       });
-      fs.writeFileSync(`public/deals/${preview}`, img.data, (err) => {
-        if (err) {
-          throw ApiError.BadRequest('Wrong');
-        }
-      });
-      fs.writeFileSync(`public/deals/${draft}`, draftFile.data, (err) => {
-        if (err) {
-          throw ApiError.BadRequest('Wrong');
-        }
-      });
+
+      img.mv(path.resolve('public/deals/' + preview));
+      // await diskService.saveAvatar(draftFile.tempFilePath);
+      console.log(draftFile);
+      draftFile.mv(path.resolve('public/deals/' + draft));
+
       return res.json(deal);
     } catch (e) {
       next(e);
     }
   }
+
   async getOne(req, res, next) {
     const { id } = req.params;
     try {
@@ -63,6 +62,8 @@ class dealsController {
                 association: OrderUserAssociation,
               },
             ],
+            separate: true,
+            order: [['createdAt', 'DESC']],
           },
           {
             association: 'payments',
@@ -86,6 +87,7 @@ class dealsController {
       next(e);
     }
   }
+
   async getList(req, res, next) {
     const { userId, clientId, pageNumber, size, status } = req.query;
     const { limit, offset } = getPagination(pageNumber, size);
@@ -111,7 +113,17 @@ class dealsController {
           },
           {
             association: 'orders',
-            attributes: ['id', 'name', 'deadline'],
+            include: [
+              {
+                model: Stage,
+                as: 'stage',
+              },
+              {
+                association: OrderUserAssociation,
+              },
+            ],
+            separate: true,
+            order: [['createdAt', 'DESC']],
           },
         ],
         limit,
@@ -123,7 +135,9 @@ class dealsController {
       next(e);
     }
   }
+
   async update(req, res) {}
+
   async delete(req, res) {}
 }
 
