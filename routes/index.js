@@ -10,6 +10,7 @@ const paymentsRouter = require('../entities/payments/paymentsRouter');
 const dopsRouter = require('../entities/dops/dopsRouter');
 const orderRouter = require('../entities/orders/ordersRouter');
 const stageRouter = require('../entities/stages/stageRouter');
+const filesRouter = require('../entities/files/filesRouter');
 const profileRouter = require('./profileRouter');
 
 router.use(
@@ -25,6 +26,7 @@ router.use('/payments', paymentsRouter);
 router.use('/dops', dopsRouter);
 router.use('/orders', orderRouter);
 router.use('/stages', stageRouter);
+router.use('/files', filesRouter);
 
 //git commit --amend --no-edit // позлей изменения в предыдущий коммит
 //git commit --amend -m 'text' // Изменить коммит на новый

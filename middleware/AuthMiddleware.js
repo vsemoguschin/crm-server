@@ -18,7 +18,7 @@ module.exports = function (req, res, next) {
     }
 
     const userData = tokenService.validateAccessToken(accessToken);
-    const currentUser = User.findOne({
+    const currentUser = User.findOne({ //выдавать актуальные role и fullName
       where: {
         id: userData.id,
         [Op.and]: { isDeleted: null },

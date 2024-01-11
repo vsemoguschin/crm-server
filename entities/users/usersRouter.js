@@ -6,6 +6,7 @@ const usersController = require("./usersController");
 
 router.post(
   "/",
+  // (req)=>{console.log(req)},
   UsersRouterMiddleware.create,
   // avatarUploadMiddleware.uploadFile,
   usersController.create

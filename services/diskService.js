@@ -1,15 +1,15 @@
 const axios = require('axios');
-const YaToken = 'y0_AgAEA7qkdZTZAADLWwAAAADzcLZwc2pCfCvoTxmIeXiyx7iVK_L7h48';
+const YaToken = 'y0_AgAEA7qkcvrzAADLWwAAAAD3ffQIQaf8Plw0QhqCi-7Zcz02CNT3scc';
 
 class DiskService {
-  async saveAvatar(filePath) {
+  async uploadFile(filePath, file) {
     const encodeFilePath = encodeURI(filePath);
-    console.log(22222222222222222222222, { file });
 
     try {
-      const { href } = await axios.get('https://cloud-api.yandex.net/v1/disk/resources/upload', {
+      const { data } = await axios.get('https://cloud-api.yandex.net/v1/disk/resources/upload', {
         params: {
-          path: encodeFilePath,
+          path: filePath,
+          overwrite: true,
         },
         headers: {
           'Content-Type': 'application/json',
@@ -17,8 +17,8 @@ class DiskService {
           Authorization: 'OAuth ' + YaToken,
         },
       });
-      console.log(1111111111111, href);
-      await axios.put(href, file, {
+
+      await axios.put(data.href, file.data, {
         headers: {
           'Content-Type': 'text/plain',
         },
@@ -28,6 +28,41 @@ class DiskService {
       throw Error('Ошибка загрузки файла на диск');
     }
   }
+  async downloadFile(filePath) {
+    // const encodeFilePath = encodeURI(filePath);
+    const { data } = await axios.get('https://cloud-api.yandex.net/v1/disk/resources/download', {
+      params: {
+        path: filePath,
+        overwrite: true,
+      },
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Authorization: 'OAuth ' + YaToken,
+      },
+    });
+
+    return data.href;
+  }
+  deleteFile(filePath) {
+    try {
+      axios.delete('https://cloud-api.yandex.net/v1/disk/resources', {
+        params: {
+          path: filePath,
+          overwrite: true,
+        },
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          Authorization: 'OAuth ' + YaToken,
+        },
+      });
+    } catch (error) {
+      console.log('Ошибка удаления файла с Яндекса', error);
+    }
+  }
 }
 
 module.exports = new DiskService();
+// const d = new DiskService();
+// d.saveAvatar('/deals');

@@ -32,7 +32,7 @@ const allowedFeilds = {
     milling: { type: DataTypes.JSON }, //id, fullName, img
 };
 
-const Market = sequelize.define('task', allowedFeilds);
+const Market = sequelize.define('market', allowedFeilds);
 const taskFeilds = 
 
 module.exports = Market;

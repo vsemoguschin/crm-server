@@ -2,7 +2,7 @@ const sequelize = require('../db');
 const { DataTypes } = require('sequelize');
 
 const holeType = ['window', 'wall', 'none'];
-const fittings = ['dowel', 'cable', 'spacerHolders', 'none'];
+const fittings = ['dowel', 'cable', 'spaceHolders', 'none'];
 const neonWidth = [6, 8];
 const filials = ['SPB', 'MSK', 'KRD'];
 const materials = ['polik', 'pvh'];

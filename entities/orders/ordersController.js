@@ -11,10 +11,9 @@ const { log } = require('console');
 class OrdersController {
   async create(req, res, next) {
     try {
-      const { new_order } = req;
-      const { preview } = new_order;
+      const { newOrder } = req;
       const { img } = req.files;
-      const order = await Order.create(new_order, {
+      const order = await Order.create(newOrder, {
         include: [
           {
             association: DraftOrderAssociation,
@@ -27,7 +26,10 @@ class OrdersController {
 
       await order.addExecutors([1]);
 
-      img.mv(path.resolve('public/orders/' + preview));
+      const previewPath = 'public/orders/id' + order.id + newOrder.previewFormat;
+      order.preview = previewPath;
+      order.save();
+      img.mv(path.resolve(previewPath));
       // fs.writeFileSync('public/' + filePath, img.data, (err) => {
       //   if (err) {
       //     throw ApiError.BadRequest('Wrong');
@@ -71,13 +73,7 @@ class OrdersController {
         order,
         limit,
         offset,
-        include: [
-          {
-            model: Stage,
-            as: 'stage',
-          },
-          OrderUserAssociation,
-        ],
+        include: ['stage', 'executors'],
       };
 
       const orders = await Order.findAndCountAll(squelizeBody);
@@ -85,7 +81,7 @@ class OrdersController {
       const response = getPaginationData(orders, pageNumber, pageSize, 'orders');
       return res.json(response);
     } catch (e) {
-      next(e);
+      return res.status(400).json(e);
     }
     //сортировка по дате
   }

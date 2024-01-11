@@ -1,4 +1,5 @@
 const User = require('./users/usersModel');
+const Group = require('./groups/groupsModel');
 const Client = require('./clients/clientsModel');
 const Deal = require('./deals/dealsModel');
 const Payment = require('./payments/paymentsModel');
@@ -13,8 +14,17 @@ const { Stage, stageList } = require('./stages/stagesModel');
 User.hasMany(Deal);
 Deal.belongsTo(User);
 
-User.hasOne(WorkSpace);
+Group.belongsToMany(User, {through: 'userGroup'});
+User.belongsToMany(Group, { through: 'userGroup' });
+
+Order.belongsToMany(User, {through: 'userOrder'});
+User.belongsToMany(Order, { through: 'userOrder' });
+
+WorkSpace.hasMany(User);
 User.belongsTo(WorkSpace);
+
+WorkSpace.hasMany(Order);
+Order.belongsTo(WorkSpace);
 
 User.hasMany(Client);
 Client.belongsTo(User);
@@ -52,10 +62,7 @@ Order.belongsTo(WorkSpace);
 File.hasOne(User);
 User.hasMany(File);
 const OrderUserAssociation = Order.belongsToMany(User, { through: 'orderUsers', as: 'executors' });
-const UserOrderAssociation = User.belongsToMany(Order, { through: 'userOrders' });
 
-File.hasOne(Deal);
-Deal.hasMany(File);
 const DraftAssociation = Deal.belongsTo(File, { as: 'draft', foreignKey: 'draftId' });
 const DraftOrderAssociation = Order.belongsTo(File, { as: 'draft', foreignKey: 'draftId' });
 
@@ -77,7 +84,5 @@ module.exports = {
   workSpacesList,
   DraftAssociation,
   DraftOrderAssociation,
-  UserOrderAssociation,
   OrderUserAssociation,
-  DraftOrderAssociation,
 };
