@@ -1,13 +1,13 @@
 const ApiError = require('../../error/apiError');
 const usersModelDto = require('./usersModelDto');
+const usersRoles = require('./usersRoles');
 const rolesPermissions = require('./usersPermissions');
-const checkFormat = require('../../checking/checkFormat');
+const checkImgFormat = require('../../checking/checkFormat');
 const uuid = require('uuid');
 const checkUserEmailAndPassword = require('../../checking/checkUserEmailAndPassword');
-const productUsers = ['RP', 'FRZ', 'LAM', 'MASTER', 'PACKER'];
 
 class UsersRouterMiddleware {
-  create(req, res, next) {
+  async create(req, res, next) {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
     const { role: requesterRole, fullName: requesterFullName, id: requesterId, ownersList: requesterOwnersList } = req.user;
     const { role } = req.body;
@@ -21,11 +21,8 @@ class UsersRouterMiddleware {
       if (!userDatas || !req?.files?.img) {
         throw ApiError.BadRequest('Забыл что то указать');
       }
-      if (productUsers.some((user) => user == role) && userDatas.workSpaceId == 1) {
-        throw ApiError.BadRequest('Забыл указать пространство');
-      }
       const { img } = req.files;
-      const imgFormat = checkFormat(img.name);
+      const imgFormat = checkImgFormat(img.name);
       if (!imgFormat) {
         throw ApiError.BadRequest('Не верный формат изображения');
       }
@@ -37,7 +34,7 @@ class UsersRouterMiddleware {
       // avatar.mv(path.resolve(__dirname, '..', 'static/users_avatars', fileName))
       req.newUser = {
         ...userDatas,
-        status: 'offline',
+        department: usersRoles[role].department,
         owner: {
           id: requesterId,
           fullName: requesterFullName,
@@ -51,6 +48,7 @@ class UsersRouterMiddleware {
       next(e);
     }
   }
+
   getOne(req, res, next) {
     const { id } = req.params;
     try {
@@ -63,9 +61,10 @@ class UsersRouterMiddleware {
       next(e);
     }
   }
+
   getList(req, res, next) {
     const requesterRole = req.user.role;
-    let { role } = req.query;
+    const { role } = req.query;
     try {
       const availableRoles = rolesPermissions.getListOfUsers(requesterRole);
       if (role && !availableRoles.some((availableRole) => availableRole == role)) {
@@ -79,6 +78,7 @@ class UsersRouterMiddleware {
       next(e);
     }
   }
+
   updateUser(req, res, next) {
     const { password, email, role, fullName, info, isDeleted, avatar } = req.body;
     const errorData = checkUserEmailAndPassword(email, password);

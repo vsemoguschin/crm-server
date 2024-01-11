@@ -1,12 +1,11 @@
 const ApiError = require("../../error/apiError");
 const bcrypt = require("bcrypt");
-const User = require("./usersModel");
+const { User, WorkSpace } = require("../association");
 const { Op } = require("sequelize");
 const fs = require("fs-extra");
 // const diskService = require("../services/diskService");
 const getPagination = require("../../utils/getPagination");
 const getPaginationData = require("../../utils/getPaginationData");
-
 class UsersController {
   //создание пользователя
   async create(req, res, next) {
@@ -43,8 +42,24 @@ class UsersController {
   //получение конкретного пользователя по id
   async getOne(req, res, next) {
     const { id } = req.params;
+    //себя выводить ссылкой на личный кабинет
+    //если менеджер - выводить
+    // - сделки(сортировка по сделкам?(закрытые в процессе)), сумма сделок, допы, суммы допов
+    // - информация - роль, руководителя
 
+    //если РОП 
+    // - сделки свои, сделки подчиненых, сумма сделок своих и подчиненых, то же самое с допами
+
+    //если 
     const requesterId = req.user.id;
+    const managersAssociations = [
+      {
+        association: 'deals',
+        include: [{
+          association: ['orders', 'clients'],
+        }]
+      }
+    ];
     console.log(id);
     try {
       let user;
@@ -65,9 +80,17 @@ class UsersController {
           attributes: { exclude: ["password"] },
           include: [
             {
+              association: 'deals',
+              attributes:
+                ['id', 'title'],
+            },
+            {
               association: 'workSpace',
               attributes:
-                ['id', 'name']
+                ['id', 'name'],
+              include: [{
+                association: 'orders',
+              }]
             }
           ]
         });

@@ -84,3 +84,5 @@ typings/
 
 # MacOs files
 .DS_Store
+
+test.js

@@ -1,11 +1,11 @@
-module.exports = class OrderDto {
+module.exports = class UsersModelDto {
     constructor(model) {
         this.feildsForCreate = {
             fullName: model.fullName,
             email: model.email,
             info: model.info || '',
             role: model.role,
-            workSpaceId: model.workSpaceId || 1
+            // workSpaceId: model.workSpaceId || 1
         };
         this.feildsForSearch = {
         }

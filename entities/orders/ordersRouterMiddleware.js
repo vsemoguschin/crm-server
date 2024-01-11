@@ -25,11 +25,11 @@ class OrdersRouterMiddleware {
       if (!imgFormat) {
         throw ApiError.BadRequest('Не верный формат изображения');
       }
-      let preview = uuid.v4() + imgFormat;
-      req.new_order = {
+      req.newOrder = {
         ...taskDatas,
         stageId: 1,
-        preview,
+        preview: '',
+        previewFormat: imgFormat,
         userId: req.user.id,
       };
 

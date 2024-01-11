@@ -3,6 +3,7 @@ const File = require('./filesModel');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
 const clearEmptyFields = require('../../utils/clearEmptyFields');
+const diskService = require('../../services/diskService');
 class filesController {
   async create(req, res, next) {
     try {
@@ -38,6 +39,11 @@ class filesController {
     } catch (e) {
       next(e);
     }
+  }
+  async download(req, res) {
+    const filePath = req.query.filepath;
+    const link = await diskService.downloadFile(filePath);
+    return res.json({ link });
   }
   async update(req, res) {}
   async delete(req, res) {}

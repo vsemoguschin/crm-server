@@ -32,7 +32,6 @@ class DealsRouterMiddleware {
       }
 
       let preview = uuid.v4() + imgFormat;
-      let draftName = uuid.v4() + draftFormat;
       req.new_deal = {
         title,
         price,
@@ -41,8 +40,7 @@ class DealsRouterMiddleware {
         deadline,
         status: 'created',
         description,
-        preview,
-        draft: draftName,
+        previewFormat: imgFormat,
         clothing_method: 'ping',
         userId: req.user.id,
       };
@@ -82,6 +80,30 @@ class DealsRouterMiddleware {
     } catch (e) {
       next(e);
     }
+  }
+  update(req, res, next) {
+    const requester = req.user.role;
+    const requesterID = req.user.id;
+    const updateData = req.body;
+    const { img, draft } = req.files || {};
+
+    req.updateData = updateData;
+
+    const permission = dealsPermissions.check(requester);
+    if (!permission) {
+      throw ApiError.Forbidden('Нет доступа');
+    }
+    const imgFormat = img ? checkFormat(img.name) : undefined;
+    if (img && !imgFormat) {
+      throw ApiError.BadRequest('Не верный формат изображения');
+    }
+
+    req.updateData.previewFormat = imgFormat;
+    const draftFormat = draft ? checkFormat(draft.name, ['dws', 'dxf', 'dwg']) : undefined;
+    if (draft && !draftFormat) {
+      throw ApiError.BadRequest('Не верный формат макета');
+    }
+    next();
   }
 }
 

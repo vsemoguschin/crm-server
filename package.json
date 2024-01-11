@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js mode=development",
+    "test": "nodemon test.js mode=development",
     "start:prod": "node index.js  mode=production"
   },
   "keywords": [],

@@ -1,20 +1,23 @@
 const ApiError = require('../../error/apiError');
 const { Deal, User, Client, Payment, File, DraftAssociation, Stage, OrderUserAssociation } = require('../association');
-const fs = require('fs-extra');
 const path = require('path');
 const diskService = require('../../services/diskService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
 const clearEmptyFields = require('../../utils/clearEmptyFields');
+const fs = require('fs');
 
 class dealsController {
   async create(req, res, next) {
     try {
       const { new_deal } = req;
-      const { preview, draft } = new_deal;
+      const { previewFormat } = new_deal;
       const { img, draft: draftFile } = req.files;
-      const draftData = { name: draftFile.name, size: draftFile.size, url: draft };
+
+      const pathToAy = 'EasyCRM/deals/drafts/' + draftFile.name;
+      const draftData = { name: draftFile.name, size: draftFile.size, url: pathToAy };
       new_deal.draft = draftData;
+      new_deal.preview = '';
 
       const deal = await Deal.create(new_deal, {
         include: {
@@ -22,15 +25,21 @@ class dealsController {
           as: 'draft',
         },
       });
+      const preview = 'public/deals/id' + deal.id + previewFormat;
+      deal.preview = preview;
+      deal.save();
 
-      img.mv(path.resolve('public/deals/' + preview));
-      // await diskService.saveAvatar(draftFile.tempFilePath);
-      console.log(draftFile);
-      draftFile.mv(path.resolve('public/deals/' + draft));
+      await diskService.uploadFile(pathToAy, draftFile).catch((error) => {
+        console.log(error);
+        // Возможно надо удалить записись из БД и вернуть им ошибку
+      });
+
+      img.mv(path.resolve(preview));
 
       return res.json(deal);
     } catch (e) {
-      next(e);
+      console.log(e);
+      return res.status(400).json(e);
     }
   }
 
@@ -53,15 +62,7 @@ class dealsController {
           },
           {
             association: 'orders',
-            include: [
-              {
-                model: Stage,
-                as: 'stage',
-              },
-              {
-                association: OrderUserAssociation,
-              },
-            ],
+            include: ['stage', 'executors'],
             separate: true,
             order: [['createdAt', 'DESC']],
           },
@@ -84,7 +85,7 @@ class dealsController {
       });
       return res.json(deal);
     } catch (e) {
-      next(e);
+      return res.status(400).json(e);
     }
   }
 
@@ -136,7 +137,40 @@ class dealsController {
     }
   }
 
-  async update(req, res) {}
+  async update(req, res) {
+    try {
+      const { img, draft } = req.files || {};
+      const updateData = req.updateData;
+      const previewFormat = { updateData };
+
+      const deal = await Deal.update(updateData, { where: { id: req.params.id } });
+
+      if (img) {
+        console.log(deal.preview);
+        await fs.unlink(`/public/deals/${deal.preview}`, (err) => {
+          console.log(err);
+        });
+
+        const preview = 'public/deals/id' + deal.id + previewFormat;
+        img.mv(path.resolve(preview));
+      }
+
+      if (draft) {
+        diskService.deleteFile(deal.draft.url);
+
+        const pathToAy = 'EasyCRM/deals/drafts/' + draft.name;
+        const draftData = { name: draftFile.name, size: draftFile.size, url: pathToAy };
+        await draft.setDraft(draftData);
+
+        await diskService.uploadFile(pathToAy, draft);
+      }
+
+      return res.json(deal);
+    } catch (error) {
+      console.log(error);
+      return res.status(400).json(error);
+    }
+  }
 
   async delete(req, res) {}
 }

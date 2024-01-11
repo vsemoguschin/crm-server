@@ -1,18 +1,15 @@
 const allows = {
-  ADMIN: ["ADMIN", "KD", "DO", "ROP", "MOP", "ROV", "MOV", "ROD", "DEZ", //коммерческий и руководящие
-  'FRZ'],
-  KD: ["DO", "ROP", "MOP"],
-  RR: ["ROP", "MOP"],
-  ROP: ["MOP"],
-  MOP: [],
-  DIZ: [],
+  ['ADMIN']: ["ADMIN", "KD", "DO", "ROP", "MOP", "ROV", "MOV", "ROD", "DEZ", 'FRZ'],
+  ['KD']: ['DO', 'ROP', 'MOP', 'ROV', 'MOV', 'ROD', 'DIZ'],
+  ['DO']: ['ROP', 'MOP'],
+  ['ROP']: ["MOP"],
+  ['MOP']: [],
+  ['DIZ']: [],
 };
 
 class RolesPermissions {
   createUser(requester, roleRequest) {
-    if (allows[requester].some(role => role === roleRequest)) {
-      return true
-    }
+    return allows[requester].some(role => role === roleRequest)
   }
   getListOfUsers(requester) {
     return allows[requester];
@@ -21,6 +18,7 @@ class RolesPermissions {
     return allows[requester];
   }
 }
+
 module.exports = new RolesPermissions();
 
 
