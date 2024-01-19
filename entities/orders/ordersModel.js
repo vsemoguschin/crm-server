@@ -11,6 +11,7 @@ const allowedFeilds = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   name: { type: DataTypes.STRING, allowNull: false }, //передать из title сделки? + номер
   description: { type: DataTypes.STRING, allowNull: true },
+  filial: { type: DataTypes.STRING },
   preview: { type: DataTypes.STRING, allowNull: false },
   deadline: { type: DataTypes.STRING, allowNull: false },
   material: { type: DataTypes.STRING, defaultValue: 'polik' },

@@ -14,10 +14,10 @@ const { Stage, stageList } = require('./stages/stagesModel');
 User.hasMany(Deal);
 Deal.belongsTo(User);
 
-Group.belongsToMany(User, {through: 'userGroup'});
+Group.belongsToMany(User, { through: 'userGroup' });
 User.belongsToMany(Group, { through: 'userGroup' });
 
-Order.belongsToMany(User, {through: 'userOrder'});
+Order.belongsToMany(User, { through: 'userOrder' });
 User.belongsToMany(Order, { through: 'userOrder' });
 
 WorkSpace.hasMany(User);
@@ -43,6 +43,9 @@ Deal.belongsTo(Client);
 
 Deal.hasMany(Order);
 Order.hasOne(Deal);
+
+// Order.hasMany(Present);
+// Present.belongsTo(Order);
 
 Deal.hasMany(Dop);
 Dop.belongsTo(Deal);
@@ -72,6 +75,7 @@ Order.hasMany(File);
 module.exports = {
   User,
   Client,
+  Group,
   Deal,
   Order,
   Dop,
