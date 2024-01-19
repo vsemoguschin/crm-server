@@ -85,6 +85,7 @@ class dealsController {
       });
       return res.json(deal);
     } catch (e) {
+      console.log(e);
       return res.status(400).json(e);
     }
   }
@@ -159,7 +160,7 @@ class dealsController {
         diskService.deleteFile(deal.draft.url);
 
         const pathToAy = 'EasyCRM/deals/drafts/' + draft.name;
-        const draftData = { name: draftFile.name, size: draftFile.size, url: pathToAy };
+        const draftData = { name: draft.name, size: draft.size, url: pathToAy };
         await draft.setDraft(draftData);
 
         await diskService.uploadFile(pathToAy, draft);

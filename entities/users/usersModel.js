@@ -3,7 +3,9 @@ const { DataTypes } = require('sequelize');
 
 const DEPARTMENTS = ['COMERCIAL', 'PRODUCTION'];
 
-const User = sequelize.define("user", {
+const User = sequelize.define(
+  'user',
+  {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     fullName: { type: DataTypes.STRING, allowNull: false },
     email: { type: DataTypes.STRING, allowNull: false, unique: true },
@@ -29,6 +31,7 @@ const User = sequelize.define("user", {
     scopes: {
       fullScope: {},
     },
-  });
+  },
+);
 
 module.exports = User;

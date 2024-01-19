@@ -1,13 +1,12 @@
-require('dotenv').config(); //экспорт переменного окружения
 const express = require('express');
 require('dotenv').config(); //экспорт переменного окружения
 const fileUpload = require('express-fileupload');
 const path = require('path');
 const cors = require('cors');
 
-const presets = require('./presets/presets');
 const sequelize = require('./entities/db');
 const router = require('./routes/index');
+const presets = require('./presets/presets');
 const errorHandling = require('./middleware/ErrorHandlingMiddleware');
 const cookieParser = require('cookie-parser');
 
@@ -46,10 +45,11 @@ app.use(errorHandling);
 const start = async () => {
   try {
     // await sequelize.drop();
-    await sequelize.authenticate();
+    // await sequelize.authenticate();
     // await sequelize.sync({ alter: true, force: true });
 
-    await presets.createAdmin();
+    // await presets.createAdmin();
+    // await presets.createStages();
 
     app.listen(PORT, () => console.log(`${PORT}`));
   } catch (error) {

@@ -10,13 +10,12 @@ class avatarUploadMiddleware {
   async uploadFile(req, res, next) {
     const { id } = req.baseUrl === '/api/profile' ? req.user : req.params;
     try {
-      const { avatar: base64Data } = req.body;
-      if (!base64Data) {
+      const { avatar } = req.files;
+      if (!avatar) {
         next();
         return;
       }
-      console.log('base64Data');
-      const fileType = checkFormat(base64Data);
+      const fileType = checkFormat(avatar.name);
       if (!fileType) {
         return res.status(400).json('Ошибка загрузки файла. Обратитесь к администратору');
       }
@@ -42,11 +41,12 @@ class avatarUploadMiddleware {
         }
       }
 
+      avatar.mv(filePath);
       // Записываю новый файл
-      fs.writeFileSync(path.join(filePath), base64Data.replace(/^data:image\/(png|jpeg|jpg);base64,/, ''), { recursive: true, encoding: 'base64' });
+      // fs.writeFileSync(path.join(filePath), base64Data.replace(/^data:image\/(png|jpeg|jpg);base64,/, ''), { recursive: true, encoding: 'base64' });
 
       // Путь относительно URL
-      req.body.avatar = url + filePath;
+      req.body.avatar = filePath;
       next();
     } catch (error) {
       console.log(error);

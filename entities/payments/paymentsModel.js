@@ -1,7 +1,8 @@
 const sequelize = require('../db')
 const { DataTypes } = require('sequelize')
 
-const methods = ['cash', 'transfer', 'contract', 'c.o.d.', 'link'];
+const methods = ['cash', 'transfer', 'contract', 'c.o.d.', 'link'];//таблица
+//перевод, долями, расрочка, наложенный платеж, по ссылки, по счету, наличка
 
 const Payment = sequelize.define('payment', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },

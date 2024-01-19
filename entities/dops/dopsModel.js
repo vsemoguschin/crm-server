@@ -1,7 +1,7 @@
 const sequelize = require('../db')
 const { DataTypes } = require('sequelize')
 
-const types = ['present', 'mounting', 'fittings', 'lamination', 'dimer', '8mm'];
+const types = ['present', 'mounting', 'fittings', 'lamination', 'dimer', '8mm']; //может быть ещё любой
 
 const Dop = sequelize.define('dop', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
