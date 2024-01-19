@@ -17,6 +17,10 @@ const Client = sequelize.define('client', {
     sphere: { type: DataTypes.STRING },
     info: { type: DataTypes.STRING },
     isDeleted: { type: DataTypes.BOOLEAN, defaultValue: false }
-});
+},
+    {
+        paranoid: true,
+    }
+);
 
 module.exports = Client, marketplaces;

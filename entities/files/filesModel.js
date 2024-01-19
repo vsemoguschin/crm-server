@@ -6,6 +6,8 @@ const File = sequelize.define('file', {
   name: { type: DataTypes.STRING, allowNull: false },
   size: { type: DataTypes.INTEGER, allowNull: false },
   url: { type: DataTypes.STRING, allowNull: false },
+}, {
+  paranoid: true,
 });
 
 module.exports = File;

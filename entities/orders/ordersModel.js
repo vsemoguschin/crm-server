@@ -35,6 +35,6 @@ const allowedFeilds = {
   milling: { type: DataTypes.JSON }, //id, fullName, img
 };
 
-const Order = sequelize.define('order', allowedFeilds);
+const Order = sequelize.define('order', allowedFeilds, {paranoid: true});
 
 module.exports = Order;

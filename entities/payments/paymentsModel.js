@@ -11,8 +11,8 @@ const Payment = sequelize.define('payment', {
     date: { type: DataTypes.STRING, allowNull: false },
     method: { type: DataTypes.STRING, allowNull: false },
     description: { type: DataTypes.STRING, allowNull: true },
-    // isDeleted: { type: DataTypes.BOOLEAN, defaultValue: false }
-
+}, {
+    paranoid: true,
 });
 
 module.exports = Payment;

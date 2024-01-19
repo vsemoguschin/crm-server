@@ -19,7 +19,9 @@ const Deal = sequelize.define('deal', {
     status: { type: DataTypes.STRING },
     deadline: {type: DataTypes.STRING},
     description: { type: DataTypes.STRING },
-    isDeleted: { type: DataTypes.BOOLEAN, defaultValue: false }
-});
+}, {
+    paranoid: true,
+}
+);
 
 module.exports = Deal;

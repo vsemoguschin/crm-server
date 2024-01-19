@@ -13,6 +13,8 @@ const WorkSpace = sequelize.define('workSpace', {
     fullName: { type: DataTypes.STRING, allowNull: false },
     department: { type: DataTypes.STRING, allowNull: false },
     // creator: { type: DataTypes.STRING, allowNull: false },
+}, {
+    paranoid: true,
 });
 
 module.exports = {

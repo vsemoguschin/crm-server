@@ -9,8 +9,8 @@ const Dop = sequelize.define('dop', {
     type: { type: DataTypes.STRING, allowNull: false },
     price: { type: DataTypes.INTEGER, allowNull: false },
     description: { type: DataTypes.STRING, allowNull: true },
-    // isDeleted: { type: DataTypes.BOOLEAN, defaultValue: false }
-
+}, {
+    paranoid: true,
 });
 
 module.exports = Dop;

@@ -31,6 +31,7 @@ const User = sequelize.define(
     scopes: {
       fullScope: {},
     },
+    paranoid: true,
   },
 );
 

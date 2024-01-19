@@ -30,6 +30,8 @@ const Stage = sequelize.define('stage', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   title: { type: DataTypes.STRING, allowNull: false, unique: true },
   job: { type: DataTypes.STRING },
+}, {
+  paranoid: true,
 });
 
 module.exports = {

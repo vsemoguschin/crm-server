@@ -15,6 +15,8 @@ const Delivery = sequelize.define('delivery', {
   track: { type: DataTypes.INTEGER },
   isDone: { type: DataTypes.BOOLEAN, defaultValue: false },
   //client or phone?
+}, {
+  paranoid: true,
 });
 
 module.exports = Delivery;
