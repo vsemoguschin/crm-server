@@ -1,26 +1,32 @@
-const { User, WorkSpace, workSpacesList, stageList, Stage } = require('../entities/association');
+const { User, 
+  WorkSpace, 
+  workSpacesList, 
+  stageList, 
+  Stage } = require('../entities/association');
+const { Role, rolesList } = require('../entities/roles/rolesModel');
 const bcrypt = require('bcrypt');
 
 class Presets {
   async createAdmin() {
     const hashPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 3); //хешируем пароль
-    return await User.findOrCreate({
+    return  await User.findOrCreate({
       where: { email: process.env.ADMIN_EMAIL },
       defaults: {
         email: process.env.ADMIN_EMAIL,
-        role: process.env.ADMIN_ROLE,
         fullName: process.env.ADMIN_NAME,
         password: hashPassword,
-        ownersList: [],
-        owner: {
-          id: 1,
-          fullName: process.env.ADMIN_NAME,
-          role: process.env.ADMIN_ROLE,
-          ownersList: [],
-        },
         avatar: '1.jpg',
-      },
+        roleId: 1,
+      }, paranoid: false
     });
+  }
+  async createRoles() {
+    for (let i = 0; i < rolesList.length; i++) {
+      await Role.findOrCreate({
+        where: { shortName: rolesList[i].shortName },
+        defaults: rolesList[i],
+      });
+    }
   }
   async createworkSpaces() {
     for (let i = 0; i < workSpacesList.length; i++) {

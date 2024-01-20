@@ -45,9 +45,10 @@ app.use(errorHandling);
 const start = async () => {
   try {
     // await sequelize.drop();
-    // await sequelize.authenticate();
+    await sequelize.authenticate();
     // await sequelize.sync({ alter: true, force: true });
 
+    // await presets.createRoles();
     // await presets.createAdmin();
     // await presets.createStages();
 

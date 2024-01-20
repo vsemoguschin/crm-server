@@ -144,6 +144,11 @@ class ClientController {
   async delete(req, res) {
     try {
       const { id } = req.params;
+      const deletedClient = await Client.destroy({ where: id });
+      if (deletedClient === 0) {
+        return res.json('Клиент не удален');
+      }
+      return res.json('Клиент удален');
       await Client.update({ isDeleted: true }, { where: { id: id } });
       return res.json({ message: "OK" });
     } catch (error) {

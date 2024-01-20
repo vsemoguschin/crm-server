@@ -173,7 +173,18 @@ class dealsController {
     }
   }
 
-  async delete(req, res) {}
+  async delete(req, res) {
+    try {
+      const { id } = req.params;
+      const deletedDeal = await Deal.destroy({ where: id });
+      if (deletedDeal === 0) {
+        return res.json('Сделка не удалена');
+      }
+      return res.json('Сделка удалена');
+    } catch (e) {
+      next(e)
+    }
+  }
 }
 
 module.exports = new dealsController();

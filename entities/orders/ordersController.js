@@ -143,6 +143,18 @@ class OrdersController {
 
     return res.json('ok');
   }
+  async delete(req, res, next) {
+    try {
+      const { id } = req.params;
+      const deletedOrder = await Order.destroy({ where: id });
+      if (deletedOrder === 0) {
+        return res.json('Заказ не удален');
+      }
+      return res.json('Заказ удален');
+    } catch (e) {
+      next(e)
+    }
+  }
 }
 
 module.exports = new OrdersController();

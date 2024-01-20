@@ -3,14 +3,12 @@ module.exports = class UserDto {
   email;
   role;
   fullName;
-  ownersList;
   workSpace;
   constructor(model) {
     this.id = model.id;
     this.email = model.email;
     this.fullName = model.fullName;
     this.workSpace = model.workSpaceId;
-    this.role = model.role;
-    this.ownersList = model.ownersList;
+    this.role = model.role.dataValues.shortName;
   }
 };

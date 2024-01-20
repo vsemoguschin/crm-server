@@ -76,9 +76,17 @@ class paymentsController {
         
     };
     async delete(req, res) {
-
-    }
-
+        try {
+            const { id } = req.params;
+            const deletedPayment = await Payment.destroy({ where: id });
+            if (deletedPayment === 0) {
+              return res.json('Платеж не удален');
+            }
+            return res.json('Платеж удален');
+          } catch (e) {
+            next(e)
+          }
+        }
 };
 
 module.exports = new paymentsController();

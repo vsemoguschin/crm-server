@@ -40,7 +40,18 @@ class dopsController {
     }
   }
   async update(req, res) {}
-  async delete(req, res) {}
+  async delete(req, res) {
+    try {
+      const { id } = req.params;
+      const deletedDop = await Dop.destroy({ where: id });
+      if (deletedDop === 0) {
+        return res.json('Доп не удален');
+      }
+      return res.json('Доп удален');
+    } catch (e) {
+      next(e)
+    }
+  }
 }
 
 module.exports = new dopsController();

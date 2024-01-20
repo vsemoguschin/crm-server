@@ -1,6 +1,6 @@
 const ApiError = require('../../error/apiError');
 const usersModelDto = require('./usersModelDto');
-const usersRoles = require('./usersRoles');
+const usersRoles = require('../roles/rolesList');
 const rolesPermissions = require('./usersPermissions');
 const checkImgFormat = require('../../checking/checkFormat');
 const uuid = require('uuid');
@@ -35,12 +35,6 @@ class UsersRouterMiddleware {
       req.newUser = {
         ...userDatas,
         department: usersRoles[role].department,
-        owner: {
-          id: requesterId,
-          fullName: requesterFullName,
-          role: requesterRole,
-        },
-        ownersList: [requesterId, ...requesterOwnersList],
       };
       req.img = img;
       next();
