@@ -194,6 +194,11 @@ class UsersController {
   async delete(req, res) {
     // patch-запрос  в теле запроса(body) передаем строку(raw) в формате JSON
     const { id } = req.params;
+    const deletedUser = await User.destroy({ where: { id } });
+    if (deletedUser === 0) {
+      return res.json('Пользлватель не удален');
+    }
+    return res.json('Пользлватель удален');
     const user = await User.update(
       { isDeleted: true },
       {

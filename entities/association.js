@@ -1,4 +1,5 @@
 const User = require('./users/usersModel');
+const { Role } = require('./roles/rolesModel');
 const Group = require('./groups/groupsModel');
 const Client = require('./clients/clientsModel');
 const Deal = require('./deals/dealsModel');
@@ -13,6 +14,9 @@ const { Stage, stageList } = require('./stages/stagesModel');
 
 User.hasMany(Deal);
 Deal.belongsTo(User);
+
+User.hasOne(Role);
+User.belongsTo(Role);
 
 Group.belongsToMany(User, { through: 'userGroup' });
 User.belongsToMany(Group, { through: 'userGroup' });
@@ -74,6 +78,7 @@ Order.hasMany(File);
 
 module.exports = {
   User,
+  Role,
   Client,
   Group,
   Deal,
