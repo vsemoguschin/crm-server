@@ -7,6 +7,6 @@ router.post('/', dealsRouterMiddleware.create, dealsController.create);
 router.get('/:id', dealsRouterMiddleware.getOne, dealsController.getOne);
 router.get('/', dealsRouterMiddleware.getList, dealsController.getList);
 router.put('/:id', dealsRouterMiddleware.update, dealsController.update);
-// router.delete('/:id', dealsController.delete);
+router.delete('/:id', dealsRouterMiddleware.delete, dealsController.delete);
 
 module.exports = router;

@@ -1,16 +1,16 @@
 const ApiError = require('../../error/apiError');
 const modelsService = require('../../services/modelsService');
-const { Dop, modelFields: dopsModelFields } = require('./dopsModel');
+const { Delivery, modelFields: deliveriesModelFields } = require('./deliveriesModel');
 const { Deal } = require('../association');
 
 const frontOptions = {
-    modelFields: modelsService.getModelFields(dopsModelFields),
+    modelFields: modelsService.getModelFields(deliveriesModelFields),
 };
 const permissions = ['ADMIN', 'G', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
-const updateFields = ['title', 'price', 'type', 'description'];
-const searchFields = ['title', 'type'];
+const updateFields = ['method', 'type', 'description', 'city', 'recived'];
+let searchFields = ['method', 'type', 'description', 'city', 'recived', 'price', 'track', 'sent'];
 
-class DopsRouterMiddleware {
+class DeliverysRouterMiddleware {
     async create(req, res, next) {
         //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
         try {
@@ -32,8 +32,8 @@ class DopsRouterMiddleware {
                 console.log(false, 'No deal');
                 throw ApiError.BadRequest('No deal');
             }
-            const newDop = await modelsService.checkFields(dopsModelFields, req.body);
-            req.newDop = newDop;
+            const newDelivery = await modelsService.checkFields(deliveriesModelFields, req.body);
+            req.newDelivery = newDelivery;
             next();
         } catch (e) {
             next(e);
@@ -42,7 +42,8 @@ class DopsRouterMiddleware {
     async getOne(req, res, next) {
         try {
             const requester = req.user.role;
-            if (!permissions.includes(requester)) {
+            if (!permissions.includes(requester)
+                && !['DP', 'RP', 'PACKER'].includes(requester)) {
                 return console.log(false, 'no acces');
             };
             next();
@@ -53,7 +54,8 @@ class DopsRouterMiddleware {
     async getList(req, res, next) {
         try {
             const requester = req.user.role;
-            if (!permissions.includes(requester)) {
+            if (!permissions.includes(requester)
+                && !['DP', 'RP', 'PACKER'].includes(requester)) {
                 return console.log(false, 'no acces');
             }
             req.searchFields = searchFields;
@@ -65,11 +67,15 @@ class DopsRouterMiddleware {
     async update(req, res, next) {
         try {
             const requester = req.user.role;
-            if (!permissions.includes(requester)) {
+            if (!permissions.includes(requester)
+                && !['DP', 'RP', 'PACKER'].includes(requester)) {
                 console.log(false, 'no acces');
                 throw ApiError.Forbidden('Нет доступа');
             }
             req.updateFields = updateFields;
+            if (['DP', 'RP', 'PACKER'].includes(requester)) {
+                req.updateFields = ['price', 'track', 'sent'];
+            }
             next()
         } catch (e) {
             next(e)
@@ -90,4 +96,4 @@ class DopsRouterMiddleware {
 }
 
 
-module.exports = new DopsRouterMiddleware;
+module.exports = new DeliverysRouterMiddleware;

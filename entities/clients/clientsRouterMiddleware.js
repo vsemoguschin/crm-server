@@ -1,74 +1,93 @@
 const ApiError = require("../../error/apiError");
-const Client = require("./clientsModel");
-const clientPermissions = require("./clientsPermissions");
+const { Client, modelFields: clientsModelFields } = require("./clientsModel");
+const modelsService = require('../../services/modelsService');
+
+const frontOptions = {
+  modelFields: modelsService.getModelFields(clientsModelFields),
+};
+const permissions = ['ADMIN', 'G', 'KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
+const updateFields = ['gender', 'city', 'region', 'type', 'sphere', 'fullName', 'chatLink', 'phone', 'info'];
+const searchFields = ['gender', 'city', 'region', 'type', 'sphere', 'fullName', 'chatLink', 'phone'];
+
 
 class ClientsRouterMiddleware {
   async create(req, res, next) {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
-    const requester = req.user.role;
-    const { fullName, phone } = req.body;
     try {
-      const permission = clientPermissions.check(requester);
-      if (!permission) {
-        throw ApiError.Forbidden("Нет доступа");
+      const requester = req.user.role;
+      if (!permissions.includes(requester)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
       }
-
-      if (!phone || !fullName) {
-        return next(ApiError.BadRequest("Забыл что то указать"));
-      }
-      if ((phone && isNaN(phone)) || phone.length != 12) {
-        return next(ApiError.BadRequest("Ошибка создания клиента"));
-        return res.status(400).json({
-          message: "Ошибка создания клиента",
-          fields: ["phone"],
-        });
-      }
-      // повторку не создавать
-      const condidate = await Client.findOne({ where: { phone } });
-      console.log({ condidate });
-      if (condidate) { // почему не вернуть данные клиента?
-        return res.status(400).json({
-          message: "Пользователь с таким телефоном уже существует",
-          fields: ["phone"],
-        });
-      }
-
-      req.new_client = { fullName, phone, userId: req.user.id };
+      // сделать валидацию номера телефона
+      req.newClient = await modelsService.checkFields(clientsModelFields, req.body);
       next();
     } catch (e) {
       console.log(e);
       next(e);
     }
   }
-  getOne(req, res, next) {
-    const requester = req.user.role;
+  async getOne(req, res, next) {
     try {
-      const permission = clientPermissions.check(requester);
-      if (!permission) {
-        throw ApiError.Forbidden("Нет доступа");
+      const requester = req.user.role;
+      if (!permissions.includes(requester)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      console.log(req.user);
+      if (requester !== 'ADMIN' && req.params.id < 3) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
       }
       next();
     } catch (e) {
       next(e);
     }
   }
-  getList(req, res, next) {
-    const requester = req.user.role;
-    const { phone, owner } = req.query;
+  async getList(req, res, next) {
     try {
-      const permission = clientPermissions.check(requester);
-      if (!permission) {
-        throw ApiError.Forbidden("Нет доступа");
+      const requester = req.user.role;
+      if (!permissions.includes(requester)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
       }
-      if (owner && isNaN(owner)) {
-        throw ApiError.BadRequest("Не верное userId");
-      }
-      // if (phone && isNaN(phone) && phone.length != 11) {
-      //     throw ApiError.BadRequest("Не верное phone")
-      // };
+      req.searchFields = searchFields;
       next();
     } catch (e) {
       next(e);
+    }
+  }
+  async update(req, res, next) {
+    try {
+      const requester = req.user.role;
+      if (!permissions.includes(requester)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      if (requester !== 'ADMIN' && req.params.id < 3) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      req.updateFields = updateFields;
+      next()
+    } catch (e) {
+      next(e)
+    }
+  }
+  async delete(req, res, next) {
+    try {
+      const requester = req.user.role;
+      if (!permissions.includes(requester)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      if (requester !== 'ADMIN' && req.params.id < 3) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      next()
+    } catch (e) {
+      next(e)
     }
   }
 }

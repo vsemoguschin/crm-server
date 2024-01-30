@@ -1,110 +1,123 @@
 const ApiError = require('../../error/apiError');
-const dealsPermissions = require('./dealsPermissions');
+const modelsService = require('../../services/modelsService');
+const { Deal, modelFields: dealsModelFields } = require('./dealsModel');
+const { Client } = require('../clients/clientsModel');
 const uuid = require('uuid');
-const checkFormat = require('../../checking/checkFormat');
+const checkImgFormat = require('../../checking/checkFormat');
+
+const frontOptions = {
+  modelFields: modelsService.getModelFields(dealsModelFields),
+};
+const permissions = ['ADMIN', 'G', 'KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
+const updateFields = ['title', 'chatLink', 'clothingMethod', 'deadline', 'description', 'price', 'preview'];
+const searchFields = ['title', 'clothingMethod', 'status']
 
 class DealsRouterMiddleware {
-  create(req, res, next) {
+  async create(req, res, next) {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
-    const requester = req.user.role;
-    const requesterID = req.user.id;
-    const { title, price, deadline, clientId, sellDate, description } = req.body;
-    const { img, draft } = req.files;
     try {
-      const permission = dealsPermissions.check(requester);
-      if (!permission) {
+      const requester = req.user.role;
+      //проверка на доступ к созданию
+      if (!permissions.includes(requester)) {
+        console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
-      }
-
-      if (!title || !price || !deadline || !sellDate || (req?.files && !req?.files?.img) || !req?.files?.draft) {
+      };
+      //проверка значения и наличия клиента
+      if (!req.body.clientId || isNaN(+req.body.clientId)) {
+        console.log(false, 'Забыл что то указать');
         throw ApiError.BadRequest('Забыл что то указать');
       }
-      if (price && isNaN(price)) {
-        throw ApiError.BadRequest('Не верное price');
+      const client = await Client.findOne({
+        where: { id: req.body.clientId }
+      });
+      if (!client) {
+        console.log(false, 'No client');
+        throw ApiError.BadRequest('No client');
       }
-      const imgFormat = checkFormat(img.name);
-      if (!imgFormat) {
+      //проверка на preview
+      if (!req?.files?.img) {
+        console.log(false, 'no preview');
+        throw ApiError.BadRequest('Забыл что то указать');
+      };
+      //проверка формата изображения
+      const previewFormat = checkImgFormat(req.files.img.name);
+      if (!previewFormat) {
         throw ApiError.BadRequest('Не верный формат изображения');
       }
-      const draftFormat = checkFormat(draft.name, ['dws', 'dxf', 'dwg']);
-      if (!draftFormat) {
-        throw ApiError.BadRequest('Не верный формат макета');
-      }
 
-      let preview = uuid.v4() + imgFormat;
-      req.new_deal = {
-        title,
-        price,
-        clientId,
-        sellDate,
-        deadline,
-        status: 'created',
-        description,
-        previewFormat: imgFormat,
-        clothing_method: 'ping',
-        userId: req.user.id,
-      };
+      req.body.previewFormat = previewFormat;
+      req.body.preview = 'preview';
+      const newDeal = await modelsService.checkFields(dealsModelFields, req.body);
+      req.newDeal = newDeal;
       next();
     } catch (e) {
       next(e);
     }
   }
-  getOne(req, res, next) {
-    const requester = req.user.role;
-    console.log(req.params);
+  async getOne(req, res, next) {
     try {
-      const permission = dealsPermissions.check(requester);
-      if (!permission) {
-        throw ApiError.Forbidden('Нет доступа');
-      }
-      next();
-    } catch (e) {
-      next(e);
-    }
-  }
-  getList(req, res, next) {
-    try {
-      const { userId, clientId } = req.query;
       const requester = req.user.role;
-      const permission = dealsPermissions.check(requester);
-      if (!permission) {
-        throw ApiError.Forbidden('Нет доступа');
+      if (!permissions.includes(requester)) {
+        return console.log(false, 'no acces');
       }
-      if (userId && isNaN(userId)) {
-        throw ApiError.BadRequest('Не верное userId');
-      }
-      if (clientId && isNaN(clientId)) {
-        throw ApiError.BadRequest('Не верное clientId');
+      if (requester !== 'ADMIN' && req.params.id < 3) {
+        return console.log(false, 'no acces');
       }
       next();
     } catch (e) {
       next(e);
     }
   }
-  update(req, res, next) {
-    const requester = req.user.role;
-    const requesterID = req.user.id;
-    const updateData = req.body;
-    const { img, draft } = req.files || {};
-
-    req.updateData = updateData;
-
-    const permission = dealsPermissions.check(requester);
-    if (!permission) {
-      throw ApiError.Forbidden('Нет доступа');
+  async getList(req, res, next) {
+    try {
+      const requester = req.user.role;
+      if (!permissions.includes(requester)) {
+        return console.log(false, 'no acces');
+      }
+      req.searchFields = searchFields;
+      next();
+    } catch (e) {
+      next(e);
     }
-    const imgFormat = img ? checkFormat(img.name) : undefined;
-    if (img && !imgFormat) {
-      throw ApiError.BadRequest('Не верный формат изображения');
-    }
+  }
+  async update(req, res, next) {
+    try {
+      const requester = req.user.role;
+      if (!permissions.includes(requester)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      //проверка на preview
+      if (req?.files?.img) {
+        //проверка формата изображения
+        const previewFormat = checkImgFormat(req.files.img.name);
+        if (!previewFormat) {
+          throw ApiError.BadRequest('Не верный формат изображения');
+        }
+        req.body.previewFormat = previewFormat;
+        req.body.preview = 'preview';
+      };
 
-    req.updateData.previewFormat = imgFormat;
-    const draftFormat = draft ? checkFormat(draft.name, ['dws', 'dxf', 'dwg']) : undefined;
-    if (draft && !draftFormat) {
-      throw ApiError.BadRequest('Не верный формат макета');
+      req.updateFields = updateFields;
+      next()
+    } catch (e) {
+      next(e)
     }
-    next();
+  }
+  async delete(req, res, next) {
+    try {
+      const requester = req.user.role;
+      if (!permissions.includes(requester)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      next()
+    } catch (e) {
+      next(e)
+    }
   }
 }
+console.log();
+
 
 module.exports = new DealsRouterMiddleware();

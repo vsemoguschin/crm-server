@@ -1,19 +1,24 @@
 const sequelize = require('../db')
 const { DataTypes } = require('sequelize')
 
-const methods = ['cash', 'transfer', 'contract', 'c.o.d.', 'link'];//таблица
-//перевод, долями, расрочка, наложенный платеж, по ссылки, по счету, наличка
+const methods = ['Наличные', 'Перевод', 'Договор', 'Наложка', 'Оплата по ссылке', 'Долями', 'Рассрочка', 'По счету'];//таблица
 
-const Payment = sequelize.define('payment', {
+const modelFields = {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    name: { type: DataTypes.STRING, allowNull: false }, //title
-    price: { type: DataTypes.INTEGER, allowNull: false },
-    date: { type: DataTypes.STRING, allowNull: false },
-    method: { type: DataTypes.STRING, allowNull: false },
-    description: { type: DataTypes.STRING, allowNull: true },
-}, {
+    title: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Назначение платежа' }, //title
+    price: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'Сумма' },
+    date: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Дата отплаты' },
+    method: { type: DataTypes.STRING, allowNull: false, validateFields: methods, fieldType: 'string', fullName: 'Способ оплаты' },
+    description: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Описание' },
+};
+
+//добавить отправку по готовности
+const Payment = sequelize.define('payment', modelFields, {
     paranoid: true,
 });
 
-module.exports = Payment;
+module.exports = {
+    Payment,
+    modelFields
+};
 

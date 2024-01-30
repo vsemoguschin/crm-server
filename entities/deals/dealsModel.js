@@ -4,24 +4,32 @@ const { DataTypes } = require('sequelize');
 const statuses = ['created', 'process', 'done'];
 const clothing_method = ['ping']; //уточнить
 
-const Deal = sequelize.define('deal', {
+const modelFields = {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    title: { type: DataTypes.STRING, allowNull: false },
-    preview: { type: DataTypes.STRING, allowNull: false },
-    sellDate: { type: DataTypes.STRING, allowNull: false },//автоматом по созданию
-    price: { type: DataTypes.INTEGER, allowNull: false }, // стоимость вывески без допа, но выводить еще вместе с допами общую
-    //chatLink
-    //первый контакт
-    clothing_method: { type: DataTypes.STRING, allowNull: false },
+    title: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Низавание сделки' },
+    preview: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Превью сделки' },
+    price: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'Стоимость без допов' }, // стоимость вывески без допа, но выводить еще вместе с допами общую
+    chatLink: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Ссылка на чат' },
+    // firstContact: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Дата первого контакта' },
+    clothingMethod: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Метод закрытия' },
     // source: { type: DataTypes.STRING, allowNull: false },
-    // ad_link: { type: DataTypes.STRING, allowNull: false },
-    // balace: { type: DataTypes.INTEGER },
-    status: { type: DataTypes.STRING },
-    deadline: {type: DataTypes.STRING},
-    description: { type: DataTypes.STRING },
-}, {
+    // chatLink: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Ссылка на рекламу' },
+    status: { type: DataTypes.STRING, fieldType: 'string', validateFields: statuses, fullName: 'Статус' },
+    deadline: {type: DataTypes.STRING, fieldType: 'string', fullName: 'Дедлайн'},
+    description: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Описание' },
+};
+
+//status заменить на isDone
+
+const Deal = sequelize.define('deal',
+    modelFields, {
     paranoid: true,
 }
 );
 
-module.exports = Deal;
+console.log(true == 'true');
+
+module.exports = {
+    Deal,
+    modelFields
+};

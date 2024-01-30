@@ -1,7 +1,7 @@
 //Проверяем токен на валидность
 const tokenService = require("../services/tokenService");
 const ApiError = require("../error/apiError");
-const User = require("../entities/users/usersModel");
+const {User} = require("../entities/users/usersModel");
 const { Op } = require("sequelize");
 
 module.exports = function (req, res, next) {
@@ -21,7 +21,7 @@ module.exports = function (req, res, next) {
     const currentUser = User.findOne({ //выдавать актуальные role и fullName
       where: {
         id: userData.id,
-        [Op.and]: { isDeleted: null },
+        [Op.and]: { deletedAt: null },
       },
     });
 

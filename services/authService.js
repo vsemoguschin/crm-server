@@ -1,6 +1,5 @@
 const ApiError = require('../error/apiError');
-const User = require('../entities/users/usersModel');
-const Role = require('../entities/roles/rolesModel');
+const {User} = require('../entities/users/usersModel');
 const tokenService = require('../services/tokenService');
 const UserDto = require('../dtos/userDto');
 const bcrypt = require('bcrypt');
@@ -20,6 +19,7 @@ class AuthController {
     if (!comparePassword) {
       throw ApiError.BadRequest('Неверный логин или пароль');
     };
+    // console.log(user);
     const userDto = new UserDto(user);
     const tokens = tokenService.generateTokens({ ...userDto });
     await tokenService.saveToken(userDto.id, tokens.refreshToken);

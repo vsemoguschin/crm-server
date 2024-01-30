@@ -1,24 +1,12 @@
-const Router = require("express");
+const Router = require('express');
 const router = new Router();
-const PaymentsRouterMiddleware = require("./paymentsRouterMiddleware");
-const paymentsController = require("./paymentsController");
+const paymentsRouterMiddleware = require('./paymentsRouterMiddleware');
+const paymentsController = require('./paymentsController');
 
-router.post(
-  "/",
-  PaymentsRouterMiddleware.create,
-  paymentsController.create
-);
-
-router.get(
-  '/:id',
-  PaymentsRouterMiddleware.getOne,
-  paymentsController.getOne
-);
-
-router.get(
-  '/',
-  PaymentsRouterMiddleware.getList,
-  paymentsController.getList
-);
+router.post('/', paymentsRouterMiddleware.create, paymentsController.create);
+router.get('/:id', paymentsRouterMiddleware.getOne, paymentsController.getOne);
+router.get('/', paymentsRouterMiddleware.getList, paymentsController.getList);
+router.put('/:id', paymentsRouterMiddleware.update, paymentsController.update);
+router.delete('/:id', paymentsRouterMiddleware.delete, paymentsController.delete);
 
 module.exports = router;

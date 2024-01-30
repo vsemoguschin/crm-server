@@ -4,6 +4,7 @@ const ApiError = require('../error/apiError');
 class AuthController {
     async login(req, res, next) { //POST-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
         try {
+            // console.log(req.body);
             // return res.json({ message: 'login' });
             // return res.status(404).json({message: 'Неверный логин или пароль'})
             const { email, password } = req.body;

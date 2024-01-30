@@ -1,19 +1,36 @@
-const { Dop, modelFields: dopsModelFields } = require('./dopsModel');
+const { Delivery, modelFields: deliveryModelFields } = require('./deliveriesModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
-class dopsController {
+const ApiError = require('../../error/apiError');
+const orders = 'f';
+function isJson(req, res, next) {
+  try {
+      JSON.parse(req);
+  } catch (e) {
+    throw ApiError.BadRequest('ssss');
+  }
+  const res1 = JSON.parse(req);
+  return console.log(res1);
+}
+// isJson(orders)
+
+class deliveriesController {
+
   async create(req, res, next) {
     try {
-      const { newDop } = req;
-      const dop = await Dop.create({
-        ...newDop,
+      const { newDelivery } = req;
+      const dop = await Delivery.create({
+        ...newDelivery,
         userId: req.user.id,
         dealId: req.body.dealId,
       });
+      if (req.body.orders) {
+        const orderList = isJson(req.body.orders);
+        console.log(orderList);
+      }
       return res.json(dop);
     } catch (e) {
-      console.log(e);
       next(e)
     }
   }
@@ -21,12 +38,13 @@ class dopsController {
   async getOne(req, res, next) {
     try {
       const { id } = req.params;
-      const dop = await Dop.findOne({
+      const delivery = await Delivery.findOne({
         where: {
           id,
         },
+        include: 'orders'
       });
-      return res.json(dop);
+      return res.json(delivery);
     } catch (e) {
       next(e);
     }
@@ -45,18 +63,17 @@ class dopsController {
 
       const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
-      const dops = await Dop.findAndCountAll({
+      const deliveries = await Delivery.findAndCountAll({
         where: filter,
         order,
         limit,
         offset,
-        // include: 'dops',
       });
       const response = getPaginationData(
-        dops,
+        deliveries,
         pageNumber,
         pageSize,
-        "dops"
+        "deliveries"
       );
       return res.json(response || []);
     } catch (e) {
@@ -67,15 +84,15 @@ class dopsController {
   async update(req, res) {
     try {
       const { id } = req.params;
-      const updates = await modelsService.checkUpdates(dopsModelFields, req.body, req.updateFields);
+      const updates = await modelsService.checkUpdates(deliveryModelFields, req.body, req.updateFields);
   
-      const [updated, dop] = await Dop.update(updates, {
+      const [updated, delivery] = await Delivery.update(updates, {
         where: {
           id: id,
         },
         individualHooks: true,
       });
-      return res.status(200).json(dop)
+      return res.status(200).json(delivery)
     } catch (error) {
       console.log(error);
       return res.status(400).json(error);
@@ -85,22 +102,22 @@ class dopsController {
   async delete(req, res) {
     try {
       const { id } = req.params;
-      const deletedDop = await Dop.destroy({
+      const deletedDelivery = await Delivery.destroy({
         where: {
           id,
         },
       });
-      // console.log(deletedDop);
-      if (deletedDop === 0) {
-        console.log('Доп не удалена');
-        return res.json('Доп не удалена');
+      // console.log(deletedDelivery);
+      if (deletedDelivery === 0) {
+        console.log('Доставка не удалена');
+        return res.json('Доставка не удалена');
       }
-      console.log('Доп удалена');
-      return res.json('Доп удалена');
+      console.log('Доставка удалена');
+      return res.json('Доставка удалена');
     } catch (e) {
       next(e)
     }
   }
 }
 
-module.exports = new dopsController();
+module.exports = new deliveriesController();

@@ -1,17 +1,22 @@
 const sequelize = require('../db')
 const { DataTypes } = require('sequelize')
 
-const types = ['present', 'mounting', 'fittings', 'lamination', 'dimer', '8mm']; //может быть ещё любой
-
-const Dop = sequelize.define('dop', {
+const types = ['Подарок', 'Монтаж', 'Крепления', 'Пленка', 'Димер', '8mm']; //может быть ещё любой
+['title', 'type']
+const modelFields = {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    name: { type: DataTypes.STRING, allowNull: false }, //title(назначение платежа)
-    type: { type: DataTypes.STRING, allowNull: false },
-    price: { type: DataTypes.INTEGER, allowNull: false },
-    description: { type: DataTypes.STRING, allowNull: true },
-}, {
+    title: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Наименовае допа' },
+    type: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Тип допа' },
+    price: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'Стоимость' },
+    description: { type: DataTypes.STRING,fieldType: 'string', fullName: 'Описание' },
+};
+
+const Dop = sequelize.define('dop', modelFields, {
     paranoid: true,
 });
 
-module.exports = Dop;
+module.exports = {
+    Dop,
+    modelFields
+};
 

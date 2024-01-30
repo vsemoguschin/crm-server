@@ -1,6 +1,6 @@
 const ApiError = require('../../error/apiError');
-const ordersPermissions = require('./ordersPermissions');
-const OrderDto = require('./ordersDto');
+// const ordersPermissions = require('./ordersPermissions');
+// const OrderDto = require('./ordersDto');
 const uuid = require('uuid');
 const checkFormat = require('../../checking/checkFormat');
 const { Deal, stageList } = require('../association');
@@ -11,7 +11,7 @@ class OrdersRouterMiddleware {
     const requester = req.user.role;
     const { img } = req.files;
     try {
-      const permission = ordersPermissions.toCreate(requester);
+      // const permission = ordersPermissions.toCreate(requester);
       if (!permission) {
         throw ApiError.Forbidden('Нет доступа');
       }

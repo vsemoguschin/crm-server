@@ -1,12 +1,12 @@
-const Router = require("express");
+const Router = require('express');
 const router = new Router();
-const DopsRouterMiddleware = require("./dopsRouterMiddleware");
-const dopsController = require("./dopsController");
+const dopsRouterMiddleware = require('./dopsRouterMiddleware');
+const dopsController = require('./dopsController');
 
-router.post(
-  "/",
-  DopsRouterMiddleware.create,
-  dopsController.create
-);
+router.post('/', dopsRouterMiddleware.create, dopsController.create);
+router.get('/:id', dopsRouterMiddleware.getOne, dopsController.getOne);
+router.get('/', dopsRouterMiddleware.getList, dopsController.getList);
+router.put('/:id', dopsRouterMiddleware.update, dopsController.update);
+router.delete('/:id', dopsRouterMiddleware.delete, dopsController.delete);
 
 module.exports = router;
