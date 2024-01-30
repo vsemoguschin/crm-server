@@ -1,77 +1,93 @@
-const ApiError = require("../../error/apiError");
-const paymentsPermissions = require("./paymentsPermissions");
-const availablePaymentType = ["link", "cash", "contract", "transfer"];
+const ApiError = require('../../error/apiError');
+const modelsService = require('../../services/modelsService');
+const { Payment, modelFields: paymentsModelFields } = require('./paymentsModel');
+const { Deal } = require('../association');
+
+const frontOptions = {
+    modelFields: modelsService.getModelFields(paymentsModelFields),
+};
+const permissions = ['ADMIN', 'G', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
+const updateFields = ['title', 'price', 'date', 'method', 'description'];
+const searchFields = ['title', 'method', 'date'];
 
 class PaymentsRouterMiddleware {
-  create(req, res, next) {
-    //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
-    const requester = req.user.role;
-    const requesterID = req.user.id;
-    const { name, price, method, date, description, dealId } = req.body;
-    try {
-      if (!name || !price || !method || !date || !description || !dealId) {
-        throw ApiError.BadRequest("Забыл что то указать");
-      }
-      if (
-        !availablePaymentType.some((paymentsType) => paymentsType == method)
-      ) {
-        throw ApiError.BadRequest("Не верное payment");
-      }
-      if (price && isNaN(price)) {
-        throw ApiError.BadRequest("Не верное price");
-      }
-      const permission = paymentsPermissions.check(requester);
-      if (!permission) {
-        throw ApiError.Forbidden("Нет доступа");
-      }
-      req.new_payment = {
-        name,
-        price,
-        method,
-        date,
-        description,
-        dealId,
-        userId: requesterID,
-      };
-      next();
-    } catch (e) {
-      next(e);
+    async create(req, res, next) {
+        //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
+        try {
+            const requester = req.user.role;
+            //проверка на доступ к созданию
+            if (!permissions.includes(requester)) {
+                console.log(false, 'no acces');
+                throw ApiError.Forbidden('Нет доступа');
+            };
+            //проверка значения и наличия сделки
+            if (!req.body.dealId || isNaN(+req.body.dealId)) {
+                console.log(false, 'Забыл что то указать');
+                throw ApiError.BadRequest('Забыл что то указать');
+            }
+            const deal = await Deal.findOne({
+                where: { id: req.body.dealId }
+            });
+            if (!deal) {
+                console.log(false, 'No deal');
+                throw ApiError.BadRequest('No deal');
+            }
+            const newPayment = await modelsService.checkFields(paymentsModelFields, req.body);
+            req.newPayment = newPayment;
+            next();
+        } catch (e) {
+            next(e);
+        }
     }
-  }
-  getOne(req, res, next) {
-    const requester = req.user.role;
-    try {
-      const permission = paymentsPermissions.check(requester);
-      if (!permission) {
-        throw ApiError.Forbidden("Нет доступа");
-      }
-      next();
-    } catch (e) {
-      next(e);
+    async getOne(req, res, next) {
+        try {
+            const requester = req.user.role;
+            if (!permissions.includes(requester)) {
+                return console.log(false, 'no acces');
+            };
+            next();
+        } catch (e) {
+            next(e);
+        }
     }
-  }
-  getList(req, res, next) {
-    try {
-      const { userId, dealId, type } = req.query;
-      const requester = req.user.role;
-      const permission = paymentsPermissions.check(requester);
-      if (!permission) {
-        throw ApiError.Forbidden("Нет доступа");
-      }
-      if (availablePaymentType.some((paymentsType) => paymentsType !== type)) {
-        throw ApiError.BadRequest("Не верное payment");
-      }
-      if (userId && isNaN(userId)) {
-        throw ApiError.BadRequest("Не верное userId");
-      }
-      if (dealId && isNaN(dealId)) {
-        throw ApiError.BadRequest("Не верное dealId");
-      }
-      next();
-    } catch (e) {
-      next(e);
+    async getList(req, res, next) {
+        try {
+            const requester = req.user.role;
+            if (!permissions.includes(requester)) {
+                return console.log(false, 'no acces');
+            }
+            req.searchFields = searchFields;
+            next();
+        } catch (e) {
+            next(e);
+        }
     }
-  }
+    async update(req, res, next) {
+        try {
+            const requester = req.user.role;
+            if (!permissions.includes(requester)) {
+                console.log(false, 'no acces');
+                throw ApiError.Forbidden('Нет доступа');
+            }
+            req.updateFields = updateFields;
+            next()
+        } catch (e) {
+            next(e)
+        }
+    }
+    async delete(req, res, next) {
+        try {
+            const requester = req.user.role;
+            if (!permissions.includes(requester)) {
+                console.log(false, 'no acces');
+                throw ApiError.Forbidden('Нет доступа');
+            }
+            next()
+        } catch (e) {
+            next(e)
+        }
+    }
 }
 
-module.exports = new PaymentsRouterMiddleware();
+
+module.exports = new PaymentsRouterMiddleware;

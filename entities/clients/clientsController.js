@@ -1,51 +1,41 @@
-const { Client, User } = require("../association");
-const { Op } = require("sequelize");
+const { Client, modelFields: clientsModelFields } = require('./clientsModel');
+const modelsService = require('../../services/modelsService');
 const getPagination = require("../../utils/getPagination");
 const getPaginationData = require("../../utils/getPaginationData");
-const removeNotAllowedFields = require("../../utils/removeNotAllowedFields");
-const { getEmptyFieldsForError } = require("../../utils/getEmptyFiledsForError");
 
 class ClientController {
-  constructor() {
-    this.fields = [
-      "fullName",
-      "phone",
-      "type",
-      "field",
-      "info",
-      "gender",
-      "city",
-    ]; // Разрешенные поля для изменения
-    this.createFields = [
-      "fullName",
-      "phone",
-      "type",
-      "field",
-      "info",
-      "gender",
-      "city",
-      "owner",
-      "userId"
-    ]; // Разрешенные поля для создания
-    this.update = this.update.bind(this);
-    this.create = this.create.bind(this);
-  }
-
   async create(req, res, next) {
-    console.log(req.body);
-    const client = await Client.create(
-      removeNotAllowedFields(req.body, this.createFields)
-    );
-    return res.json(client);
+    try {
+      const { newClient } = req;
+      const [client, created] = await Client.findOrCreate({
+        where: { phone: newClient.phone },
+        defaults: {
+          ...newClient,
+          userId: req.user.id,
+        },
+      });
+      if (!created) {
+        console.log(false, 'Клиент существует');
+        return res.json('Клиент существует')
+      };
+      console.log('created_client', client);
+      return res.json(client);
+    } catch (e) {
+      next(e)
+    }
   }
 
   //получение конкретного клиента по id
   async getOne(req, res, next) {
     // get-запрос, получаем данные из param
-    const { id } = req.params;
     try {
-      const client = await Client.findOne({ where: { id } });
-      // клиенты и их сделки
+      const { id } = req.params;
+      const client = await Client.findOne({
+        where: {
+          id,
+        },
+        include: 'deals'
+      });
       return res.json(client);
     } catch (e) {
       next(e);
@@ -54,69 +44,26 @@ class ClientController {
 
   //получения всех клиентов по заданным параметрам
   async getList(req, res, next) {
-    // get-запрос передаем query параметры
+    const {
+      pageSize,
+      pageNumber,
+      key,//?
+      order: queryOrder,
+    } = req.query;
     try {
-      const {
-        pageSize,
-        pageNumber,
-        key, // название поля сортировки
-        order: queryOrder, // порядок
-        fieldSearch, // 
-        fieldSearchValue,
-      } = req.query;
-
-      const whereNameOrPhone = {
-        [Op.and]: [
-          [{ isDeleted: null }],
-          {
-            [Op.or]: [
-              {
-                fullName: {
-                  [Op.iRegexp]: fieldSearchValue,
-                },
-              },
-              {
-                phone: {
-                  [Op.iRegexp]: fieldSearchValue,
-                },
-              },
-            ],
-          },
-        ],
-      };
-
-      const whereAnother = {
-        [Op.and]: [
-          { isDeleted: null },
-          {
-            [fieldSearch]: {
-              [Op.iRegexp]: fieldSearchValue,
-            },
-          },
-        ],
-      };
-
+      const { limit, offset } = getPagination(pageNumber, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ["createdAt"];
 
-      const { limit, offset } = getPagination(pageNumber, pageSize);
-
-      const seqData = {
+      const { searchFields } = req;
+      const filter = await modelsService.searchFilter(searchFields, req.query);
+      const clients = await Client.findAndCountAll({
+        where: filter,
+        attributes: ['fullName', 'phone', 'gender'],
         order,
-        where: { [Op.and]: [{ isDeleted: null }] },
-        limit: limit,
-        offset: offset,
-      };
-
-      if (fieldSearch && fieldSearchValue) {
-        seqData.where =
-          fieldSearch === "fullName"
-            ? whereNameOrPhone
-            : fieldSearch
-            ? whereAnother
-            : undefined;
-      }
-
-      const clients = await Client.findAndCountAll(seqData);
+        limit,
+        offset,
+        // include: 'deals',
+      });
       const response = getPaginationData(
         clients,
         pageNumber,
@@ -124,37 +71,49 @@ class ClientController {
         "clients"
       );
       return res.json(response || []);
-    } catch (error) {
-      console.log(error);
-      return res.status(400).json({ message: "Что-то пошло не так" });
+    } catch (e) {
+      next(e)
     }
   }
 
   //обновляем данные клиента
   async update(req, res) {
     // patch-запрос  в теле запроса(body) передаем строку(raw) в формате JSON
-    const { id } = req.params;
-    const body = req.body;
-    const updates = removeNotAllowedFields(body, this.fields);
-    const client = await Client.update(updates, { where: { id: id } });
-    return res.json(client);
+    try {
+      const { id } = req.params;
+      const updates = await modelsService.checkUpdates(clientsModelFields, req.body, req.updateFields);
+  
+      const [updated, client] = await Client.update(updates, {
+        where: {
+          id: id,
+        },
+        individualHooks: true,
+      });
+      return res.status(200).json(client)
+      return res.json(!!updated, updates);
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   //удалить клиента
   async delete(req, res) {
     try {
       const { id } = req.params;
-      const deletedClient = await Client.destroy({ where: id });
+      const deletedClient = await Client.destroy({
+        where: {
+          id,
+        },
+      });
+      // console.log(deletedClient);
       if (deletedClient === 0) {
+        console.log('Клиент не удален');
         return res.json('Клиент не удален');
       }
+      console.log('Клиент удален');
       return res.json('Клиент удален');
-      await Client.update({ isDeleted: true }, { where: { id: id } });
-      return res.json({ message: "OK" });
-    } catch (error) {
-      return res
-        .status(400)
-        .json({ message: "Ошибка удаения. Обратитесь к администратору." });
+    } catch (e) {
+      next(e)
     }
   }
 }

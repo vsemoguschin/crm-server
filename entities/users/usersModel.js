@@ -1,21 +1,25 @@
 const sequelize = require('../db');
-const { DataTypes } = require('sequelize');
+const { DataTypes, STRING } = require('sequelize');
+
+const modelFields = {
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true, fieldType: 'number' },
+  fullName: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Имя пользователя' },
+  email: { type: DataTypes.STRING, allowNull: false, unique: true, fieldType: 'string', fullName: 'Email' },
+  password: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Пароль' },
+  roleName: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Роль' },
+  info: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Информация' },
+  avatar: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Аватар' },
+  department: {
+    type: DataTypes.STRING, fieldType: 'string', fullName: ''
+    // validate: { isIn: [DEPARTMENTS] }
+  },
+  status: { type: DataTypes.STRING, fieldType: 'string', },
+};
+
 
 const User = sequelize.define(
   'user',
-  {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    fullName: { type: DataTypes.STRING, allowNull: false },
-    email: { type: DataTypes.STRING, allowNull: false, unique: true },
-    password: { type: DataTypes.STRING, allowNull: false },
-    info: { type: DataTypes.STRING },
-    avatar: { type: DataTypes.STRING, allowNull: true },
-    department: {
-      type: DataTypes.STRING,
-      // validate: { isIn: [DEPARTMENTS] }
-    },
-    status: { type: DataTypes.STRING },
-  },
+  modelFields,
   {
     defaultScope: {
       attributes: {
@@ -29,4 +33,7 @@ const User = sequelize.define(
   },
 );
 
-module.exports = User;
+module.exports = {
+  User,
+  modelFields
+};
