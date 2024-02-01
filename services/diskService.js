@@ -1,13 +1,13 @@
+const YaToken = process.env.YA_DISC;
 const ApiError = require('../error/apiError');
 const axios = require('axios');
-const YaToken = process.env.YA_DISC;
 const uuid = require('uuid');
 const checkFileFormat = require('../checking/checkFileFormat');
 
 class DiskService {
-    async uploadFile(directory, file) {
+    async uploadFile(file) {
         try {
-            const format = checkFileFormat(file.name, directory);
+            const { directory, format } = checkFileFormat(file.name);
             if (!format) {
                 console.log(false, 'wrong format');
                 throw ApiError.BadRequest('wrong format');
@@ -44,21 +44,21 @@ class DiskService {
                     'Authorization': 'OAuth ' + YaToken
                 }
             });
-            console.log(response.data);
+            // console.log(response.data);
             let url;
             if (directory === 'documents'
-            || directory === 'drafts') {
+                || directory === 'drafts') {
                 url = response.data.file
             };
             if (directory === 'previews'
-            || directory === 'photos') {
+                || directory === 'photos') {
                 url = response.data.sizes[0].url
             }
             return {
                 name: file.name,
                 ya_name: uuidName + '.' + format,
                 size: response.data.size,
-                preview: response.data.preview || 'empty',
+                preview: response.data.preview || null,
                 url,
                 type: directory,
             }
@@ -67,8 +67,21 @@ class DiskService {
             throw ApiError.BadRequest('Ошибка загрузки файла на диск');
         }
     }
-    deleteFile(model) {
-        return fields;
+    async deleteFile(filePath) {
+        try {
+            const response = await axios.delete('https://cloud-api.yandex.net/v1/disk/resources', {
+                params: {
+                    'path': '/EasyCRM/' + filePath,
+                    'permanently': 'true'
+                },
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'OAuth ' + YaToken
+                }
+            });
+        } catch (e) {
+            throw ApiError.BadRequest('Ошибка удаления файла с диска');
+        }
     }
 }
 

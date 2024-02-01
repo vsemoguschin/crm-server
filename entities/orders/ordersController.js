@@ -2,6 +2,8 @@ const { Order, modelFields: ordersModelFields } = require('./ordersModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
+const neonsRouterMiddleware = require('../neons/neonsRouterMiddleware');
+const neonsController = require('../neons/neonsController');
 class OrdersController {
   async create(req, res, next) {
     try {
@@ -11,6 +13,14 @@ class OrdersController {
         userId: req.user.id,
         dealId: req.body.dealId,
       });
+      if (req.body.neons) {
+        const neonList = JSON.parse(req.body.neons);
+        req.params.id = order.id;
+        for (let i = 0; i < neonList.length; i++) {
+          req.newNeon = neonList[i];
+          await neonsController.create(req, res, next);
+        }
+      }
       return res.json(order);
     } catch (e) {
       console.log(e);
