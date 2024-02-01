@@ -44,15 +44,15 @@ app.use(errorHandling);
 
 const start = async () => {
   try {
-    // await sequelize.drop();
-    // await sequelize.authenticate();
-    // await sequelize.sync({ alter: true, force: true });
+    await sequelize.drop();
+    await sequelize.authenticate();
+    await sequelize.sync({ alter: true, force: true });
 
-    // await presets.createRoles();
-    // await presets.createAdmin();
-    // await presets.createWorkSpaces();
-    // await presets.createStages();
-    // await presets.createMarketPlaces();
+    await presets.createRoles();
+    await presets.createAdmin();
+    await presets.createWorkSpaces();
+    await presets.createStages();
+    await presets.createMarketPlaces();
     // const delivery = await Delivery.findOne({
     //   where: { id: 1 },
     //   attributes: ['id'],
