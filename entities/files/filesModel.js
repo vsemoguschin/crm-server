@@ -7,8 +7,8 @@ const modelFields = {
   name: { type: DataTypes.STRING, allowNull: false },
   ya_name: { type: DataTypes.STRING, allowNull: false },
   size: { type: DataTypes.INTEGER, allowNull: false },
-  preview: { type: DataTypes.STRING, allowNull: false },
-  url: { type: DataTypes.STRING, allowNull: false },
+  preview: { type: 'VARCHAR(1000)', allowNull: false },
+  url: { type: 'VARCHAR(1000)', allowNull: false },
   type: { type: DataTypes.STRING, valdateFields: types ,allowNull: false },
 };
 
