@@ -35,6 +35,7 @@ class ModelsController {
             }
         };
         for (const key in requiredFields) {
+            // console.log(requiredFields[key]);
             if (model[key].fieldType === 'number') {
                 const field = +requiredFields[key];
                 if (isNaN(field)) {

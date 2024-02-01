@@ -2,7 +2,7 @@ const { Payment, modelFields: paymentsModelFields } = require('./paymentsModel')
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
-class paymentsController {
+class PaymentsController {
   async create(req, res, next) {
     try {
       const { newPayment } = req;
@@ -103,4 +103,4 @@ class paymentsController {
   }
 }
 
-module.exports = new paymentsController();
+module.exports = new PaymentsController();

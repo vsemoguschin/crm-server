@@ -109,10 +109,11 @@ class Presets {
   }
   async createWorkSpaces() {
     for (let i = 0; i < workSpacesList.length; i++) {
-      await WorkSpace.findOrCreate({
-        where: { title: workSpacesList[i].name },
+      const [workSpace] = await WorkSpace.findOrCreate({
+        where: { title: workSpacesList[i].title },
         defaults: workSpacesList[i],
       });
+      await workSpace.setCreator(1)
     }
   }
   async createStages() {

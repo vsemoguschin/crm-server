@@ -6,10 +6,9 @@ const clothing_method = ['ping']; //уточнить
 
 const modelFields = {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    title: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Низавание сделки' },
-    preview: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Превью сделки' },
+    title: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Название сделки' },
+    // preview: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Превью сделки' },
     price: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'Стоимость без допов' }, // стоимость вывески без допа, но выводить еще вместе с допами общую
-    chatLink: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Ссылка на чат' },
     // firstContact: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Дата первого контакта' },
     clothingMethod: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Метод закрытия' },
     // source: { type: DataTypes.STRING, allowNull: false },

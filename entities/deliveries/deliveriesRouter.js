@@ -9,4 +9,6 @@ router.get('/', deliveriesRouterMiddleware.getList, deliveriesController.getList
 router.put('/:id', deliveriesRouterMiddleware.update, deliveriesController.update);
 router.delete('/:id', deliveriesRouterMiddleware.delete, deliveriesController.delete);
 
+router.post('/:id/orders', deliveriesRouterMiddleware.addOrders, deliveriesController.addOrders)
+
 module.exports = router;

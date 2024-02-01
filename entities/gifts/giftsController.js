@@ -1,17 +1,17 @@
-const { Dop, modelFields: dopsModelFields } = require('./dopsModel');
+const { Order, modelFields: ordersModelFields } = require('./ordersModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
-class DopsController {
+class OrdersController {
   async create(req, res, next) {
     try {
-      const { newDop } = req;
-      const dop = await Dop.create({
-        ...newDop,
+      const { newOrder } = req;
+      const order = await Order.create({
+        ...newOrder,
         userId: req.user.id,
         dealId: req.body.dealId,
       });
-      return res.json(dop);
+      return res.json(order);
     } catch (e) {
       console.log(e);
       next(e)
@@ -21,12 +21,13 @@ class DopsController {
   async getOne(req, res, next) {
     try {
       const { id } = req.params;
-      const dop = await Dop.findOne({
+      const order = await Order.findOne({
         where: {
           id,
         },
+        include: 'neons'
       });
-      return res.json(dop);
+      return res.json(order);
     } catch (e) {
       next(e);
     }
@@ -45,18 +46,18 @@ class DopsController {
 
       const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
-      const dops = await Dop.findAndCountAll({
+      const orders = await Order.findAndCountAll({
         where: filter,
         order,
         limit,
         offset,
-        // include: 'dops',
+        // include: 'orders',
       });
       const response = getPaginationData(
-        dops,
+        orders,
         pageNumber,
         pageSize,
-        "dops"
+        "orders"
       );
       return res.json(response || []);
     } catch (e) {
@@ -67,15 +68,15 @@ class DopsController {
   async update(req, res) {
     try {
       const { id } = req.params;
-      const updates = await modelsService.checkUpdates(dopsModelFields, req.body, req.updateFields);
-  
-      const [updated, dop] = await Dop.update(updates, {
+      return console.log(id);
+      const { updates } = req.body;
+      const [updated, order] = await Order.update(updates, {
         where: {
           id: id,
         },
         individualHooks: true,
       });
-      return res.status(200).json(dop)
+      return res.status(200).json(order)
     } catch (error) {
       console.log(error);
       return res.status(400).json(error);
@@ -85,22 +86,22 @@ class DopsController {
   async delete(req, res) {
     try {
       const { id } = req.params;
-      const deletedDop = await Dop.destroy({
+      const deletedOrder = await Order.destroy({
         where: {
           id,
         },
       });
-      // console.log(deletedDop);
-      if (deletedDop === 0) {
-        console.log('Доп не удалена');
-        return res.json('Доп не удалена');
+      // console.log(deletedOrder);
+      if (deletedOrder === 0) {
+        console.log('Заказ не удален');
+        return res.json('Заказ не удален');
       }
-      console.log('Доп удалена');
-      return res.json('Доп удалена');
+      console.log('Заказ удален');
+      return res.json('Заказ удален');
     } catch (e) {
       next(e)
     }
   }
 }
 
-module.exports = new DopsController();
+module.exports = new OrdersController();

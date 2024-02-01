@@ -3,19 +3,10 @@ const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
 const ApiError = require('../../error/apiError');
-const orders = 'f';
-function isJson(req, res, next) {
-  try {
-      JSON.parse(req);
-  } catch (e) {
-    throw ApiError.BadRequest('ssss');
-  }
-  const res1 = JSON.parse(req);
-  return console.log(res1);
-}
-// isJson(orders)
+const { Order } = require('../association');
+const orders = '{a:1}';
 
-class deliveriesController {
+class DeliveriesController {
 
   async create(req, res, next) {
     try {
@@ -25,10 +16,6 @@ class deliveriesController {
         userId: req.user.id,
         dealId: req.body.dealId,
       });
-      if (req.body.orders) {
-        const orderList = isJson(req.body.orders);
-        console.log(orderList);
-      }
       return res.json(dop);
     } catch (e) {
       next(e)
@@ -118,6 +105,30 @@ class deliveriesController {
       next(e)
     }
   }
+  async addOrders (req, res, next) {
+    try {
+      const { id } = req.params;
+      const ordersIds = JSON.parse(req.body.orders);
+      const delivery = await Delivery.findOne({
+        where: {id}
+      });
+      // console.log(delivery);
+      const orders = await Order.findAll({
+        where: {id: ordersIds}
+      });
+      // console.log(orders);
+      const add = await delivery.addOrder(orders);
+      // console.log(deletedDelivery);
+      // if (deletedDelivery === 0) {
+      //   console.log('Доставка не удалена');
+      //   return res.json('Доставка не удалена');
+      // }
+      // console.log('Доставка удалена');
+      return res.json(add);
+    } catch (e) {
+      next(e)
+    }
+  }
 }
 
-module.exports = new deliveriesController();
+module.exports = new DeliveriesController();

@@ -1,16 +1,16 @@
 const ApiError = require('../../error/apiError');
 const modelsService = require('../../services/modelsService');
-const { Delivery, modelFields: deliveriesModelFields } = require('./deliveriesModel');
-const { Deal } = require('../association');
+const { Neon, modelFields: neonsModelFields } = require('./neonsModel');
+const { Order } = require('../association');
 
 const frontOptions = {
-    modelFields: modelsService.getModelFields(deliveriesModelFields),
+    modelFields: modelsService.getModelFields(neonsModelFields),
 };
 const permissions = ['ADMIN', 'G', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
-const updateFields = ['method', 'type', 'description', 'city', 'recived'];
-let searchFields = ['method', 'type', 'description', 'city', 'recived', 'price', 'track', 'sent'];
+const updateFields = ['width', 'length', 'color', 'type', ];
+const searchFields = ['width', 'color', 'type', ];
 
-class DeliverysRouterMiddleware {
+class NeonsRouterMiddleware {
     async create(req, res, next) {
         //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
         try {
@@ -20,20 +20,20 @@ class DeliverysRouterMiddleware {
                 console.log(false, 'no acces');
                 throw ApiError.Forbidden('Нет доступа');
             };
-            //проверка значения и наличия сделки
-            if (!req.body.dealId || isNaN(+req.body.dealId)) {
+            //проверка значения и наличия заказа
+            if (!req.params.id || isNaN(+req.params.id)) {
                 console.log(false, 'Забыл что то указать');
                 throw ApiError.BadRequest('Забыл что то указать');
             }
-            const deal = await Deal.findOne({
-                where: { id: req.body.dealId }
+            const order = await Order.findOne({
+                where: { id: req.params.id }
             });
-            if (!deal) {
-                console.log(false, 'No deal');
-                throw ApiError.BadRequest('No deal');
-            }
-            const newDelivery = await modelsService.checkFields(deliveriesModelFields, req.body);
-            req.newDelivery = newDelivery;
+            if (!order) {
+                console.log(false, 'No order');
+                throw ApiError.BadRequest('No order');
+            };
+            const newNeon = await modelsService.checkFields(neonsModelFields, req.body);
+            req.newNeon = newNeon;
             next();
         } catch (e) {
             next(e);
@@ -42,8 +42,7 @@ class DeliverysRouterMiddleware {
     async getOne(req, res, next) {
         try {
             const requester = req.user.role;
-            if (!permissions.includes(requester)
-                && !['DP', 'RP', 'PACKER'].includes(requester)) {
+            if (!permissions.includes(requester)) {
                 return console.log(false, 'no acces');
             };
             next();
@@ -54,8 +53,7 @@ class DeliverysRouterMiddleware {
     async getList(req, res, next) {
         try {
             const requester = req.user.role;
-            if (!permissions.includes(requester)
-                && !['DP', 'RP', 'PACKER'].includes(requester)) {
+            if (!permissions.includes(requester)) {
                 return console.log(false, 'no acces');
             }
             req.searchFields = searchFields;
@@ -67,15 +65,11 @@ class DeliverysRouterMiddleware {
     async update(req, res, next) {
         try {
             const requester = req.user.role;
-            if (!permissions.includes(requester)
-                && !['DP', 'RP', 'PACKER'].includes(requester)) {
+            if (!permissions.includes(requester)) {
                 console.log(false, 'no acces');
                 throw ApiError.Forbidden('Нет доступа');
             }
             req.updateFields = updateFields;
-            if (['DP', 'RP', 'PACKER'].includes(requester)) {
-                req.updateFields = ['price', 'track', 'sent'];
-            }
             next()
         } catch (e) {
             next(e)
@@ -93,23 +87,7 @@ class DeliverysRouterMiddleware {
             next(e)
         }
     }
-    async addOrders(req, res, next) {
-        try {
-            const requester = req.user.role;
-            if (!permissions.includes(requester)) {
-                console.log(false, 'no acces');
-                throw ApiError.Forbidden('Нет доступа');
-            };
-            if (!req.body.orders) {
-                throw ApiError.BadRequest('no orders');
-            }
-
-            next()
-        } catch (e) {
-            next(e)
-        }
-    }
 }
 
 
-module.exports = new DeliverysRouterMiddleware;
+module.exports = new NeonsRouterMiddleware;

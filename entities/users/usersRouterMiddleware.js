@@ -1,5 +1,5 @@
 const ApiError = require('../../error/apiError');
-const {User, modelFields: usersModelFields} = require('./usersModel');
+const { User, modelFields: usersModelFields } = require('./usersModel');
 const modelsService = require('../../services/modelsService');
 const { ROLES: rolesList } = require('../roles/rolesList');
 const checkImgFormat = require('../../checking/checkFormat');
@@ -8,7 +8,7 @@ const uuid = require('uuid');
 const getAvailableRoles = (rolesArr) => {
   const list = [];
   for (let i = 0; i < rolesArr.length; i++) {
-      list.push(rolesList.find(el => el.shortName == rolesArr[i]));
+    list.push(rolesList.find(el => el.shortName == rolesArr[i]));
   }
   return list
 };
@@ -101,18 +101,26 @@ class UsersRouterMiddleware {
     }
   }
 
-  async updateUser(req, res, next) {
+  async update(req, res, next) {
     const requester = req.user.role;
     if (!permissions.rolesList[requester]) {
       console.log(false, 'no acces');
       throw ApiError.Forbidden('Нет доступа');
     };
+    if (req.files?.img) {
+      //проверка формата изображения
+      const imgFormat = checkImgFormat(req.files.img.name);
+      if (!imgFormat) {
+        throw ApiError.BadRequest('Не верный формат изображения');
+      }
+      req.body.avatar = 'user_' + uuid.v4() + imgFormat;
+    }
     req.rolesFilter = permissions.rolesList[requester];
     req.updateFields = permissions.updateFields;
     next()
   }
 
-  async deleteUser(req, res, next) {
+  async delete(req, res, next) {
     const requester = req.user.role;
     if (!permissions.rolesList[requester]) {
       console.log(false, 'no acces');

@@ -1,40 +1,32 @@
-const uuid = require('uuid');
-const path = require('path');
-const { Order, DraftOrderAssociation, Stage, User, UserOrderAssociation, OrderUserAssociation } = require('../association');
-const getPagination = require('../../utils/getPagination');
+const { Order, modelFields: ordersModelFields } = require('./ordersModel');
+const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
-const fs = require('fs');
-const { Op } = require('sequelize');
-const removeNotAllowedFields = require('../../utils/removeNotAllowedFields');
-const { log } = require('console');
-
+const getPagination = require('../../utils/getPagination');
 class OrdersController {
   async create(req, res, next) {
     try {
       const { newOrder } = req;
-      const { img } = req.files;
-      const order = await Order.create(newOrder, {
-        include: [
-          {
-            association: DraftOrderAssociation,
-            as: 'draft',
-          },
-          OrderUserAssociation,
-        ],
+      const order = await Order.create({
+        ...newOrder,
+        userId: req.user.id,
+        dealId: req.body.dealId,
       });
-      // const user = await User.findByPk(req.user.id);
+      return res.json(order);
+    } catch (e) {
+      console.log(e);
+      next(e)
+    }
+  }
 
-      await order.addExecutors([1]);
-
-      const previewPath = 'public/orders/id' + order.id + newOrder.previewFormat;
-      order.preview = previewPath;
-      order.save();
-      img.mv(path.resolve(previewPath));
-      // fs.writeFileSync('public/' + filePath, img.data, (err) => {
-      //   if (err) {
-      //     throw ApiError.BadRequest('Wrong');
-      //   }
-      // });
+  async getOne(req, res, next) {
+    try {
+      const { id } = req.params;
+      const order = await Order.findOne({
+        where: {
+          id,
+        },
+        include: 'neons'
+      });
       return res.json(order);
     } catch (e) {
       next(e);
@@ -45,111 +37,65 @@ class OrdersController {
     const {
       pageSize,
       pageNumber,
-      key, //?
+      key,//?
       order: queryOrder,
-      fieldSearch,
-      fieldSearchValue,
     } = req.query;
-    const requesterId = req.user.id;
-    const { limit, offset } = getPagination(pageNumber, pageSize);
-
     try {
-      const order = queryOrder ? [[key, queryOrder]] : [['createdAt', 'DESC']];
+      const { limit, offset } = getPagination(pageNumber, pageSize);
+      const order = queryOrder ? [[key, queryOrder]] : ["createdAt"];
 
-      const whereFilters = fieldSearch
-        ? {
-            [fieldSearch]: {
-              [Op.iRegexp]: fieldSearchValue,
-            },
-          }
-        : {};
-
-      const whereDeals = {
-        dealId: fieldSearchValue,
-      };
-
-      const squelizeBody = {
-        where: fieldSearch === 'dealId' ? whereDeals : whereFilters,
+      const { searchFields } = req;
+      const filter = await modelsService.searchFilter(searchFields, req.query);
+      const orders = await Order.findAndCountAll({
+        where: filter,
         order,
         limit,
         offset,
-        include: ['stage', 'executors'],
-      };
-
-      const orders = await Order.findAndCountAll(squelizeBody);
-
-      const response = getPaginationData(orders, pageNumber, pageSize, 'orders');
-      return res.json(response);
+        // include: 'orders',
+      });
+      const response = getPaginationData(
+        orders,
+        pageNumber,
+        pageSize,
+        "orders"
+      );
+      return res.json(response || []);
     } catch (e) {
-      return res.status(400).json(e);
+      next(e)
     }
-    //сортировка по дате
   }
-  async getOne(req, res, next) {
-    const order = await Order.findOne({
-      where: { id: req.params.id },
-      include: [
-        {
-          model: Stage,
-        },
-        OrderUserAssociation,
-      ],
-    });
-    res.json(order);
-  }
-  async update(req, res, next) {
-    const img = req.files?.img;
-    const data = req.newOrder;
-    const updateData = removeNotAllowedFields(data, [
-      'name',
-      'preview',
-      'description',
-      'stageId',
-      'trackNumber',
-      'count',
-      'dimer',
-      'laminate',
-      'smart',
-      'paidDelivery',
-      'street',
-      'backlight',
-      'acrylic',
-      'material',
-      'holeType',
-      'fittings',
-      'wireLength',
-      'neonWidth',
-      'neonLength',
-      'boardWidth',
-      'boardHeight',
-      'deliveryInfo',
-      'deliveryType',
-    ]);
 
-    await Order.findOne({
-      where: { id: req.params.id },
-    }).then(async (res) => {
-      if (res.preview && img) {
-        fs.rm(path.resolve('public/orders/' + res.preview), (error) => {
-          console.log(error);
-        });
-      }
-      if (!updateData.preview) delete updateData.preview;
-
-      Object.assign(res, updateData);
-      res.save();
-      if (img) img.mv(path.resolve('public/orders/' + data.preview));
-    });
-
-    return res.json('ok');
-  }
-  async delete(req, res, next) {
+  async update(req, res) {
     try {
       const { id } = req.params;
-      const deletedOrder = await Order.destroy({ where: id });
+      const { updates } = req.body;
+      const [updated, order] = await Order.update(updates, {
+        where: {
+          id: id,
+        },
+        individualHooks: true,
+      });
+      return res.status(200).json(order)
+    } catch (error) {
+      console.log(error);
+      return res.status(400).json(error);
+    }
+  }
+
+  async delete(req, res) {
+    try {
+      const { id } = req.params;
+      const deletedOrder = await Order.destroy({
+        where: {
+          id,
+        },
+      });
+      // console.log(deletedOrder);
       if (deletedOrder === 0) {
+        console.log('Заказ не удален');
         return res.json('Заказ не удален');
       }
+      console.log('Заказ удален');
       return res.json('Заказ удален');
     } catch (e) {
       next(e)
