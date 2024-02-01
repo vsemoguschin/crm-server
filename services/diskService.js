@@ -4,7 +4,7 @@ const YaToken = process.env.YA_DISC;
 const uuid = require('uuid');
 const checkFileFormat = require('../checking/checkFileFormat');
 
-class FilesService {
+class DiskService {
     async uploadFile(directory, file) {
         try {
             const format = checkFileFormat(file.name, directory);
@@ -44,7 +44,7 @@ class FilesService {
                     'Authorization': 'OAuth ' + YaToken
                 }
             });
-            // console.log(response.data);
+            console.log(response.data);
             let url;
             if (directory === 'documents'
             || directory === 'drafts') {
@@ -58,7 +58,7 @@ class FilesService {
                 name: file.name,
                 ya_name: uuidName + '.' + format,
                 size: response.data.size,
-                preview: response.data.preview || null,
+                preview: response.data.preview || 'empty',
                 url,
                 type: directory,
             }
@@ -72,4 +72,4 @@ class FilesService {
     }
 }
 
-module.exports = new FilesService();
+module.exports = new DiskService();

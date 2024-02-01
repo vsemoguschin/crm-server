@@ -8,7 +8,7 @@ router.get("/", profileController.getProfile);
 router.put(
   "/",
   profileRouterMiddleware.updateProfile,
-  avatarUploadMiddleware.uploadFile,
+  // avatarUploadMiddleware.uploadFile,
   profileController.update
 );
 

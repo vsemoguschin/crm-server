@@ -1,25 +1,29 @@
 const { Client } = require('../association');
-const path = require('path');
 const { Deal, modelFields: dealsModelFields } = require('./dealsModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
 const fs = require('fs');
 const { File } = require('../files/filesModel');
+const ApiError = require('../../error/apiError');
+const diskService = require('../../services/diskService');
 
 class DealsController {
   async create(req, res, next) {
     try {
-      const { newDeal, fileDatas } = req;
+      const { newDeal } = req;
       const deal = await Deal.create({
         ...newDeal,
         userId: req.user.id,
         clientId: req.body.clientId,
       });
-      console.log(true, fileDatas);
-      const file = await File.create(fileDatas);
+      //проверка на preview
+      if (req?.files?.file) {
+        const fileDatas = await diskService.uploadFile('drafts', req.files.file);
+        const file = await File.create(fileDatas);
+        await deal.addFiles(file)
+      };
 
-      await deal.addFiles(file)
       return res.json(deal);
     } catch (e) {
       console.log(e);
@@ -37,7 +41,7 @@ class DealsController {
         include: [
           {
             model: Client,
-            attributes: ['fullName', 'chatLink']
+            attributes: ['id', 'fullName', 'chatLink'],
           },
           'orders', 'payments', 'dops', 'deliveries', 'files'
         ]

@@ -58,7 +58,7 @@ class ClientController {
       const filter = await modelsService.searchFilter(searchFields, req.query);
       const clients = await Client.findAndCountAll({
         where: filter,
-        attributes: ['id' ,'fullName', 'phone', 'gender'],
+        attributes: ['id' ,'fullName', 'phone', 'gender', 'type', 'info', 'city', 'chatLink'],
         order,
         limit,
         offset,
