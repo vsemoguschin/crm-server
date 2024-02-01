@@ -1,13 +1,22 @@
 const sequelize = require('../db');
 const { DataTypes } = require('sequelize');
+const types = ['previews', 'drafts', 'documents', 'photos'];
 
-const File = sequelize.define('file', {
+const modelFields = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   name: { type: DataTypes.STRING, allowNull: false },
+  ya_name: { type: DataTypes.STRING, allowNull: false },
   size: { type: DataTypes.INTEGER, allowNull: false },
+  preview: { type: DataTypes.STRING, allowNull: false },
   url: { type: DataTypes.STRING, allowNull: false },
-}, {
+  type: { type: DataTypes.STRING, valdateFields: types ,allowNull: false },
+};
+
+const File = sequelize.define('file', modelFields, {
   paranoid: true,
 });
 
-module.exports = File;
+module.exports = {
+  File,
+  modelFields
+};

@@ -8,7 +8,7 @@ const modelFields = {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true, fieldType: 'number' },
     fullName: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Имя клиента' },
     phone: { type: DataTypes.STRING, allowNull: false, fieldType: 'number', fullName: 'Номер телефона' },
-    chatLink: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Ссылка на чат' },
+    chatLink: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Ссылка на чат' },
     gender: { type: DataTypes.STRING, allowNull: false, validateFields: genders, fieldType: 'string', fullName: 'Пол' },
     city: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Город' },
     region: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Регион' },

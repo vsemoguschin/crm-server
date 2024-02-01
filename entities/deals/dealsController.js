@@ -5,29 +5,21 @@ const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
 const fs = require('fs');
+const { File } = require('../files/filesModel');
 
-class dealsController {
+class DealsController {
   async create(req, res, next) {
     try {
-      const { newDeal } = req;
-      const { previewFormat } = req.body;
-      const { img } = req.files;
+      const { newDeal, fileDatas } = req;
       const deal = await Deal.create({
         ...newDeal,
         userId: req.user.id,
         clientId: req.body.clientId,
       });
+      console.log(true, fileDatas);
+      const file = await File.create(fileDatas);
 
-      const preview = 'public/deals/id' + deal.id + previewFormat;
-      deal.preview = preview;
-      deal.save();
-
-      // await diskService.uploadFile(pathToAy, draftFile).catch((error) => {
-      //   console.log(error);
-      //   // Возможно надо удалить записись из БД и вернуть им ошибку
-      // });
-
-      // img.mv(path.resolve(preview));
+      await deal.addFiles(file)
       return res.json(deal);
     } catch (e) {
       console.log(e);
@@ -47,7 +39,7 @@ class dealsController {
             model: Client,
             attributes: ['fullName', 'chatLink']
           },
-          'orders', 'payments', 'dops', 'deliveries'
+          'orders', 'payments', 'dops', 'deliveries', 'files'
         ]
       });
       return res.json(deal);
@@ -72,7 +64,7 @@ class dealsController {
       console.log(filter);
       const deals = await Deal.findAndCountAll({
         where: filter,
-        attributes: ['title', 'price', 'chatLink', 'clothingMethod'],
+        attributes: ['id', 'title', 'price', 'chatLink', 'clothingMethod'],
         order,
         limit,
         offset,
@@ -130,4 +122,4 @@ class dealsController {
   }
 }
 
-module.exports = new dealsController();
+module.exports = new DealsController();

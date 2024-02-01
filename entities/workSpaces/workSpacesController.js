@@ -1,25 +1,26 @@
-const { Client, modelFields: clientsModelFields } = require('./clientsModel');
+const { WorkSpace, modelFields: workSpacesModelFields } = require('./workSpacesModel');
 const modelsService = require('../../services/modelsService');
 const getPagination = require("../../utils/getPagination");
 const getPaginationData = require("../../utils/getPaginationData");
 
-class ClientController {
+class WorkSpaceController {
   async create(req, res, next) {
     try {
-      const { newClient } = req;
-      const [client, created] = await Client.findOrCreate({
-        where: { phone: newClient.phone },
+      const { newWorkSpace } = req;
+      const [workSpace, created] = await WorkSpace.findOrCreate({
+        where: { title: newWorkSpace.title },
         defaults: {
-          ...newClient,
-          userId: req.user.id,
+          ...newWorkSpace,
         },
       });
       if (!created) {
-        console.log(false, 'Клиент существует');
-        return res.json('Клиент существует')
+        console.log(false, 'Пространство существует');
+        return res.json('Пространство существует')
       };
-      console.log('created_client', client);
-      return res.json(client);
+      await workSpace.addMember(req.user.id);
+      await workSpace.setCreator(req.user.id);
+      // console.log('created_workSpace', workSpace);
+      return res.json(workSpace);
     } catch (e) {
       next(e)
     }
@@ -30,13 +31,13 @@ class ClientController {
     // get-запрос, получаем данные из param
     try {
       const { id } = req.params;
-      const client = await Client.findOne({
+      const workSpace = await WorkSpace.findOne({
         where: {
           id,
         },
-        include: ['deals']
+        include: ['creator', 'members', ]
       });
-      return res.json(client);
+      return res.json(workSpace);
     } catch (e) {
       next(e);
     }
@@ -56,19 +57,19 @@ class ClientController {
 
       const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
-      const clients = await Client.findAndCountAll({
+      const workSpaces = await WorkSpace.findAndCountAll({
         where: filter,
-        attributes: ['id' ,'fullName', 'phone', 'gender'],
+        attributes: ['title', 'creatorId', 'fullName', 'department'],
         order,
         limit,
         offset,
         // include: 'deals',
       });
       const response = getPaginationData(
-        clients,
+        workSpaces,
         pageNumber,
         pageSize,
-        "clients"
+        "workSpaces"
       );
       return res.json(response || []);
     } catch (e) {
@@ -81,15 +82,15 @@ class ClientController {
     // patch-запрос  в теле запроса(body) передаем строку(raw) в формате JSON
     try {
       const { id } = req.params;
-      const updates = await modelsService.checkUpdates(clientsModelFields, req.body, req.updateFields);
+      const updates = await modelsService.checkUpdates(workSpacesModelFields, req.body, req.updateFields);
   
-      const [updated, client] = await Client.update(updates, {
+      const [updated, workSpace] = await WorkSpace.update(updates, {
         where: {
           id: id,
         },
         individualHooks: true,
       });
-      return res.status(200).json(client)
+      return res.status(200).json(workSpace)
       return res.json(!!updated, updates);
     } catch (e) {
       console.log(e);
@@ -100,13 +101,13 @@ class ClientController {
   async delete(req, res) {
     try {
       const { id } = req.params;
-      const deletedClient = await Client.destroy({
+      const deletedWorkSpace = await WorkSpace.destroy({
         where: {
           id,
         },
       });
-      // console.log(deletedClient);
-      if (deletedClient === 0) {
+      // console.log(deletedWorkSpace);
+      if (deletedWorkSpace === 0) {
         console.log('Клиент не удален');
         return res.json('Клиент не удален');
       }
@@ -118,4 +119,4 @@ class ClientController {
   }
 }
 
-module.exports = new ClientController();
+module.exports = new WorkSpaceController();

@@ -1,5 +1,5 @@
-const express = require('express');
 require('dotenv').config(); //экспорт переменного окружения
+const express = require('express');
 const fileUpload = require('express-fileupload');
 const path = require('path');
 const cors = require('cors');
@@ -45,7 +45,7 @@ app.use(errorHandling);
 const start = async () => {
   try {
     // await sequelize.drop();
-    await sequelize.authenticate();
+    // await sequelize.authenticate();
     // await sequelize.sync({ alter: true, force: true });
 
     // await presets.createRoles();
@@ -53,6 +53,28 @@ const start = async () => {
     // await presets.createWorkSpaces();
     // await presets.createStages();
     // await presets.createMarketPlaces();
+    // const delivery = await Delivery.findOne({
+    //   where: { id: 1 },
+    //   attributes: ['id'],
+    // });
+    // const deliveryId = delivery.dataValues.id
+    // const deals = await Deal.findAll({
+    //   // where: {
+    //   //   '$order.deliveryId$ ':deliveryId
+    //   // },
+    //   attributes: ['title'],
+    //   include: [{
+    //     model: Client,
+    //     attributes: ['chatLink']
+    //   },
+    //   // model: Order,
+    //   // attributes: ['name'],
+    //   // where: {
+    //   //   '$orders.deliveryId$': 1,
+    //     // }
+    //   ]
+    // });
+    // console.log(deals[0]);
     app.listen(PORT, () => console.log(`${PORT}`));
   } catch (error) {
     console.log(error);

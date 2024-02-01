@@ -2,8 +2,8 @@ const ApiError = require('../../error/apiError');
 const modelsService = require('../../services/modelsService');
 const { Deal, modelFields: dealsModelFields } = require('./dealsModel');
 const { Client } = require('../clients/clientsModel');
-const uuid = require('uuid');
 const checkImgFormat = require('../../checking/checkFormat');
+const diskService = require('../../services/diskService');
 
 const frontOptions = {
   modelFields: modelsService.getModelFields(dealsModelFields),
@@ -35,19 +35,14 @@ class DealsRouterMiddleware {
         throw ApiError.BadRequest('No client');
       }
       //проверка на preview
-      if (!req?.files?.img) {
+      if (!req?.files?.file) {
         console.log(false, 'no preview');
         throw ApiError.BadRequest('Забыл что то указать');
       };
       //проверка формата изображения
-      const previewFormat = checkImgFormat(req.files.img.name);
-      if (!previewFormat) {
-        throw ApiError.BadRequest('Не верный формат изображения');
-      }
-
-      req.body.previewFormat = previewFormat;
-      req.body.preview = 'preview';
       const newDeal = await modelsService.checkFields(dealsModelFields, req.body);
+      req.fileDatas = await diskService.uploadFile('previews', req.files.file);
+
       req.newDeal = newDeal;
       next();
     } catch (e) {
