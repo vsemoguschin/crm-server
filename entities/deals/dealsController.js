@@ -3,10 +3,6 @@ const { Deal, modelFields: dealsModelFields } = require('./dealsModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
-const fs = require('fs');
-const { File } = require('../files/filesModel');
-const ApiError = require('../../error/apiError');
-const diskService = require('../../services/diskService');
 
 class DealsController {
   async create(req, res, next) {
@@ -17,12 +13,6 @@ class DealsController {
         userId: req.user.id,
         clientId: req.body.clientId,
       });
-      //проверка на preview
-      if (req?.files?.file) {
-        const fileDatas = await diskService.uploadFile('drafts', req.files.file);
-        const file = await File.create(fileDatas);
-        await deal.addFiles(file)
-      };
 
       return res.json(deal);
     } catch (e) {

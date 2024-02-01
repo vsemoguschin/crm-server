@@ -4,6 +4,7 @@ const { DataTypes } = require('sequelize');
 const methods = ['СДЕК', 'ПОЧТА', 'Курьер', 'Балтийский курьер', 'Самовывоз'];
 const types = ['Платно', 'Бесплатно']; 
 
+//фиксировать досылы, сделать галочку
 const modelFields = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   method: { type: DataTypes.STRING, allowNull: false, fieldType: 'string',validateFields: methods, fullName: 'Способ доставки' },

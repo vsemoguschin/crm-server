@@ -28,6 +28,21 @@ const modelFields = {
   type: { type: DataTypes.STRING, allowNull: false, valdateFields: types, fieldType: 'string'}, // берется из ордера или если цвет
 };
 
+console.log(JSON.stringify([
+  {
+    width: '6',
+    length: 2,
+    color: 'смарт',
+    type: 'обычный'
+  },
+  {
+    width: '8',
+    length: 2,
+    color: 'смарт',
+    type: 'обычный'
+  },
+]));
+
 const Neon = sequelize.define('neon', modelFields);
 
 module.exports = {

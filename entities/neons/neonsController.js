@@ -11,7 +11,7 @@ class NeonsController {
         userId: req.user.id,
         orderId: req.params.id,
       });
-      return res.json(neon);
+      // return res.json(neon);
     } catch (e) {
       console.log(e);
       next(e)

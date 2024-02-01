@@ -103,7 +103,7 @@ class DeliverysRouterMiddleware {
             if (!req.body.orders) {
                 throw ApiError.BadRequest('no orders');
             }
-
+            //проверка на массив из чисел
             next()
         } catch (e) {
             next(e)

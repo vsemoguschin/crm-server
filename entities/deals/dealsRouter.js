@@ -11,6 +11,6 @@ router.get('/', dealsRouterMiddleware.getList, dealsController.getList);
 router.put('/:id', dealsRouterMiddleware.update, dealsController.update);
 router.delete('/:id', dealsRouterMiddleware.delete, dealsController.delete);
 
-// router.post('/:id/files', filesRouterMiddleware.create, filesController.create);
+router.post('/:id/files', filesRouterMiddleware.dealsFiles, filesController.create);
 
 module.exports = router;
