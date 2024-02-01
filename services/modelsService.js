@@ -64,12 +64,21 @@ class ModelsController {
         // console.log(model, body, allowUpdate);
         let allowedFielsds = {};
         //найти поля в body
+        //проверка обязательных полей
         for (let i = 0; i < allowUpdate.length; i++) {
-            if (body[allowUpdate[i]] !== undefined && body[allowUpdate[i]] !== '') {
+            if (body[allowUpdate[i]] !== undefined
+                && model[allowUpdate[i]].allowNull == false
+                && body[allowUpdate[i]] !== '') {
                 allowedFielsds[allowUpdate[i]] = body[allowUpdate[i]]
             };
         }
-        // console.log(allowedFielsds);
+        //проверка необязательных полей
+        for (let i = 0; i < allowUpdate.length; i++) {
+            if (body[allowUpdate[i]] !== undefined) {
+                allowedFielsds[allowUpdate[i]] = body[allowUpdate[i]]
+            };
+        }
+        // return console.log(allowedFielsds);
         //проверить типы
         // console.log(model);
         for (const key in allowedFielsds) {

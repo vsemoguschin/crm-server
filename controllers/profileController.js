@@ -1,46 +1,50 @@
-const User = require('../entities/users/usersModel');
-const removeNotAllowedFields = require('../utils/removeNotAllowedFields');
+
+const { User, modelFields: usersModelFields } = require('../entities/users/usersModel');
+const ApiError = require('../error/apiError');
+const modelsService = require('../services/modelsService');
+const bcrypt = require('bcrypt');
 
 class ProfileController {
-  constructor() {
-    this.updateFields = ['email', 'password', 'status', 'avatar'];
-    this.update = this.update.bind(this);
-  }
-
   async getProfile(req, res) {
-    if (!req.user.id) {
-      return res.status(400).json({ message: 'Нет доступа' });
-    }
-
     try {
       const user = await User.findOne({
         where: { id: req.user.id },
         attributes: { exclude: ['password'] },
+        include: 'role'
       });
       return res.json(user);
     } catch (error) {
       console.log(error);
-      return res.status(400).json({ message: 'Ошибка получения данных' });
+      throw ApiError.BadRequest('Ошибка получения данных')
     }
   }
 
-  async update(req, res) {
+  async update(req, res, next) {
     const id = req.user.id;
-    if (!id) {
-      return res.status(400).json({ message: 'Нет доступа' });
-    }
-
     try {
-      const updates = removeNotAllowedFields(req.body, this.updateFields);
-      if (updates.password) {
-        updates.password = await bcrypt.hash(updates.password, 3);
-      }
+      const updates = await modelsService.checkUpdates(usersModelFields, req.body, req.updateFields);
 
-      await User.update(updates, { where: { id: id } });
-      return res.json(updates);
-    } catch (error) {
-      console.log(error);
-      return res.status(400).json({ message: 'Ошибка обновления данных' });
+      const user = await User.scope(['fullScope']).findOne({
+        where: {
+          id: id,
+        },
+        
+      });
+      // update password
+      if (updates.password && req.body.oldPassword) {
+        const comparePassword = bcrypt.compareSync(req.body.oldPassword, user.password); //сравниваем пароли
+        if (!comparePassword) {
+          throw ApiError.BadRequest('Неверный пароль');
+        };
+        updates.password = await bcrypt.hash(updates.password, 3);
+      };
+
+      await user.update(updates)
+      await user.save()
+
+      return res.json(user);
+    } catch (e) {
+      next(e)
     }
   }
 }

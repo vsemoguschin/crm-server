@@ -9,7 +9,7 @@ const frontOptions = {
   modelFields: modelsService.getModelFields(dealsModelFields),
 };
 const permissions = ['ADMIN', 'G', 'KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
-const updateFields = ['title', 'chatLink', 'clothingMethod', 'deadline', 'description', 'price', 'preview'];
+const updateFields = ['title', 'chatLink', 'clothingMethod', 'deadline', 'description', 'price',];
 const searchFields = ['title', 'clothingMethod', 'status']
 
 class DealsRouterMiddleware {
@@ -34,14 +34,9 @@ class DealsRouterMiddleware {
         console.log(false, 'No client');
         throw ApiError.BadRequest('No client');
       }
-      //проверка на preview
-      if (!req?.files?.file) {
-        console.log(false, 'no preview');
-        throw ApiError.BadRequest('Забыл что то указать');
-      };
+      
       //проверка формата изображения
       const newDeal = await modelsService.checkFields(dealsModelFields, req.body);
-      req.fileDatas = await diskService.uploadFile('previews', req.files.file);
 
       req.newDeal = newDeal;
       next();
@@ -53,9 +48,6 @@ class DealsRouterMiddleware {
     try {
       const requester = req.user.role;
       if (!permissions.includes(requester)) {
-        return console.log(false, 'no acces');
-      }
-      if (requester !== 'ADMIN' && req.params.id < 3) {
         return console.log(false, 'no acces');
       }
       next();

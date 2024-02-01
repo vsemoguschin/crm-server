@@ -102,22 +102,26 @@ class UsersRouterMiddleware {
   }
 
   async update(req, res, next) {
-    const requester = req.user.role;
-    if (!permissions.rolesList[requester]) {
-      console.log(false, 'no acces');
-      throw ApiError.Forbidden('Нет доступа');
-    };
-    if (req.files?.img) {
-      //проверка формата изображения
-      const imgFormat = checkImgFormat(req.files.img.name);
-      if (!imgFormat) {
-        throw ApiError.BadRequest('Не верный формат изображения');
+    try {
+      const requester = req.user.role;
+      if (!permissions.rolesList[requester]) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      };
+      if (req.files?.img) {
+        //проверка формата изображения
+        const imgFormat = checkImgFormat(req.files.img.name);
+        if (!imgFormat) {
+          throw ApiError.BadRequest('Не верный формат изображения');
+        }
+        req.body.avatar = 'user_' + uuid.v4() + imgFormat;
       }
-      req.body.avatar = 'user_' + uuid.v4() + imgFormat;
+      req.rolesFilter = permissions.rolesList[requester];
+      req.updateFields = permissions.updateFields;
+      next()
+    } catch (e) {
+      next(e)
     }
-    req.rolesFilter = permissions.rolesList[requester];
-    req.updateFields = permissions.updateFields;
-    next()
   }
 
   async delete(req, res, next) {
