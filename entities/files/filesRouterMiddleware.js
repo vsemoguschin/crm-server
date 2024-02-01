@@ -34,12 +34,12 @@ class FilesRouterMiddleware {
         throw ApiError.BadRequest('No deal');
       }
       //проверка на preview
-      if (!req?.files) {
+      if (!req?.files.preview) {
         console.log(false, 'no files');
         throw ApiError.BadRequest('Забыл что то указать');
       };
       //проверка формата файла
-      const fileType = checkFileFormat(req.files.file.name);
+      const fileType = checkFileFormat(req.files.preview.name);
       if (!fileType) {
         throw ApiError.BadRequest('Не верный формат файла');
       }
