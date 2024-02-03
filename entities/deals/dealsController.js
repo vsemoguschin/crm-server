@@ -3,6 +3,7 @@ const { Deal, modelFields: dealsModelFields } = require('./dealsModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
+const { Op } = require("sequelize");
 
 class DealsController {
   async create(req, res, next) {
@@ -11,7 +12,7 @@ class DealsController {
       const deal = await Deal.create({
         ...newDeal,
         userId: req.user.id,
-        clientId: req.body.clientId,
+        clientId: req.params.id,
       });
 
       return res.json(deal);
@@ -55,10 +56,17 @@ class DealsController {
 
       const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
-      console.log(filter);
+      // console.log(filter);
+      let isClient = false;
+      if (req.params.id && !isNaN(+req.params.id)) {
+        isClient = req.params.id
+      }
       const deals = await Deal.findAndCountAll({
-        where: filter,
-        attributes: ['id', 'title', 'price', 'chatLink', 'clothingMethod'],
+        where: {
+          ...filter,
+          clientId: isClient || { [Op.gt]: 0 }
+        },
+        attributes: ['id', 'title', 'price', 'clothingMethod'],
         order,
         limit,
         offset,
@@ -76,7 +84,7 @@ class DealsController {
     }
   }
 
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       //придумать обновление превью
       const { id } = req.params;
@@ -95,7 +103,7 @@ class DealsController {
     }
   }
 
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
       const deletedDeal = await Deal.destroy({

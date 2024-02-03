@@ -28,11 +28,11 @@ class FilesRouterMiddleware {
         throw ApiError.BadRequest('No deal');
       }
       //проверка на file
-      if (!req?.files.file) {
+      if (!req?.files?.file) {
         console.log(false, 'no files');
         throw ApiError.BadRequest('Забыл что то указать');
       };
-
+      req.modelId = {dealId: req.params.id}
       next();
     } catch (e) {
       next(e);
@@ -59,7 +59,7 @@ class FilesRouterMiddleware {
         throw ApiError.BadRequest('No order');
       }
       //проверка на file
-      if (!req?.files.file) {
+      if (!req?.files?.file) {
         console.log(false, 'no files');
         throw ApiError.BadRequest('Забыл что то указать');
       };
@@ -67,6 +67,18 @@ class FilesRouterMiddleware {
         console.log(false, 'only imgs');
         throw ApiError.BadRequest('Только изображения');
       }
+      req.modelId = {orderId: req.params.id}
+      next();
+    } catch (e) {
+      next(e);
+    }
+  }
+  async getList(req, res, next) {
+    try {
+      const requester = req.user.role;
+      if (!permissions.includes(requester)) {
+        return console.log(false, 'no acces');
+      };
       next();
     } catch (e) {
       next(e);

@@ -67,6 +67,7 @@ Delivery.belongsTo(User, { as: 'sender' });
 //Заказы
 Order.hasMany(Neon);
 Neon.belongsTo(Order);
+File.belongsTo(Order);
 
 //Стадии
 Stage.hasMany(Order);

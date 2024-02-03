@@ -2,6 +2,8 @@ const { Payment, modelFields: paymentsModelFields } = require('./paymentsModel')
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
+const { Op } = require("sequelize");
+
 class PaymentsController {
   async create(req, res, next) {
     try {
@@ -9,7 +11,7 @@ class PaymentsController {
       const payment = await Payment.create({
         ...newPayment,
         userId: req.user.id,
-        dealId: req.body.dealId,
+        dealId: req.params.id,
       });
       return res.json(payment);
     } catch (e) {
@@ -45,8 +47,16 @@ class PaymentsController {
 
       const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
+
+      let isDeal = false;
+      if (req.params.id && !isNaN(+req.params.id)) {
+        isDeal = req.params.id
+      }
       const payments = await Payment.findAndCountAll({
-        where: filter,
+        where: {
+          ...filter,
+          dealId: isDeal || { [Op.gt]: 0 }
+        },
         order,
         limit,
         offset,
@@ -68,7 +78,7 @@ class PaymentsController {
     try {
       const { id } = req.params;
       const updates = await modelsService.checkUpdates(paymentsModelFields, req.body, req.updateFields);
-  
+
       const [updated, payment] = await Payment.update(updates, {
         where: {
           id: id,

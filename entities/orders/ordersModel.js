@@ -1,10 +1,10 @@
 const sequelize = require('../db');
 const { DataTypes } = require('sequelize');
 
-const holeTypes = ['6мм', 'под держатели', 'Нет'];
-const fittings = ['Дист. держатели', 'Для окон', 'Для стены', 'Нет'];
+const holeTypes = ['6мм', 'под держатели', 'нет'];
+const fittings = ['Дист. держатели', 'Для окон', 'Для стены', 'нет'];
 const materials = ['Полик', 'ПВХ'];
-const adapters = ['Обыный', 'Уличный', 'Нет'];
+const adapters = ['Обыный', 'Уличный', 'нет'];
 const statuses = ['В работе', 'Доступный', 'Выполнен'];
 ['elements', 'boardHeight', 'boardWidth', 'wireLength', 'dimer', 'acrylic', 'print', 'laminate', 'adapter', 'plug', 'holeType', 'fittings']
 const modelFields = {

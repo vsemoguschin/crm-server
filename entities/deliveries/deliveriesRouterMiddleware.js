@@ -21,12 +21,12 @@ class DeliverysRouterMiddleware {
                 throw ApiError.Forbidden('Нет доступа');
             };
             //проверка значения и наличия сделки
-            if (!req.body.dealId || isNaN(+req.body.dealId)) {
+            if (!req.params.id || isNaN(+req.params.id)) {
                 console.log(false, 'Забыл что то указать');
                 throw ApiError.BadRequest('Забыл что то указать');
             }
             const deal = await Deal.findOne({
-                where: { id: req.body.dealId }
+                where: { id: req.params.id }
             });
             if (!deal) {
                 console.log(false, 'No deal');

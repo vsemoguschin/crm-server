@@ -2,9 +2,8 @@ const { Delivery, modelFields: deliveryModelFields } = require('./deliveriesMode
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
-const ApiError = require('../../error/apiError');
 const { Order } = require('../association');
-const orders = '{a:1}';
+const { Op } = require("sequelize");
 
 class DeliveriesController {
 
@@ -14,7 +13,7 @@ class DeliveriesController {
       const dop = await Delivery.create({
         ...newDelivery,
         userId: req.user.id,
-        dealId: req.body.dealId,
+        dealId: req.params.id,
       });
       return res.json(dop);
     } catch (e) {
@@ -50,8 +49,16 @@ class DeliveriesController {
 
       const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
+
+      let isDeal = false;
+      if (req.params.id && !isNaN(+req.params.id)) {
+        isDeal = req.params.id
+      }
+
       const deliveries = await Delivery.findAndCountAll({
-        where: filter,
+        where: {
+          ...filter,
+          dealId: isDeal || {[Op.gt]: 0}},
         order,
         limit,
         offset,
@@ -105,6 +112,7 @@ class DeliveriesController {
       next(e)
     }
   }
+
   async addOrders (req, res, next) {
     try {
       const { id } = req.params;
@@ -118,12 +126,6 @@ class DeliveriesController {
       });
       // console.log(orders);
       const add = await delivery.addOrder(orders);
-      // console.log(deletedDelivery);
-      // if (deletedDelivery === 0) {
-      //   console.log('Доставка не удалена');
-      //   return res.json('Доставка не удалена');
-      // }
-      // console.log('Доставка удалена');
       return res.json(add);
     } catch (e) {
       next(e)

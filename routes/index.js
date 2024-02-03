@@ -14,7 +14,7 @@ const deliveriesRouter = require('../entities/deliveries/deliveriesRouter');
 const ordersRouter = require('../entities/orders/ordersRouter');
 const neonsRouter = require('../entities/neons/neonsRouter');
 const filesRouter = require('../entities/files/filesRouter');
-const stageRouter = require('../entities/stages/stageRouter');
+const stagesRouter = require('../entities/stages/stagesRouter');
 const profileRouter = require('./profileRouter');
 
 router.use(
@@ -32,7 +32,7 @@ router.use('/deliveries', deliveriesRouter);
 router.use('/files', filesRouter);
 router.use('/orders', ordersRouter);
 router.use('/neons', neonsRouter);
-router.use('/stages', stageRouter);
+router.use('/stages', stagesRouter);
 router.use('/profile', profileRouter);
 router.use('/', (req, res) => {
   throw ApiError.BadRequest('Wrong Path')

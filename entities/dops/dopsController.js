@@ -2,6 +2,7 @@ const { Dop, modelFields: dopsModelFields } = require('./dopsModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
+const { Op } = require("sequelize");
 class DopsController {
   async create(req, res, next) {
     try {
@@ -9,7 +10,7 @@ class DopsController {
       const dop = await Dop.create({
         ...newDop,
         userId: req.user.id,
-        dealId: req.body.dealId,
+        dealId: req.params.id,
       });
       return res.json(dop);
     } catch (e) {
@@ -45,8 +46,15 @@ class DopsController {
 
       const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
+
+      let isDeal = false;
+      if (req.params.id && !isNaN(+req.params.id)) {
+        isDeal = req.params.id
+      }
       const dops = await Dop.findAndCountAll({
-        where: filter,
+        where: {
+          ...filter,
+          dealId: isDeal || {[Op.gt]: 0}},
         order,
         limit,
         offset,
