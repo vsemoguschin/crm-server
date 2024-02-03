@@ -69,6 +69,7 @@ const start = async () => {
     // const deals = await Deal.findAll({
     //   // where: {
     //   //   '$order.deliveryId$ ':deliveryId
+    //   //   '$order.workSpaceId$ ':workSpaceId
     //   // },
     //   attributes: ['title'],
     //   include: [{

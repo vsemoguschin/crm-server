@@ -23,12 +23,12 @@ class DealsRouterMiddleware {
         throw ApiError.Forbidden('Нет доступа');
       };
       //проверка значения и наличия клиента
-      if (!req.body.clientId || isNaN(+req.body.clientId)) {
+      if (!req.params.id || isNaN(+req.params.id)) {
         console.log(false, 'Забыл что то указать');
         throw ApiError.BadRequest('Забыл что то указать');
       }
       const client = await Client.findOne({
-        where: { id: req.body.clientId }
+        where: { id: req.params.id }
       });
       if (!client) {
         console.log(false, 'No client');

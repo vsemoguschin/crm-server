@@ -82,8 +82,8 @@ class UsersController {
       const { limit, offset } = getPagination(pageNumber, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ["createdAt"];
 
-      const { rolesFilter, searchFeilds } = req;
-      const filter = await modelsService.searchFilter(searchFeilds, req.query);
+      const { rolesFilter, searchFields } = req;
+      const filter = await modelsService.searchFilter(searchFields, req.query);
       const users = await User.findAndCountAll({
         where: {
           roleName: rolesFilter,

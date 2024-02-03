@@ -50,7 +50,7 @@ class ClientsRouterMiddleware {
       if (!permissions.includes(requester)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
-      }
+      };
       req.searchFields = searchFields;
       next();
     } catch (e) {

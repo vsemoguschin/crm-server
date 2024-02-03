@@ -1,5 +1,5 @@
 const ApiError = require('../error/apiError');
-const { Op } = require("sequelize");//for test
+const { Op } = require("sequelize");
 
 
 class ModelsController {

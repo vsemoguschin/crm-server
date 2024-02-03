@@ -2,8 +2,7 @@ const { Order, modelFields: ordersModelFields } = require('./ordersModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
-const neonsRouterMiddleware = require('../neons/neonsRouterMiddleware');
-const neonsController = require('../neons/neonsController');
+const { Op } = require("sequelize");
 class OrdersController {
   async create(req, res, next) {
     try {
@@ -11,16 +10,8 @@ class OrdersController {
       const order = await Order.create({
         ...newOrder,
         userId: req.user.id,
-        dealId: req.body.dealId,
+        dealId: req.params.id,
       });
-      if (req.body.neons) {
-        const neonList = JSON.parse(req.body.neons);
-        req.params.id = order.id;
-        for (let i = 0; i < neonList.length; i++) {
-          req.newNeon = neonList[i];
-          await neonsController.create(req, res, next);
-        }
-      }
       return res.json(order);
     } catch (e) {
       console.log(e);
@@ -56,8 +47,16 @@ class OrdersController {
 
       const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
+      // console.log(filter);
+      let isDeal = false;
+      if (req.params.id && !isNaN(+req.params.id)) {
+        isDeal = req.params.id
+      }
       const orders = await Order.findAndCountAll({
-        where: filter,
+        where: {
+          ...filter,
+          dealId: isDeal || {[Op.gt]: 0}
+        },
         order,
         limit,
         offset,
