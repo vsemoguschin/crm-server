@@ -2,7 +2,7 @@ const { Payment, modelFields: paymentsModelFields } = require('./paymentsModel')
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
-const { Op } = require("sequelize");
+const { Op } = require('sequelize');
 
 class PaymentsController {
   async create(req, res, next) {
@@ -16,7 +16,7 @@ class PaymentsController {
       return res.json(payment);
     } catch (e) {
       console.log(e);
-      next(e)
+      next(e);
     }
   }
 
@@ -28,6 +28,9 @@ class PaymentsController {
           id,
         },
       });
+      if (!payment) {
+        return res.status(404).json('payment not found');
+      }
       return res.json(payment);
     } catch (e) {
       next(e);
@@ -38,61 +41,57 @@ class PaymentsController {
     const {
       pageSize,
       pageNumber,
-      key,//?
+      key, //?
       order: queryOrder,
     } = req.query;
     try {
       const { limit, offset } = getPagination(pageNumber, pageSize);
-      const order = queryOrder ? [[key, queryOrder]] : ["createdAt"];
+      const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
       const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
 
-      let isDeal = false;
-      if (req.params.id && !isNaN(+req.params.id)) {
-        isDeal = req.params.id
+      let modelSearch = {
+        id: { [Op.gt]: 0 },
+      };
+      if (req.baseUrl.includes('/deals')) {
+        modelSearch = { dealId: +req.params.id };
       }
       const payments = await Payment.findAndCountAll({
         where: {
           ...filter,
-          dealId: isDeal || { [Op.gt]: 0 }
+          ...modelSearch,
         },
         order,
         limit,
         offset,
-        // include: 'payments',
       });
-      const response = getPaginationData(
-        payments,
-        pageNumber,
-        pageSize,
-        "payments"
-      );
+      const response = getPaginationData(payments, pageNumber, pageSize, 'payments');
       return res.json(response || []);
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
       const updates = await modelsService.checkUpdates(paymentsModelFields, req.body, req.updateFields);
 
-      const [updated, payment] = await Payment.update(updates, {
+      const [, payment] = await Payment.update(updates, {
         where: {
           id: id,
         },
         individualHooks: true,
       });
-      return res.status(200).json(payment)
-    } catch (error) {
-      console.log(error);
-      return res.status(400).json(error);
+      return res.status(200).json(payment);
+    } catch (e) {
+      console.log(e);
+      next(e);
     }
   }
 
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
       const deletedPayment = await Payment.destroy({
@@ -108,7 +107,7 @@ class PaymentsController {
       console.log('Платеж удален');
       return res.json('Платеж удален');
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 }

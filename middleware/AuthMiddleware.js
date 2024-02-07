@@ -1,8 +1,8 @@
 //Проверяем токен на валидность
-const tokenService = require("../services/tokenService");
-const ApiError = require("../error/apiError");
-const {User} = require("../entities/users/usersModel");
-const { Op } = require("sequelize");
+const tokenService = require('../services/tokenService');
+const ApiError = require('../error/apiError');
+const { User } = require('../entities/users/usersModel');
+const { Op } = require('sequelize');
 
 module.exports = function (req, res, next) {
   // console.log(req);
@@ -12,13 +12,14 @@ module.exports = function (req, res, next) {
       return next(ApiError.UnauthorizedError());
     }
 
-    const accessToken = authorizationHeader.split(" ")[1];
+    const accessToken = authorizationHeader.split(' ')[1];
     if (!accessToken) {
       return next(ApiError.UnauthorizedError());
     }
 
     const userData = tokenService.validateAccessToken(accessToken);
-    const currentUser = User.findOne({ //выдавать актуальные role и fullName
+    const currentUser = User.findOne({
+      //выдавать актуальные role и fullName
       where: {
         id: userData.id,
         [Op.and]: { deletedAt: null },
@@ -26,7 +27,7 @@ module.exports = function (req, res, next) {
     });
 
     if (!currentUser) {
-      return next(ApiError.BadRequest("Пользователь не найден"));
+      return next(ApiError.BadRequest('Пользователь не найден'));
     }
 
     if (!userData) {

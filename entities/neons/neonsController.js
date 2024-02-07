@@ -11,10 +11,10 @@ class NeonsController {
         userId: req.user.id,
         orderId: req.params.id,
       });
-      // return res.json(neon);
+      return res.json(neon);
     } catch (e) {
       console.log(e);
-      next(e)
+      next(e);
     }
   }
 
@@ -36,12 +36,12 @@ class NeonsController {
     const {
       pageSize,
       pageNumber,
-      key,//?
+      key, //?
       order: queryOrder,
     } = req.query;
     try {
       const { limit, offset } = getPagination(pageNumber, pageSize);
-      const order = queryOrder ? [[key, queryOrder]] : ["createdAt"];
+      const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
       const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
@@ -52,37 +52,32 @@ class NeonsController {
         offset,
         // include: 'neons',
       });
-      const response = getPaginationData(
-        neons,
-        pageNumber,
-        pageSize,
-        "neons"
-      );
+      const response = getPaginationData(neons, pageNumber, pageSize, 'neons');
       return res.json(response || []);
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
       const updates = await modelsService.checkUpdates(neonsModelFields, req.body, req.updateFields);
-      
-      const [updated, neon] = await Neon.update(updates, {
+
+      const [, neon] = await Neon.update(updates, {
         where: {
           id: id,
         },
         individualHooks: true,
       });
-      return res.status(200).json(neon)
-    } catch (error) {
-      console.log(error);
-      return res.status(400).json(error);
+      return res.status(200).json(neon);
+    } catch (e) {
+      console.log(e);
+      next(e);
     }
   }
 
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
       const deletedNeon = await Neon.destroy({
@@ -98,7 +93,7 @@ class NeonsController {
       console.log('Неон удален');
       return res.json('Неон удален');
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 }

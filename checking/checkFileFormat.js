@@ -1,7 +1,7 @@
 const directories = {
   ['imgs']: ['jpeg', 'jpg', 'png'],
   ['documents']: ['pdf'],
-  ['drafts']: ['cdr']
+  ['drafts']: ['cdr'],
 };
 
 const checkFileFormat = (file) => {
@@ -9,22 +9,22 @@ const checkFileFormat = (file) => {
   if (directories['imgs'].includes(currentFormat)) {
     return {
       directory: 'imgs',
-      format: currentFormat
-    }
+      format: currentFormat,
+    };
   }
   if (directories['documents'].includes(currentFormat)) {
     return {
       directory: 'documents',
-      format: currentFormat
-    }
+      format: currentFormat,
+    };
   }
   if (directories['drafts'].includes(currentFormat)) {
     return {
       directory: 'drafts',
-      format: currentFormat
-    }
+      format: currentFormat,
+    };
   }
-  return { format: false }
+  return { format: false };
 };
 
 module.exports = checkFileFormat;

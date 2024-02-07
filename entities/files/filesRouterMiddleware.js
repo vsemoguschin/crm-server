@@ -14,14 +14,14 @@ class FilesRouterMiddleware {
       if (!permissions.includes(requester)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
-      };
+      }
       //проверка значения и наличия сделки/заказа
       if (!req.params.id || isNaN(+req.params.id)) {
         console.log(false, 'Забыл что то указать');
         throw ApiError.BadRequest('Забыл что то указать');
       }
       const deal = await Deal.findOne({
-        where: { id: req.params.id }
+        where: { id: +req.params.id },
       });
       if (!deal) {
         console.log(false, 'No deal');
@@ -31,8 +31,8 @@ class FilesRouterMiddleware {
       if (!req?.files?.file) {
         console.log(false, 'no files');
         throw ApiError.BadRequest('Забыл что то указать');
-      };
-      req.modelId = {dealId: req.params.id}
+      }
+      req.modelId = { dealId: +req.params.id };
       next();
     } catch (e) {
       next(e);
@@ -45,14 +45,14 @@ class FilesRouterMiddleware {
       if (!['ADMIN', 'G', 'DP', 'RP', 'MASTER', 'PACKER'].includes(requester)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
-      };
+      }
       //проверка значения и наличия сделки/заказа
       if (!req.params.id || isNaN(+req.params.id)) {
         console.log(false, 'Забыл что то указать');
         throw ApiError.BadRequest('Забыл что то указать');
       }
       const order = await Order.findOne({
-        where: { id: req.params.id }
+        where: { id: +req.params.id },
       });
       if (!order) {
         console.log(false, 'No order');
@@ -62,12 +62,12 @@ class FilesRouterMiddleware {
       if (!req?.files?.file) {
         console.log(false, 'no files');
         throw ApiError.BadRequest('Забыл что то указать');
-      };
-      if (!checkFormat(req.files.file)) {
+      }
+      if (!checkFormat(req.files.file.name)) {
         console.log(false, 'only imgs');
         throw ApiError.BadRequest('Только изображения');
       }
-      req.modelId = {orderId: req.params.id}
+      req.modelId = { orderId: +req.params.id };
       next();
     } catch (e) {
       next(e);
@@ -78,7 +78,7 @@ class FilesRouterMiddleware {
       const requester = req.user.role;
       if (!permissions.includes(requester)) {
         return console.log(false, 'no acces');
-      };
+      }
       next();
     } catch (e) {
       next(e);
@@ -91,14 +91,14 @@ class FilesRouterMiddleware {
       if (!permissions.includes(requester)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
-      };
+      }
       //проверка значения и наличия сделки/заказа
       if (!req.params.id || isNaN(+req.params.id)) {
         console.log(false, 'Забыл что то указать');
         throw ApiError.BadRequest('Забыл что то указать');
       }
       const file = await File.findOne({
-        where: { id: req.params.id }
+        where: { id: req.params.id },
       });
       if (!file) {
         console.log(false, 'No file');
@@ -107,13 +107,11 @@ class FilesRouterMiddleware {
       const { type, ya_name } = file;
       const filePath = type + '/' + ya_name;
       req.filePath = filePath;
-      next()
+      next();
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 }
-console.log();
-
 
 module.exports = new FilesRouterMiddleware();

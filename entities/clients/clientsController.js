@@ -1,7 +1,8 @@
 const { Client, modelFields: clientsModelFields } = require('./clientsModel');
 const modelsService = require('../../services/modelsService');
-const getPagination = require("../../utils/getPagination");
-const getPaginationData = require("../../utils/getPaginationData");
+const getPagination = require('../../utils/getPagination');
+const getPaginationData = require('../../utils/getPaginationData');
+const { Op } = require('sequelize');
 
 class ClientController {
   async create(req, res, next) {
@@ -16,12 +17,12 @@ class ClientController {
       });
       if (!created) {
         console.log(false, 'Клиент существует');
-        return res.json('Клиент существует')
-      };
+        return res.json('Клиент существует');
+      }
       console.log('created_client', client);
       return res.json(client);
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 
@@ -34,7 +35,7 @@ class ClientController {
         where: {
           id,
         },
-        include: ['deals']
+        include: ['deals'],
       });
       return res.json(client);
     } catch (e) {
@@ -47,57 +48,54 @@ class ClientController {
     const {
       pageSize,
       pageNumber,
-      key,//?
+      key, //?
       order: queryOrder,
     } = req.query;
+    const { filter } = req.body;
     try {
       const { limit, offset } = getPagination(pageNumber, pageSize);
-      const order = queryOrder ? [[key, queryOrder]] : ["createdAt"];
+      const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
-      const { searchFields } = req;
-      const filter = await modelsService.searchFilter(searchFields, req.query);
       const clients = await Client.findAndCountAll({
-        where: filter,
-        attributes: ['id' ,'fullName', 'phone', 'gender', 'type', 'info', 'city', 'chatLink'],
+        where: {
+          id: { [Op.gt]: 2 },
+          ...filter,
+        },
+        attributes: ['id', 'fullName', 'phone', 'gender', 'type', 'info', 'city', 'chatLink'],
         order,
         limit,
         offset,
         // include: 'deals',
       });
-      const response = getPaginationData(
-        clients,
-        pageNumber,
-        pageSize,
-        "clients"
-      );
+      const response = getPaginationData(clients, pageNumber, pageSize, 'clients');
       return res.json(response || []);
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 
   //обновляем данные клиента
-  async update(req, res) {
+  async update(req, res, next) {
     // patch-запрос  в теле запроса(body) передаем строку(raw) в формате JSON
     try {
       const { id } = req.params;
       const updates = await modelsService.checkUpdates(clientsModelFields, req.body, req.updateFields);
-  
-      const [updated, client] = await Client.update(updates, {
+
+      const [, client] = await Client.update(updates, {
         where: {
           id: id,
         },
         individualHooks: true,
       });
-      return res.status(200).json(client)
-      return res.json(!!updated, updates);
+      return res.status(200).json(client);
     } catch (e) {
-      console.log(e);
+      // console.log(e);
+      next(e);
     }
   }
 
   //удалить клиента
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
       const deletedClient = await Client.destroy({
@@ -113,7 +111,7 @@ class ClientController {
       console.log('Клиент удален');
       return res.json('Клиент удален');
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 }

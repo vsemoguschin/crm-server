@@ -14,7 +14,7 @@ class OrdersController {
       return res.json(order);
     } catch (e) {
       console.log(e);
-      next(e)
+      next(e);
     }
   }
 
@@ -25,7 +25,7 @@ class OrdersController {
         where: {
           id,
         },
-        include: 'neons'
+        include: 'neons',
       });
       return res.json(order);
     } catch (e) {
@@ -37,12 +37,12 @@ class OrdersController {
     const {
       pageSize,
       pageNumber,
-      key,//?
+      key, //?
       order: queryOrder,
     } = req.query;
     try {
       const { limit, offset } = getPagination(pageNumber, pageSize);
-      const order = queryOrder ? [[key, queryOrder]] : ["createdAt"];
+      const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
       const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
@@ -53,15 +53,10 @@ class OrdersController {
         offset,
         // include: 'orders',
       });
-      const response = getPaginationData(
-        orders,
-        pageNumber,
-        pageSize,
-        "orders"
-      );
+      const response = getPaginationData(orders, pageNumber, pageSize, 'orders');
       return res.json(response || []);
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 
@@ -76,7 +71,7 @@ class OrdersController {
         },
         individualHooks: true,
       });
-      return res.status(200).json(order)
+      return res.status(200).json(order);
     } catch (error) {
       console.log(error);
       return res.status(400).json(error);
@@ -99,7 +94,7 @@ class OrdersController {
       console.log('Заказ удален');
       return res.json('Заказ удален');
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 }

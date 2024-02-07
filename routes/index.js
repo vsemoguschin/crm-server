@@ -35,7 +35,7 @@ router.use('/neons', neonsRouter);
 router.use('/stages', stagesRouter);
 router.use('/profile', profileRouter);
 router.use('/', (req, res) => {
-  throw ApiError.BadRequest('Wrong Path')
+  throw ApiError.BadRequest('Wrong Path');
 });
 
 //git commit --amend --no-edit // позлей изменения в предыдущий коммит

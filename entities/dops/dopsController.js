@@ -2,7 +2,7 @@ const { Dop, modelFields: dopsModelFields } = require('./dopsModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
-const { Op } = require("sequelize");
+const { Op } = require('sequelize');
 class DopsController {
   async create(req, res, next) {
     try {
@@ -15,7 +15,7 @@ class DopsController {
       return res.json(dop);
     } catch (e) {
       console.log(e);
-      next(e)
+      next(e);
     }
   }
 
@@ -27,6 +27,9 @@ class DopsController {
           id,
         },
       });
+      if (!dop) {
+        return res.status(404).json('dop not found');
+      }
       return res.json(dop);
     } catch (e) {
       next(e);
@@ -37,60 +40,57 @@ class DopsController {
     const {
       pageSize,
       pageNumber,
-      key,//?
+      key, //?
       order: queryOrder,
     } = req.query;
     try {
       const { limit, offset } = getPagination(pageNumber, pageSize);
-      const order = queryOrder ? [[key, queryOrder]] : ["createdAt"];
+      const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
       const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
 
-      let isDeal = false;
-      if (req.params.id && !isNaN(+req.params.id)) {
-        isDeal = req.params.id
+      let modelSearch = {
+        id: { [Op.gt]: 0 },
+      };
+      if (req.baseUrl.includes('/deals')) {
+        modelSearch = { dealId: +req.params.id };
       }
       const dops = await Dop.findAndCountAll({
         where: {
           ...filter,
-          dealId: isDeal || {[Op.gt]: 0}},
+          ...modelSearch,
+        },
         order,
         limit,
         offset,
-        // include: 'dops',
       });
-      const response = getPaginationData(
-        dops,
-        pageNumber,
-        pageSize,
-        "dops"
-      );
+      const response = getPaginationData(dops, pageNumber, pageSize, 'dops');
       return res.json(response || []);
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
       const updates = await modelsService.checkUpdates(dopsModelFields, req.body, req.updateFields);
-  
-      const [updated, dop] = await Dop.update(updates, {
+
+      const [, dop] = await Dop.update(updates, {
         where: {
           id: id,
         },
         individualHooks: true,
       });
-      return res.status(200).json(dop)
-    } catch (error) {
-      console.log(error);
-      return res.status(400).json(error);
+      return res.status(200).json(dop);
+    } catch (e) {
+      console.log(e);
+      next(e);
     }
   }
 
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
       const deletedDop = await Dop.destroy({
@@ -106,7 +106,7 @@ class DopsController {
       console.log('Доп удалена');
       return res.json('Доп удалена');
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 }
