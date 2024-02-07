@@ -33,7 +33,7 @@ User.hasMany(Dop);
 Dop.belongsTo(User);
 
 User.hasMany(Order);
-Order.belongsToMany(User, { through: 'ordersExecutors' , as: 'executors' });
+Order.belongsToMany(User, { through: 'ordersExecutors', as: 'executors' });
 
 //Клиенты
 Client.hasMany(Deal);
@@ -67,6 +67,8 @@ Delivery.belongsTo(User, { as: 'sender' });
 //Заказы
 Order.hasMany(Neon);
 Neon.belongsTo(Order);
+
+Order.hasMany(File);
 File.belongsTo(Order);
 
 //Стадии
@@ -76,12 +78,12 @@ Order.belongsTo(Stage);
 //Рабочие пространства
 // WorkSpace.hasMany(User);
 WorkSpace.belongsToMany(User, { through: 'WorkSpaceMembers', as: 'members' });
-WorkSpace.belongsTo(User, { as: 'creator' })
+WorkSpace.belongsTo(User, { as: 'creator' });
 
-WorkSpace.hasMany(Order);//для производства
+WorkSpace.hasMany(Order); //для производства
 Order.belongsTo(WorkSpace);
 
-WorkSpace.hasMany(Deal);//для отдела комерции
+WorkSpace.hasMany(Deal); //для отдела комерции
 Deal.belongsTo(WorkSpace);
 
 module.exports = {

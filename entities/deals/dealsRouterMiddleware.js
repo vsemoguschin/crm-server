@@ -1,16 +1,15 @@
 const ApiError = require('../../error/apiError');
 const modelsService = require('../../services/modelsService');
-const { Deal, modelFields: dealsModelFields } = require('./dealsModel');
+const { modelFields: dealsModelFields } = require('./dealsModel');
 const { Client } = require('../clients/clientsModel');
 const checkImgFormat = require('../../checking/checkFormat');
-const diskService = require('../../services/diskService');
 
 const frontOptions = {
   modelFields: modelsService.getModelFields(dealsModelFields),
 };
 const permissions = ['ADMIN', 'G', 'KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
-const updateFields = ['title', 'chatLink', 'clothingMethod', 'deadline', 'description', 'price',];
-const searchFields = ['title', 'clothingMethod', 'status']
+const updateFields = ['title', 'chatLink', 'clothingMethod', 'deadline', 'description', 'price'];
+const searchFields = ['title', 'clothingMethod', 'status'];
 
 class DealsRouterMiddleware {
   async create(req, res, next) {
@@ -21,20 +20,20 @@ class DealsRouterMiddleware {
       if (!permissions.includes(requester)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
-      };
+      }
       //проверка значения и наличия клиента
-      if (!req.params.id || isNaN(+req.params.id)) {
+      if ((!req.params.id || isNaN(+req.params.id)) && (!req.body.clientId || isNaN(+req.body.clientId))) {
         console.log(false, 'Забыл что то указать');
         throw ApiError.BadRequest('Забыл что то указать');
       }
       const client = await Client.findOne({
-        where: { id: req.params.id }
+        where: { id: req.params.id || req.body.clientId },
       });
       if (!client) {
         console.log(false, 'No client');
         throw ApiError.BadRequest('No client');
       }
-      
+
       //проверка формата изображения
       const newDeal = await modelsService.checkFields(dealsModelFields, req.body);
 
@@ -83,12 +82,12 @@ class DealsRouterMiddleware {
         }
         req.body.previewFormat = previewFormat;
         req.body.preview = 'preview';
-      };
+      }
 
       req.updateFields = updateFields;
-      next()
+      next();
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
   async delete(req, res, next) {
@@ -98,13 +97,12 @@ class DealsRouterMiddleware {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      next()
+      next();
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 }
 console.log();
-
 
 module.exports = new DealsRouterMiddleware();

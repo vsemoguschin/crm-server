@@ -40,13 +40,13 @@ app.use(
   }),
 );
 app.use('/api', router);
-app.use( 
-  '/api', 
-  async (req, res, next) => { 
-    await sequelize.authenticate(); 
-    next(); 
-  }, 
-  router, 
+app.use(
+  '/api',
+  async (req, res, next) => {
+    await sequelize.authenticate();
+    next();
+  },
+  router,
 );
 app.use(errorHandling);
 

@@ -1,5 +1,5 @@
 const ApiError = require('../../error/apiError');
-const { User, modelFields: usersModelFields } = require('./usersModel');
+const { modelFields: usersModelFields } = require('./usersModel');
 const modelsService = require('../../services/modelsService');
 const { ROLES: rolesList } = require('../roles/rolesList');
 const checkImgFormat = require('../../checking/checkFormat');
@@ -8,9 +8,9 @@ const uuid = require('uuid');
 const getAvailableRoles = (rolesArr) => {
   const list = [];
   for (let i = 0; i < rolesArr.length; i++) {
-    list.push(rolesList.find(el => el.shortName == rolesArr[i]));
+    list.push(rolesList.find((el) => el.shortName == rolesArr[i]));
   }
-  return list
+  return list;
 };
 
 const frontOptions = {
@@ -24,13 +24,13 @@ const frontOptions = {
 }; //возвращить на фронт опции
 const permissions = {
   rolesList: {
-    ['ADMIN']: rolesList.map(el => el.shortName),
-    ['G']: rolesList.map(el => el.shortName),
+    ['ADMIN']: rolesList.map((el) => el.shortName),
+    ['G']: rolesList.map((el) => el.shortName),
     ['KD']: ['DO', 'ROP', 'MOP', 'ROV', 'MOV'],
     ['DP']: ['RP', 'FRZ', 'MASTER', 'PACKER'],
   },
   updateFields: ['fullName', 'roleName', 'info'],
-  searchFields: ['fullName', 'roleName']
+  searchFields: ['fullName', 'roleName'],
 };
 
 class UsersRouterMiddleware {
@@ -43,17 +43,17 @@ class UsersRouterMiddleware {
       if (!permissions.rolesList[requester]) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
-      };
+      }
       //проверка на существование создаваемой роли
       if (!permissions.rolesList[requester].includes(userRole)) {
         console.log(false, 'no role');
         throw ApiError.BadRequest('Забыл что то указать');
-      };
+      }
       //проверка на переданный аватар
       if (!req?.files?.img) {
         console.log(false, 'no avatar');
         throw ApiError.BadRequest('Забыл что то указать');
-      };
+      }
       //проверка формата изображения
       const imgFormat = checkImgFormat(req.files.img.name);
       if (!imgFormat) {
@@ -61,7 +61,7 @@ class UsersRouterMiddleware {
       }
       req.body.avatar = 'user_' + uuid.v4() + imgFormat;
       const newUser = await modelsService.checkFields(usersModelFields, req.body);
-      newUser.department = rolesList.find(role => role.shortName == req.body.roleName).department
+      newUser.department = rolesList.find((role) => role.shortName == req.body.roleName).department;
       // fs.writeFileSync(__dirname, '..', '/static/', req.files.img.data, {encoding:'utf16le'})
       // avatar.mv(path.resolve(__dirname, '..', 'static/users_avatars', fileName))
       req.newUser = newUser;
@@ -72,15 +72,14 @@ class UsersRouterMiddleware {
   }
 
   async getOne(req, res, next) {
-    const { id } = req.params;
     try {
       const requester = req.user.role;
       if (!permissions.rolesList[requester]) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
-      };
+      }
       req.rolesFilter = permissions.rolesList[requester];
-      next()
+      next();
     } catch (e) {
       next(e);
     }
@@ -92,7 +91,7 @@ class UsersRouterMiddleware {
       if (!permissions.rolesList[requester]) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
-      };
+      }
       req.rolesFilter = permissions.rolesList[requester];
       req.searchFields = permissions.searchFields;
       next();
@@ -107,7 +106,7 @@ class UsersRouterMiddleware {
       if (!permissions.rolesList[requester]) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
-      };
+      }
       if (req.files?.img) {
         //проверка формата изображения
         const imgFormat = checkImgFormat(req.files.img.name);
@@ -118,9 +117,9 @@ class UsersRouterMiddleware {
       }
       req.rolesFilter = permissions.rolesList[requester];
       req.updateFields = permissions.updateFields;
-      next()
+      next();
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 
@@ -129,9 +128,9 @@ class UsersRouterMiddleware {
     if (!permissions.rolesList[requester]) {
       console.log(false, 'no acces');
       throw ApiError.Forbidden('Нет доступа');
-    };
+    }
     req.rolesFilter = permissions.rolesList[requester];
-    next()
+    next();
   }
 }
 

@@ -1,8 +1,8 @@
-const { Order, modelFields: ordersModelFields } = require('./ordersModel');
+const { Order } = require('./ordersModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
-const { Op } = require("sequelize");
+const { Op } = require('sequelize');
 class OrdersController {
   async create(req, res, next) {
     try {
@@ -15,7 +15,7 @@ class OrdersController {
       return res.json(order);
     } catch (e) {
       console.log(e);
-      next(e)
+      next(e);
     }
   }
 
@@ -26,8 +26,11 @@ class OrdersController {
         where: {
           id,
         },
-        include: 'neons'
+        include: ['neons', 'files'],
       });
+      if (!order) {
+        return res.status(404).json('order not found');
+      }
       return res.json(order);
     } catch (e) {
       next(e);
@@ -38,39 +41,41 @@ class OrdersController {
     const {
       pageSize,
       pageNumber,
-      key,//?
+      key, //?
       order: queryOrder,
     } = req.query;
     try {
       const { limit, offset } = getPagination(pageNumber, pageSize);
-      const order = queryOrder ? [[key, queryOrder]] : ["createdAt"];
+      const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
       const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
       // console.log(filter);
-      let isDeal = false;
-      if (req.params.id && !isNaN(+req.params.id)) {
-        isDeal = req.params.id
+      let modelSearch = {
+        id: { [Op.gt]: 0 },
+      };
+      if (req.baseUrl.includes('/deals') && req.params.id && !isNaN(+req.params.id)) {
+        modelSearch = { dealId: +req.params.id };
+      }
+      if (req.baseUrl.includes('/workspaces') && req.params.id && !isNaN(+req.params.id)) {
+        modelSearch = { workSpaceId: +req.params.id };
+      }
+      if (req.baseUrl.includes('/deliveries') && req.params.id && !isNaN(+req.params.id)) {
+        modelSearch = { deliveryId: +req.params.id };
       }
       const orders = await Order.findAndCountAll({
         where: {
           ...filter,
-          dealId: isDeal || {[Op.gt]: 0}
+          ...modelSearch,
         },
         order,
         limit,
         offset,
-        // include: 'orders',
       });
-      const response = getPaginationData(
-        orders,
-        pageNumber,
-        pageSize,
-        "orders"
-      );
+      const response = getPaginationData(orders, pageNumber, pageSize, 'orders');
       return res.json(response || []);
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 
@@ -78,20 +83,20 @@ class OrdersController {
     try {
       const { id } = req.params;
       const { updates } = req.body;
-      const [updated, order] = await Order.update(updates, {
+      const [, order] = await Order.update(updates, {
         where: {
           id: id,
         },
         individualHooks: true,
       });
-      return res.status(200).json(order)
+      return res.status(200).json(order);
     } catch (error) {
       console.log(error);
       return res.status(400).json(error);
     }
   }
 
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
       const deletedOrder = await Order.destroy({
@@ -107,7 +112,7 @@ class OrdersController {
       console.log('Заказ удален');
       return res.json('Заказ удален');
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 }

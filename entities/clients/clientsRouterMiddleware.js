@@ -1,5 +1,5 @@
-const ApiError = require("../../error/apiError");
-const { Client, modelFields: clientsModelFields } = require("./clientsModel");
+const ApiError = require('../../error/apiError');
+const { modelFields: clientsModelFields } = require('./clientsModel');
 const modelsService = require('../../services/modelsService');
 
 const frontOptions = {
@@ -8,7 +8,6 @@ const frontOptions = {
 const permissions = ['ADMIN', 'G', 'KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
 const updateFields = ['gender', 'city', 'region', 'type', 'sphere', 'fullName', 'chatLink', 'phone', 'info'];
 const searchFields = ['gender', 'city', 'region', 'type', 'sphere', 'fullName', 'chatLink', 'phone'];
-
 
 class ClientsRouterMiddleware {
   async create(req, res, next) {
@@ -50,8 +49,8 @@ class ClientsRouterMiddleware {
       if (!permissions.includes(requester)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
-      };
-      req.searchFields = searchFields;
+      }
+      req.filter = await modelsService.searchFilter(searchFields, req.query);
       next();
     } catch (e) {
       next(e);
@@ -69,9 +68,9 @@ class ClientsRouterMiddleware {
         throw ApiError.Forbidden('Нет доступа');
       }
       req.updateFields = updateFields;
-      next()
+      next();
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
   async delete(req, res, next) {
@@ -85,9 +84,9 @@ class ClientsRouterMiddleware {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      next()
+      next();
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 }

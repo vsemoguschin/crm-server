@@ -1,11 +1,6 @@
-const {
-  User, Client, Deal,
-  WorkSpace,
-  workSpacesList,
-  stageList,
-  Stage } = require('../entities/association');
+const { User, Client, Deal, WorkSpace, workSpacesList, stageList, Stage } = require('../entities/association');
 const { Role } = require('../entities/roles/rolesModel');
-const {ROLES: rolesList, administration} = require('../entities/roles/rolesList');
+const { ROLES: rolesList, administration } = require('../entities/roles/rolesList');
 const bcrypt = require('bcrypt');
 
 class Presets {
@@ -20,7 +15,8 @@ class Presets {
         password: hashPassword,
         avatar: '1.jpg',
         roleId: 1,
-      }, paranoid: false
+      },
+      paranoid: false,
     });
   }
   async createRoles() {
@@ -44,21 +40,21 @@ class Presets {
         phone: '1',
         chatLink: 'https://seller.ozon.ru/app/postings/fbs',
         type: 'Marketplace',
-        gender: 'IT'
+        gender: 'IT',
       },
       {
         fullName: 'Wildberries',
         phone: '2',
         chatLink: 'https://seller.wildberries.ru/',
         type: 'Marketplace',
-        gender: 'IT'
+        gender: 'IT',
       },
     ];
     for (let i = 0; i < marketplaces.length; i++) {
       await Client.findOrCreate({
         where: { phone: marketplaces[i].phone },
-        defaults: marketplaces[i]
-      })
+        defaults: marketplaces[i],
+      });
     }
   }
   async createMarketPlacesDeals() {
@@ -103,8 +99,8 @@ class Presets {
     for (let i = 0; i < marketsDeals.length; i++) {
       await Client.findOrCreate({
         where: { phone: marketsDeals[i].phone },
-        defaults: marketsDeals[i]
-      })
+        defaults: marketsDeals[i],
+      });
     }
   }
   async createWorkSpaces() {
@@ -113,13 +109,13 @@ class Presets {
         where: { title: workSpacesList[i].title },
         defaults: workSpacesList[i],
       });
-      await workSpace.setCreator(1)
+      await workSpace.setCreator(1);
     }
   }
   async createStages() {
     for (let i = 0; i < stageList.length; i++) {
       await Stage.findOrCreate({
-        where: {title: stageList[i].title},
+        where: { title: stageList[i].title },
         defaults: stageList[i],
       });
     }

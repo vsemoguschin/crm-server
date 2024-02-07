@@ -2,17 +2,13 @@ const sequelize = require('../db');
 const { DataTypes } = require('sequelize');
 
 const stageList = [
-  { title: 'created', fullName: 'Создан' },
-  { title: 'production', fullName: 'Выгружен на производство' },
   { title: 'milling', fullName: 'Фрезеровка' },
   { title: 'laminating', fullName: 'Пленка' },
-  { title: 'master', fullName: 'Мастерам' },
-  { title: 'atWork', fullName: 'В работе' },
-  { title: 'done', fullName: 'Собран' },
-  { title: 'packed', fullName: 'Упакованны' },
-  { title: 'sent', fullName: 'Отправлен' },
-  { title: 'my', fullName: 'Мои заказы' },
-  { title: 'defective', fullName: 'Брак' },
+  { title: 'master', fullName: 'Сборка' },
+  { title: 'packed', fullName: 'Упаковка' },
+  { title: 'sent', fullName: 'Отправка' },
+  // { title: 'my', fullName: 'Мои заказы' },
+  // { title: 'defective', fullName: 'Брак' },
 ];
 
 const modelFields = {
@@ -28,5 +24,5 @@ const Stage = sequelize.define('stage', modelFields, {
 module.exports = {
   Stage,
   stageList,
-  modelFields
+  modelFields,
 };

@@ -13,8 +13,8 @@ router.get('/', ordersRouterMiddleware.getList, ordersController.getList);
 router.put('/:id', ordersRouterMiddleware.update, ordersController.update);
 router.delete('/:id', ordersRouterMiddleware.delete, ordersController.delete);
 
-router.post('/:id/neons',neonsRouterMiddleware.create, neonsController.create)
-router.delete('/:id/neons', neonsRouterMiddleware.delete, neonsController.delete)
+router.post('/:id/neons', neonsRouterMiddleware.create, neonsController.create);
+router.delete('/:id/neons', neonsRouterMiddleware.delete, neonsController.delete);
 
 router.post('/:id/files', filesRouterMiddleware.ordersImgs, filesController.create);
 router.get('/:id/files', filesRouterMiddleware.getList, filesController.getList);

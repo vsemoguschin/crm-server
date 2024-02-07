@@ -1,8 +1,6 @@
 const sequelize = require('../db');
 const { DataTypes } = require('sequelize');
 
-const DEPARTMENTS = ['COMERCIAL', 'DESIGN', 'PRODUCTION'];
-
 const Role = sequelize.define(
   'role',
   {

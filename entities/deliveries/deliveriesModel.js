@@ -2,13 +2,13 @@ const sequelize = require('../db');
 const { DataTypes } = require('sequelize');
 
 const methods = ['СДЕК', 'ПОЧТА', 'Курьер', 'Балтийский курьер', 'Самовывоз'];
-const types = ['Платно', 'Бесплатно']; 
+const types = ['Платно', 'Бесплатно'];
 
 //фиксировать досылы, сделать галочку
 const modelFields = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  method: { type: DataTypes.STRING, allowNull: false, fieldType: 'string',validateFields: methods, fullName: 'Способ доставки' },
-  type: { type: DataTypes.STRING, fieldType: 'string',validateFields: types, fullName: 'Платно/Бесплатно' },
+  method: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', validateFields: methods, fullName: 'Способ доставки' },
+  type: { type: DataTypes.STRING, fieldType: 'string', validateFields: types, fullName: 'Платно/Бесплатно' },
   description: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Данные/Описание' },
   city: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Город получения' },
   //ниже поля заполняются на производстве, не выводить при созданиии
@@ -25,5 +25,5 @@ const Delivery = sequelize.define('delivery', modelFields, {
 
 module.exports = {
   Delivery,
-  modelFields
+  modelFields,
 };

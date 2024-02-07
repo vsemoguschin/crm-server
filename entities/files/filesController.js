@@ -6,16 +6,16 @@ const getPagination = require('../../utils/getPagination');
 class FilesController {
   async create(req, res, next) {
     try {
-      const {modelId} = req.body;
+      const { modelId } = req;
       const fileDatas = await diskService.uploadFile(req.files.file);
       const file = await File.create({
         ...fileDatas,
-        modelId,
+        ...modelId,
       });
 
       return res.json(file);
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 
@@ -23,41 +23,36 @@ class FilesController {
     const {
       pageSize,
       pageNumber,
-      key,//?
+      key, //?
       order: queryOrder,
     } = req.query;
     try {
       let modelSearch;
-      if (req.baseUrl.includes('deals')) {
-        modelSearch = {dealId: +req.params.id}
+      if (req.baseUrl.includes('/deals') && req.params.id && !isNaN(+req.params.id)) {
+        modelSearch = { dealId: +req.params.id };
       }
-      if (req.baseUrl.includes('orders')) {
-        modelSearch = {orderId: +req.params.id}
+      if (req.baseUrl.includes('/orders') && req.params.id && !isNaN(+req.params.id)) {
+        modelSearch = { orderId: +req.params.id };
       }
       console.log(modelSearch);
       const { limit, offset } = getPagination(pageNumber, pageSize);
-      const order = queryOrder ? [[key, queryOrder]] : ["createdAt"];
+      const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
       const files = await File.findAndCountAll({
         where: modelSearch,
         order,
         limit,
         offset,
       });
-      const response = getPaginationData(
-        files,
-        pageNumber,
-        pageSize,
-        "files"
-      );
+      const response = getPaginationData(files, pageNumber, pageSize, 'files');
       return res.json(response || []);
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
-      await diskService.deleteFile(req.filePath)
+      await diskService.deleteFile(req.filePath);
       const { id } = req.params;
       const deletedFile = await File.destroy({
         where: {
@@ -72,7 +67,7 @@ class FilesController {
       console.log('Файл удален');
       return res.json('Файл удален');
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 }

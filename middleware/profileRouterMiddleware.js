@@ -16,11 +16,11 @@ class ProfileRouterMiddleware {
       }
       req.updateFields = updateFields;
       if (req.body.password && req.body.oldPassword) {
-        req.updateFields.push('password')
+        req.updateFields.push('password');
       }
-      next()
+      next();
     } catch (e) {
-      next(e)
+      next(e);
     }
   }
 }

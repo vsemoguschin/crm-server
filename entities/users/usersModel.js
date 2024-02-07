@@ -1,5 +1,5 @@
 const sequelize = require('../db');
-const { DataTypes, STRING } = require('sequelize');
+const { DataTypes } = require('sequelize');
 
 const modelFields = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true, fieldType: 'number' },
@@ -10,30 +10,27 @@ const modelFields = {
   info: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Информация' },
   avatar: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Аватар' },
   department: {
-    type: DataTypes.STRING, fieldType: 'string', fullName: ''
+    type: DataTypes.STRING,
+    fieldType: 'string',
+    fullName: '',
     // validate: { isIn: [DEPARTMENTS] }
   },
-  status: { type: DataTypes.STRING, fieldType: 'string', },
+  status: { type: DataTypes.STRING, fieldType: 'string' },
 };
 
-
-const User = sequelize.define(
-  'user',
-  modelFields,
-  {
-    defaultScope: {
-      attributes: {
-        exclude: ['password'],
-      },
+const User = sequelize.define('user', modelFields, {
+  defaultScope: {
+    attributes: {
+      exclude: ['password'],
     },
-    scopes: {
-      fullScope: {},
-    },
-    paranoid: true,
   },
-);
+  scopes: {
+    fullScope: {},
+  },
+  paranoid: true,
+});
 
 module.exports = {
   User,
-  modelFields
+  modelFields,
 };
