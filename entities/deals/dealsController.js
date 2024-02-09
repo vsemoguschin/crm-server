@@ -36,7 +36,7 @@ class DealsController {
           },
           {
             model: Order,
-            include: ['neons', 'executors', 'files'],
+            include: ['neons', 'executors', 'files', 'stage', 'delivery'],
           },
           'payments',
           'dops',
@@ -78,7 +78,7 @@ class DealsController {
           ...filter,
           ...modelSearch,
         },
-        attributes: ['id', 'title', 'price', 'clothingMethod'],
+        attributes: ['id', 'title', 'price', 'clothingMethod', 'deadline'],
         order,
         limit,
         offset,

@@ -2,7 +2,7 @@ const sequelize = require('../db');
 const { DataTypes } = require('sequelize');
 
 const holeTypes = ['6мм', 'Держатели', 'Нет'];
-const fittings = ['Держатели', 'Оконо', 'Стена', 'Нет'];
+const fittings = ['Держатели', 'Окно', 'Стена', 'Нет'];
 const materials = ['Полик', 'ПВХ'];
 const adapters = ['Обыный', 'Уличный', 'Нет'];
 const statuses = ['Создан', 'Доступный', 'В работе', 'Отправлен'];

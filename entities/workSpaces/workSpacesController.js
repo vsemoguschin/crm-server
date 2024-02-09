@@ -126,7 +126,7 @@ class WorkSpaceController {
         ],
       };
 
-      const orders = await Deal.findAll(stage2);
+      const orders = await Deal.findAll(stage1);
       return res.json(orders);
     } catch (e) {
       next(e);
