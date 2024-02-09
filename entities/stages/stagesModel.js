@@ -6,7 +6,7 @@ const stageList = [
   { title: 'laminating', fullName: 'Пленка' },
   { title: 'master', fullName: 'Сборка' },
   { title: 'packed', fullName: 'Упаковка' },
-  { title: 'sent', fullName: 'Отправка' },
+  { title: 'done', fullName: 'Готов' },
   // { title: 'my', fullName: 'Мои заказы' },
   // { title: 'defective', fullName: 'Брак' },
 ];

@@ -43,7 +43,8 @@ class DopsRouterMiddleware {
     try {
       const requester = req.user.role;
       if (!permissions.includes(requester)) {
-        return console.log(false, 'no acces');
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
       }
       next();
     } catch (e) {
@@ -54,7 +55,8 @@ class DopsRouterMiddleware {
     try {
       const requester = req.user.role;
       if (!permissions.includes(requester)) {
-        return console.log(false, 'no acces');
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
       }
       req.searchFields = searchFields;
       next();

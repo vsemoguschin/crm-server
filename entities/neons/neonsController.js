@@ -2,6 +2,7 @@ const { Neon, modelFields: neonsModelFields } = require('./neonsModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
+const { Op } = require('sequelize');
 class NeonsController {
   async create(req, res, next) {
     try {
@@ -45,8 +46,17 @@ class NeonsController {
 
       const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
+      let modelSearch = {
+        id: { [Op.gt]: 0 },
+      };
+      if (req.baseUrl.includes('/orders')) {
+        modelSearch = { orderId: +req.params.id };
+      }
       const neons = await Neon.findAndCountAll({
-        where: filter,
+        where: {
+          ...filter,
+          ...modelSearch,
+        },
         order,
         limit,
         offset,

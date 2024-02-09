@@ -26,7 +26,7 @@ class OrdersController {
         where: {
           id,
         },
-        include: ['neons', 'files'],
+        include: ['neons', 'files', 'executors'],
       });
       if (!order) {
         return res.status(404).json('order not found');

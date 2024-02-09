@@ -2,7 +2,8 @@ const { WorkSpace, modelFields: workSpacesModelFields } = require('./workSpacesM
 const modelsService = require('../../services/modelsService');
 const getPagination = require('../../utils/getPagination');
 const getPaginationData = require('../../utils/getPaginationData');
-const { Order, Deal, Client } = require('../association');
+const { Order, Deal, Client, File } = require('../association');
+const { Op } = require('sequelize');
 
 class WorkSpaceController {
   async create(req, res, next) {
@@ -31,32 +32,108 @@ class WorkSpaceController {
   async getOne(req, res, next) {
     // get-запрос, получаем данные из param
     try {
-      const { id } = req.params;
-      //добавить разрешение на просмотр где создатель или участник
-      const workSpace = await WorkSpace.findOne({
-        where: {
-          id,
-        },
+      const { id, stageId } = req.params;
+      //фрезеровка
+      const stage1 = {
+        attributes: ['id', 'title'],
         include: [
           {
-            association: 'members',
-            where: { id: req.user.id },
+            model: Client,
+            attributes: ['chatLink'],
           },
-          'creator',
-          // 'members',
-          // 'orders',
+          {
+            model: Order,
+            attributes: ['id', 'name', 'description'],
+            include: ['neons'],
+            where: {
+              workSpaceId: id,
+              stageId,
+            },
+          },
+          'files',
         ],
-      });
-      if (!workSpace) {
-        return res.status(404).json('workSpace not found');
-      }
-      return res.json(workSpace);
+      };
+      //пленка
+      const stage2 = {
+        attributes: ['id', 'title'],
+        include: [
+          {
+            model: Client,
+            attributes: ['chatLink'],
+          },
+          {
+            model: Order,
+            attributes: ['id', 'name', 'description', 'print', 'laminate', 'acrylic'],
+            where: {
+              workSpaceId: id,
+              stageId,
+            },
+          },
+          'files',
+        ],
+      };
+      //мастера
+      const stage3 = {
+        attributes: ['id', 'title'],
+        include: [
+          {
+            model: Client,
+            attributes: ['chatLink'],
+          },
+          {
+            model: Order,
+            attributes: ['id', 'name', 'description', 'wireLength', 'elements'],
+            include: ['neons'],
+            where: {
+              workSpaceId: id,
+              stageId,
+            },
+          },
+          'files',
+        ],
+      };
+      const stage4 = {
+        attributes: ['id', 'title'],
+        include: [
+          {
+            model: Client,
+            attributes: ['chatLink'],
+          },
+          {
+            model: Order,
+            attributes: [
+              'id',
+              'name',
+              'description',
+              'wireLength',
+              'dimer',
+              'acrylic',
+              'print',
+              'laminate',
+              'adapter',
+              'stand',
+              'plug',
+              'holeType',
+              'fittings',
+            ],
+            include: ['neons', 'files'],
+            where: {
+              workSpaceId: id,
+              stageId,
+            },
+          },
+          'files',
+        ],
+      };
+
+      const orders = await Deal.findAll(stage2);
+      return res.json(orders);
     } catch (e) {
       next(e);
     }
   }
 
-  //получения всех клиентов по заданным параметрам
+  //получения всех пространств по заданным параметрам
   async getList(req, res, next) {
     const {
       pageSize,
@@ -72,14 +149,17 @@ class WorkSpaceController {
       const filter = await modelsService.searchFilter(searchFields, req.query);
       //добавить разрешение на просмотр где создатель или участник
       const workSpaces = await WorkSpace.findAndCountAll({
-        where: filter,
+        where: {
+          ...filter,
+          department: 'PRODUCTION',
+        },
         attributes: ['id', 'title', 'fullName', 'department'],
-        order,
-        limit,
-        offset,
+        // order,
+        // limit,
+        // offset,
       });
       const response = getPaginationData(workSpaces, pageNumber, pageSize, 'workSpaces');
-      return res.json(response || []);
+      return res.json(workSpaces || []);
     } catch (e) {
       next(e);
     }

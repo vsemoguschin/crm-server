@@ -24,7 +24,7 @@ router.use(
 );
 router.use('/users', usersRouter);
 router.use('/clients', clientsRouter);
-router.use('/workSpaces', workSpacesRouter);
+router.use('/workspaces', workSpacesRouter);
 router.use('/dops', dopsRouter);
 router.use('/deals', dealsRouter);
 router.use('/payments', paymentsRouter);
@@ -33,6 +33,7 @@ router.use('/files', filesRouter);
 router.use('/orders', ordersRouter);
 router.use('/neons', neonsRouter);
 router.use('/stages', stagesRouter);
+// router.use('/delivery', profileRouter);
 router.use('/profile', profileRouter);
 router.use('/', (req, res) => {
   throw ApiError.BadRequest('Wrong Path');
