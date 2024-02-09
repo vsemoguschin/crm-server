@@ -65,10 +65,11 @@ class WorkSpacesRouterMiddleware {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      if (!['ADMIN', 'G', 'DP', 'RP'].includes(requester) || workspace.members.find((user) => user.id === req.user.id)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
+      // console.log(!workspace.members.find((user) => user.id === req.user.id));
+      // if (!['ADMIN', 'G', 'DP', 'RP'].includes(requester) || !workspace.members.find((user) => user.id === req.user.id)) {
+      //   console.log(false, 'no acces');
+      //   throw ApiError.Forbidden('Нет доступа');
+      // }
       // return res.json(workspace);
       next();
     } catch (e) {
