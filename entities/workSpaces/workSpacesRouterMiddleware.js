@@ -1,12 +1,14 @@
 const ApiError = require('../../error/apiError');
 const { modelFields: workSpacesModelFields, WorkSpace } = require('./workSpacesModel');
 const modelsService = require('../../services/modelsService');
-const { Stage, Order } = require('../association');
+const { Stage, Order, User } = require('../association');
+const { ROLES: rolesList } = require('../roles/rolesList');
 
 const frontOptions = {
   modelFields: modelsService.getModelFields(workSpacesModelFields),
 };
-const permissions = ['ADMIN', 'G', 'DO', 'ROP', 'MOP', 'ROV', 'MOV', 'DP', 'RP', 'FRZ', 'MASTER', 'PACKER'];
+const permissions = ['ADMIN', 'G', 'DP', 'RP', 'FRZ', 'MASTER', 'PACKER'];
+const fullAcces = ['ADMIN', 'G', 'DP', 'RP'];
 const updateFields = ['title'];
 const searchFields = ['title', 'department'];
 
@@ -34,6 +36,40 @@ class WorkSpacesRouterMiddleware {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
+      if (!req.params.id || isNaN(+req.params.id)) {
+        console.log(false, 'Забыл что то указать');
+        throw ApiError.BadRequest('Забыл что то указать');
+      }
+      if (!req.params.stageId || isNaN(+req.params.stageId) || +req.params.stageId > 5) {
+        console.log(false, 'Забыл что то указать');
+        throw ApiError.BadRequest('Забыл что то указать');
+      }
+      if (!fullAcces.includes(requester) && !rolesList.find((user) => user.shortName === req.user.role).workStages.includes(+req.params.stageId)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      const workspace = await WorkSpace.findOne({
+        where: {
+          id: +req.params.id,
+          department: 'PRODUCTION',
+        },
+        attributes: ['id'],
+        include: {
+          association: 'members',
+          // where: {
+          //   id: req.user.id,
+          // },
+        },
+      });
+      if (!workspace) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      if (!['ADMIN', 'G', 'DP', 'RP'].includes(requester) || workspace.members.find((user) => user.id === req.user.id)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      // return res.json(workspace);
       next();
     } catch (e) {
       next(e);
@@ -121,7 +157,35 @@ class WorkSpacesRouterMiddleware {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      next();
+      if (!req.params.id || isNaN(+req.params.id)) {
+        console.log(false, 'Забыл что то указать');
+        throw ApiError.BadRequest('Забыл что то указать');
+      }
+      if (!req.params.userId || isNaN(+req.params.userId)) {
+        console.log(false, 'Забыл что то указать');
+        throw ApiError.BadRequest('Забыл что то указать');
+      }
+      const workspace = await WorkSpace.findAndCountAll({
+        where: {
+          id: req.params.id,
+          department: 'PRODUCTION',
+        },
+        include: {
+          association: 'members',
+        },
+      });
+      const user = await User.findOne({
+        where: { id: +req.params.userId },
+      });
+      if (!workspace || !user || user.department !== 'PRODUCTION') {
+        console.log(false, 'No workspace or user');
+        throw ApiError.BadRequest('No workspace or user');
+      }
+      // console.log(workspace.id);
+      req.member = user;
+      req.workspace = workspace;
+      await workspace.addMember(user);
+      return res.json(workspace);
     } catch (e) {
       next(e);
     }
@@ -155,6 +219,33 @@ class WorkSpacesRouterMiddleware {
         throw ApiError.BadRequest('No workspace or stage');
       }
 
+      next();
+    } catch (e) {
+      next(e);
+    }
+  }
+  async getUsers(req, res, next) {
+    try {
+      const requester = req.user.role;
+      console.log(req.params, req.query);
+      if (!['ADMIN', 'G', 'DO', 'DP'].includes(requester)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      if (!req.params.id || isNaN(+req.params.id)) {
+        console.log(false, 'Забыл что то указать');
+        throw ApiError.BadRequest('Забыл что то указать');
+      }
+      const workspace = await WorkSpace.findOne({
+        where: { id: +req.params.id },
+        attributes: ['id'],
+        include: 'members',
+      });
+      if (!workspace) {
+        console.log(false, 'No workspace');
+        throw ApiError.BadRequest('No workspace');
+      }
+      return res.json(workspace.members);
       next();
     } catch (e) {
       next(e);

@@ -100,6 +100,6 @@ module.exports = {
   Stage,
   Delivery,
   WorkSpace,
-  // File,
+  File,
   workSpacesList,
 };

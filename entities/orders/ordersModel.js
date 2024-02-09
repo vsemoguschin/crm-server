@@ -1,11 +1,11 @@
 const sequelize = require('../db');
 const { DataTypes } = require('sequelize');
 
-const holeTypes = ['6мм', 'под держатели', 'нет'];
-const fittings = ['Дист. держатели', 'Для окон', 'Для стены', 'нет'];
+const holeTypes = ['6мм', 'Держатели', 'Нет'];
+const fittings = ['Держатели', 'Оконо', 'Стена', 'Нет'];
 const materials = ['Полик', 'ПВХ'];
-const adapters = ['Обыный', 'Уличный', 'нет'];
-const statuses = ['Создан', 'Доступный', 'В работе', 'Выполнен'];
+const adapters = ['Обыный', 'Уличный', 'Нет'];
+const statuses = ['Создан', 'Доступный', 'В работе', 'Отправлен'];
 ['elements', 'boardHeight', 'boardWidth', 'wireLength', 'dimer', 'acrylic', 'print', 'laminate', 'adapter', 'plug', 'holeType', 'fittings'];
 const modelFields = {
   //придумать как выводить копии
@@ -20,7 +20,7 @@ const modelFields = {
   boardWidth: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'Ширина подложки' },
   boardHeight: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'Высота подложки' },
   count: { type: DataTypes.INTEGER, allowNull: false }, //?
-  wireLength: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Длина провода' },
+  wireLength: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Длина аккустического провода' },
   dimer: { type: DataTypes.BOOLEAN, defaultValue: false, fieldType: 'boolean', fullName: 'Димер' },
   acrylic: { type: DataTypes.BOOLEAN, defaultValue: false, fieldType: 'boolean', fullName: 'Акрил' },
   print: { type: DataTypes.BOOLEAN, defaultValue: false, fieldType: 'boolean', fullName: 'Печать' },
@@ -33,7 +33,7 @@ const modelFields = {
     validateFields: adapters,
     fullName: 'Блок',
   },
-  stand: { type: DataTypes.BOOLEAN, defaultValue: true, fieldType: 'boolean', fullName: 'Подставка' },
+  stand: { type: DataTypes.BOOLEAN, defaultValue: false, fieldType: 'boolean', fullName: 'Подставка' },
   plug: { type: DataTypes.BOOLEAN, defaultValue: true, fieldType: 'boolean', fullName: 'Вилка' },
   holeType: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', validateFields: holeTypes, fullName: 'Тип отверстий' },
   fittings: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', validateFields: fittings, fullName: 'Крепления' },
