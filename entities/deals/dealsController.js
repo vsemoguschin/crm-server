@@ -1,4 +1,4 @@
-const { Client, Order, File } = require('../association');
+const { Client, Order, File, Delivery } = require('../association');
 const { Deal, modelFields: dealsModelFields } = require('./dealsModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
@@ -36,11 +36,14 @@ class DealsController {
           },
           {
             model: Order,
-            include: ['neons', 'executors', 'files', 'stage', 'delivery'],
+            include: ['neons', 'executors', 'files', 'stage'],
+          },
+          {
+            model: Delivery,
+            include: ['orders'],
           },
           'payments',
           'dops',
-          'deliveries',
           'files',
         ],
       });
@@ -78,6 +81,44 @@ class DealsController {
           ...filter,
           ...modelSearch,
         },
+        attributes: ['id', 'title', 'price', 'clothingMethod', 'deadline'],
+        order,
+        limit,
+        offset,
+      });
+      const response = getPaginationData(deals, pageNumber, pageSize, 'deals');
+      return res.json(response || []);
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  async getFullList(req, res, next) {
+    const {
+      pageSize,
+      pageNumber,
+      key, //?
+      order: queryOrder,
+    } = req.query;
+    try {
+      const { limit, offset } = getPagination(pageNumber, pageSize);
+      const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
+
+      const { searchFields } = req;
+      const filter = await modelsService.searchFilter(searchFields, req.query);
+
+      const deals = await Deal.findAndCountAll({
+        where: {
+          ...filter,
+        },
+        include: [
+          { model: Client },
+          {
+            model: Order,
+            include: ['stage', 'files'],
+          },
+          'files',
+        ],
         attributes: ['id', 'title', 'price', 'clothingMethod', 'deadline'],
         order,
         limit,

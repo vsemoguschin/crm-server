@@ -26,7 +26,7 @@ class OrdersController {
         where: {
           id,
         },
-        include: ['neons', 'files', 'executors'],
+        include: ['neons', 'files', 'executors', 'delivery'],
       });
       if (!order) {
         return res.status(404).json('order not found');
@@ -54,8 +54,10 @@ class OrdersController {
       let modelSearch = {
         id: { [Op.gt]: 0 },
       };
+      const include = [];
       if (req.baseUrl.includes('/deals') && req.params.id && !isNaN(+req.params.id)) {
-        modelSearch = { dealId: +req.params.id };
+        modelSearch = { dealId: +req.params.id }; //!добавить инклюды ордера в getOne сделки
+        include.push('neons', 'executors', 'files', 'stage');
       }
       if (req.baseUrl.includes('/workspaces') && req.params.id && !isNaN(+req.params.id)) {
         modelSearch = { workSpaceId: +req.params.id };
@@ -68,6 +70,7 @@ class OrdersController {
           ...filter,
           ...modelSearch,
         },
+        include,
         order,
         limit,
         offset,

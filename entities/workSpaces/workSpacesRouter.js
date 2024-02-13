@@ -7,7 +7,7 @@ const ordersController = require('../orders/ordersController');
 const usersController = require('../users/usersController');
 
 router.post('/', workSpacesRouterMiddleware.create, workSpacesController.create);
-router.get('/:id/stage/:stageId', workSpacesRouterMiddleware.getOne, workSpacesController.getOne);
+router.get('/:id', workSpacesRouterMiddleware.getOne, workSpacesController.getOne);
 router.get('/', workSpacesRouterMiddleware.getList, workSpacesController.getList);
 router.put('/:id', workSpacesRouterMiddleware.update, workSpacesController.update);
 router.delete('/:id', workSpacesRouterMiddleware.delete, workSpacesController.delete);
@@ -18,7 +18,7 @@ router.get('/:id/orders', ordersRouterMiddleware.getList, ordersController.getLi
 
 //добавление и получение пользователей внутри workspace
 router.post('/:id/users/:userId', workSpacesRouterMiddleware.addUsers);
-// router.post('/:id/users', workSpacesRouterMiddleware.deleteUsers);
+// router.delete('/:id/users', workSpacesRouterMiddleware.deleteUsers);
 router.get('/:id/users', workSpacesRouterMiddleware.getUsers, usersController.getList);
 
 //отправки workspace

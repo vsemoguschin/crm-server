@@ -33,7 +33,6 @@ class ClientsRouterMiddleware {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      console.log(req.user);
       if (requester !== 'ADMIN' && req.params.id < 3) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
