@@ -103,7 +103,7 @@ class DeliverysRouterMiddleware {
         console.log(false, 'Забыл что то указать');
         throw ApiError.BadRequest('Забыл что то указать');
       }
-      if (!req.body.orderId || isNaN(+req.body.orderId)) {
+      if (!req.params.orderId || isNaN(+req.params.orderId)) {
         console.log(false, 'Забыл что то указать');
         throw ApiError.BadRequest('Забыл что то указать');
       }
@@ -113,16 +113,50 @@ class DeliverysRouterMiddleware {
         include: ['orders'],
       });
       const order = await Order.findOne({
-        where: { id: +req.body.orderId },
+        where: { id: +req.params.orderId },
       });
       if (!delivery || !order) {
         console.log(false, 'No delivery or order');
         throw ApiError.BadRequest('No delivery or order');
       }
-      console.log(delivery.id);
-      req.params.id = req.body.orderId;
+      // console.log(delivery.id);
+      req.params.id = req.params.orderId;
       req.body.updates = { deliveryId: delivery.id };
-      //проверка на массив из чисел
+      next();
+    } catch (e) {
+      next(e);
+    }
+  }
+  async deleteOrders(req, res, next) {
+    try {
+      const requester = req.user.role;
+      if (!permissions.includes(requester)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      if (!req.params.id || isNaN(+req.params.id)) {
+        console.log(false, 'Забыл что то указать');
+        throw ApiError.BadRequest('Забыл что то указать');
+      }
+      if (!req.params.orderId || isNaN(+req.params.orderId)) {
+        console.log(false, 'Забыл что то указать');
+        throw ApiError.BadRequest('Забыл что то указать');
+      }
+      const delivery = await Delivery.findOne({
+        where: { id: +req.params.id },
+        attributes: ['id'],
+        include: ['orders'],
+      });
+      const order = await Order.findOne({
+        where: { id: +req.params.orderId },
+      });
+      if (!delivery || !order) {
+        console.log(false, 'No delivery or order');
+        throw ApiError.BadRequest('No delivery or order');
+      }
+      // console.log(delivery.id);
+      req.params.id = req.params.orderId;
+      req.body.updates = { deliveryId: null };
       next();
     } catch (e) {
       next(e);

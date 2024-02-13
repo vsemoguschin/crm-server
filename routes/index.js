@@ -33,7 +33,7 @@ router.use('/files', filesRouter);
 router.use('/orders', ordersRouter);
 router.use('/neons', neonsRouter);
 router.use('/stages', stagesRouter);
-// router.use('/delivery', profileRouter);
+router.use('/delivery', deliveriesRouter);
 router.use('/profile', profileRouter);
 router.use('/', (req, res) => {
   throw ApiError.BadRequest('Wrong Path');

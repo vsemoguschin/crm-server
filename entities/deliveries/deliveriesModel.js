@@ -11,6 +11,7 @@ const modelFields = {
   type: { type: DataTypes.STRING, fieldType: 'string', validateFields: types, fullName: 'Платно/Бесплатно' },
   description: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Данные/Описание' },
   city: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Город получения' },
+  // region: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Регион' },
   //ниже поля заполняются на производстве, не выводить при созданиии
   price: { type: DataTypes.INTEGER, fieldType: 'number', fullName: 'Стоимость доставки' },
   track: { type: DataTypes.INTEGER, fieldType: 'number', fullName: 'Трек-номер' },

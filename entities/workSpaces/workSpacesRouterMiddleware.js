@@ -7,8 +7,7 @@ const { ROLES: rolesList } = require('../roles/rolesList');
 const frontOptions = {
   modelFields: modelsService.getModelFields(workSpacesModelFields),
 };
-const permissions = ['ADMIN', 'G', 'DP', 'RP', 'FRZ', 'MASTER', 'PACKER'];
-const fullAcces = ['ADMIN', 'G', 'DP', 'RP'];
+const permissions = ['ADMIN', 'G', 'DP', 'RP', 'FRZ', 'MASTER', 'PACKER', 'KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
 const updateFields = ['title'];
 const searchFields = ['title', 'department'];
 
@@ -22,7 +21,7 @@ class WorkSpacesRouterMiddleware {
         throw ApiError.Forbidden('Нет доступа');
       }
       req.newWorkSpace = await modelsService.checkFields(workSpacesModelFields, req.body);
-      console.log(req.WorkSpace);
+
       next();
     } catch (e) {
       console.log(e);
@@ -40,20 +39,16 @@ class WorkSpacesRouterMiddleware {
         console.log(false, 'Забыл что то указать');
         throw ApiError.BadRequest('Забыл что то указать');
       }
-      if (!req.params.stageId || isNaN(+req.params.stageId) || +req.params.stageId > 5) {
-        console.log(false, 'Забыл что то указать');
-        throw ApiError.BadRequest('Забыл что то указать');
-      }
-      if (!fullAcces.includes(requester) && !rolesList.find((user) => user.shortName === req.user.role).workStages.includes(+req.params.stageId)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
+      let department = ['PRODUCTION', 'COMERCIAL'];
+      if (rolesList.find((user) => user.shortName === requester)) {
+        department = [rolesList.find((user) => user.shortName === requester).department];
       }
       const workspace = await WorkSpace.findOne({
         where: {
           id: +req.params.id,
-          department: 'PRODUCTION',
+          department: department,
         },
-        attributes: ['id'],
+        attributes: ['title', 'id', 'department'],
         include: {
           association: 'members',
           // where: {
@@ -65,12 +60,7 @@ class WorkSpacesRouterMiddleware {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      // console.log(!workspace.members.find((user) => user.id === req.user.id));
-      // if (!['ADMIN', 'G', 'DP', 'RP'].includes(requester) || !workspace.members.find((user) => user.id === req.user.id)) {
-      //   console.log(false, 'no acces');
-      //   throw ApiError.Forbidden('Нет доступа');
-      // }
-      // return res.json(workspace);
+      req.workspace = workspace;
       next();
     } catch (e) {
       next(e);
@@ -166,7 +156,7 @@ class WorkSpacesRouterMiddleware {
         console.log(false, 'Забыл что то указать');
         throw ApiError.BadRequest('Забыл что то указать');
       }
-      const workspace = await WorkSpace.findAndCountAll({
+      const workspace = await WorkSpace.findOne({
         where: {
           id: req.params.id,
           department: 'PRODUCTION',
@@ -182,10 +172,7 @@ class WorkSpacesRouterMiddleware {
         console.log(false, 'No workspace or user');
         throw ApiError.BadRequest('No workspace or user');
       }
-      // console.log(workspace.id);
-      req.member = user;
-      req.workspace = workspace;
-      await workspace.addMember(user);
+      await workspace.addMembers(user);
       return res.json(workspace);
     } catch (e) {
       next(e);

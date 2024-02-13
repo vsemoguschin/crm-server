@@ -12,7 +12,8 @@ router.put('/:id', deliveriesRouterMiddleware.update, deliveriesController.updat
 router.delete('/:id', deliveriesRouterMiddleware.delete, deliveriesController.delete);
 
 //добавление заказов в доставку
-router.post('/:id/orders', deliveriesRouterMiddleware.addOrders, ordersController.update);
+router.post('/:id/orders/:orderId', deliveriesRouterMiddleware.addOrders, ordersController.update);
+router.delete('/:id/orders/:orderId', deliveriesRouterMiddleware.deleteOrders, ordersController.update);
 router.get('/:id/orders', ordersRouterMiddleware.getList, ordersController.getList);
 
 module.exports = router;

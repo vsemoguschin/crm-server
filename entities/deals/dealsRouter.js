@@ -14,9 +14,9 @@ const paymentsRouterMiddleware = require('../payments/paymentsRouterMiddleware')
 const paymentsController = require('../payments/paymentsController');
 
 router.post('/', dealsRouterMiddleware.create, dealsController.create); //создание только внутри клиента
+router.get('/workspace', dealsRouterMiddleware.getList, dealsController.getFullList);
 router.get('/:id', dealsRouterMiddleware.getOne, dealsController.getOne);
 router.get('/', dealsRouterMiddleware.getList, dealsController.getList);
-router.get('/workspace', dealsRouterMiddleware.getList, dealsController.getList);
 router.put('/:id', dealsRouterMiddleware.update, dealsController.update);
 router.delete('/:id', dealsRouterMiddleware.delete, dealsController.delete);
 

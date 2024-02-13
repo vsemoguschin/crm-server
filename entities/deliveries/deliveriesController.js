@@ -105,6 +105,16 @@ class DeliveriesController {
         console.log('Доставка не удалена');
         return res.json('Доставка не удалена');
       }
+      await Order.update(
+        {
+          deliveryId: null,
+        },
+        {
+          where: {
+            deliveryId: id,
+          },
+        },
+      );
       console.log('Доставка удалена');
       return res.json('Доставка удалена');
     } catch (e) {
