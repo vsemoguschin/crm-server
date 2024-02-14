@@ -95,7 +95,7 @@ class ModelsController {
         console.log('wrong type', key);
         throw ApiError.BadRequest('Неверный тип');
       }
-      if (model[key].fieldType == 'boolean' && allowedFielsds[key] !== 'true' && allowedFielsds[key] !== 'false') {
+      if (model[key].fieldType == 'boolean' && typeof allowedFielsds[key] !== 'boolean') {
         console.log('wrong type', key);
         throw ApiError.BadRequest('Неверный тип');
       }
@@ -104,6 +104,7 @@ class ModelsController {
         throw ApiError.BadRequest('Неверный выбор');
       }
     }
+    console.log(allowedFielsds);
     return allowedFielsds;
   }
   async searchFilter(modelFieldsKeys, body) {

@@ -121,7 +121,7 @@ class DeliverysRouterMiddleware {
       }
       // console.log(delivery.id);
       req.params.id = req.params.orderId;
-      req.body.updates = { deliveryId: delivery.id };
+      req.updates = { deliveryId: delivery.id };
       next();
     } catch (e) {
       next(e);
@@ -156,7 +156,7 @@ class DeliverysRouterMiddleware {
       }
       // console.log(delivery.id);
       req.params.id = req.params.orderId;
-      req.body.updates = { deliveryId: null };
+      req.updates = { deliveryId: null };
       next();
     } catch (e) {
       next(e);

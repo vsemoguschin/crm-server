@@ -85,7 +85,7 @@ class OrdersController {
   async update(req, res) {
     try {
       const { id } = req.params;
-      const { updates } = req.body;
+      const { updates } = req;
       const [, order] = await Order.update(updates, {
         where: {
           id: id,
