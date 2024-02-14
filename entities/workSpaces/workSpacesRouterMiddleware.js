@@ -181,7 +181,6 @@ class WorkSpacesRouterMiddleware {
   async ordersList(req, res, next) {
     try {
       const requester = req.user.role;
-      console.log(req.params, req.query);
       if (!['ADMIN', 'G', 'DO', 'DP'].includes(requester)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
@@ -190,23 +189,27 @@ class WorkSpacesRouterMiddleware {
         console.log(false, 'Забыл что то указать');
         throw ApiError.BadRequest('Забыл что то указать');
       }
-      if (!req.query.stageId || isNaN(+req.query.stageId)) {
+      if (!req.params.stageId || isNaN(+req.params.stageId)) {
         console.log(false, 'Забыл что то указать');
         throw ApiError.BadRequest('Забыл что то указать');
       }
       const workspace = await WorkSpace.findOne({
-        where: { id: +req.params.id },
+        where: {
+          id: +req.params.id,
+          department: 'PRODUCTION',
+        },
         attributes: ['id'],
       });
       const stage = await Stage.findOne({
-        where: { id: +req.query.stageId },
+        where: { id: +req.params.stageId },
         attributes: ['id'],
       });
-      if (!workspace && !stage) {
+      if (!workspace || !stage) {
         console.log(false, 'No workspace or stage');
         throw ApiError.BadRequest('No workspace or stage');
       }
-
+      req.stageId = stage.id;
+      req.workSpaceId = workspace.id;
       next();
     } catch (e) {
       next(e);

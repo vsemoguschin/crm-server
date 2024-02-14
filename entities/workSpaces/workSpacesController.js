@@ -60,10 +60,11 @@ class WorkSpaceController {
       }
       if (workspace.department === 'COMERCIAL') {
         let status = 'created';
-        if (req.query.stage) {
-          status = req.query.stage;
+        console.log(req.query.status);
+        if (req.query.status) {
+          status = req.query.status;
         }
-        work = await Deal.findAll({
+        work = await Deal.findAndCountAll({
           where: {
             status: status,
           },
@@ -173,7 +174,8 @@ class WorkSpaceController {
     }
   }
   async ordersList(req, res, next) {
-    const { pageSize, pageNumber, stageId, status } = req.query;
+    const { pageSize, pageNumber, status } = req.query;
+    const { stageId, workSpaceId } = req;
     try {
       const { limit, offset } = getPagination(pageNumber, pageSize);
       const orders = await Deal.findAndCountAll({
@@ -183,16 +185,18 @@ class WorkSpaceController {
             model: Client,
             attributes: ['chatLink'],
           },
-          'orders',
+          {
+            model: Order,
+            where: {
+              workSpaceId: workSpaceId,
+              stageId: stageId,
+              status: status || ['Доступный', 'В работе'],
+            },
+          },
           'files',
         ],
-        where: {
-          '$orders.workSpaceId$': req.params.id,
-          '$orders.stageId$': stageId,
-          '$orders.status$': status || ['Доступный', 'В работе'],
-          limit,
-          offset,
-        },
+        limit,
+        offset,
         // order: { ['DESC']: ['deadline'] },//?
       });
       // const response = getPaginationData(orders, pageNumber, pageSize, 'orders');

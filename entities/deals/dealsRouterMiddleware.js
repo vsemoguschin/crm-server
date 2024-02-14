@@ -8,7 +8,7 @@ const frontOptions = {
   modelFields: modelsService.getModelFields(dealsModelFields),
 };
 const permissions = ['ADMIN', 'G', 'KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
-const updateFields = ['title', 'chatLink', 'clothingMethod', 'deadline', 'description', 'price'];
+const updateFields = ['title', 'chatLink', 'clothingMethod', 'deadline', 'description', 'price', 'status'];
 const searchFields = ['title', 'clothingMethod', 'status'];
 
 class DealsRouterMiddleware {
