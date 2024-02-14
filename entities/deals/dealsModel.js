@@ -10,7 +10,7 @@ const modelFields = {
   // firstContact: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Дата первого контакта' },
   clothingMethod: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Метод закрытия' },
   // source: { type: DataTypes.STRING, allowNull: false },
-  // chatLink: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Ссылка на рекламу' },
+  // adLink: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Ссылка на рекламу' },
   status: { type: DataTypes.STRING, fieldType: 'string', validateFields: statuses, fullName: 'Статус' },
   deadline: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Дедлайн' },
   description: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Описание' },

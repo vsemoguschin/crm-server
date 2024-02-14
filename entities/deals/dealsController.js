@@ -13,6 +13,7 @@ class DealsController {
         ...newDeal,
         userId: req.user.id,
         clientId: req.body.clientId || req.params.id,
+        status: 'created',
       });
 
       return res.json(deal);
@@ -81,7 +82,7 @@ class DealsController {
           ...filter,
           ...modelSearch,
         },
-        attributes: ['id', 'title', 'price', 'clothingMethod', 'deadline'],
+        attributes: ['id', 'title', 'price', 'clothingMethod', 'deadline', 'status'],
         order,
         limit,
         offset,
@@ -99,6 +100,7 @@ class DealsController {
       pageNumber,
       key, //?
       order: queryOrder,
+      status,
     } = req.query;
     try {
       const { limit, offset } = getPagination(pageNumber, pageSize);
@@ -106,10 +108,12 @@ class DealsController {
 
       const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
+      console.log(filter);
 
       const deals = await Deal.findAndCountAll({
         where: {
           ...filter,
+          status: status || 'process',
         },
         include: [
           { model: Client },
@@ -119,11 +123,12 @@ class DealsController {
           },
           'files',
         ],
-        attributes: ['id', 'title', 'price', 'clothingMethod', 'deadline'],
-        order,
+        attributes: ['id', 'title', 'price', 'clothingMethod', 'deadline', 'status'],
+        // order,
         limit,
         offset,
       });
+      console.log(deals);
       const response = getPaginationData(deals, pageNumber, pageSize, 'deals');
       return res.json(response || []);
     } catch (e) {
