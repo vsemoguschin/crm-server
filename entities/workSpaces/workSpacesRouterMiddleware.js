@@ -134,7 +134,7 @@ class WorkSpacesRouterMiddleware {
       }
       // console.log(workspace.id);
       req.params.id = req.body.orderId;
-      req.body.updates = { workSpaceId: workspace.id, status: 'Доступный', stageId: 1 };
+      req.updates = { workSpaceId: workspace.id, status: 'Доступный', stageId: 1 };
 
       next();
     } catch (e) {

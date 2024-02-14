@@ -17,7 +17,7 @@ class ClientController {
       });
       if (!created) {
         console.log(false, 'Клиент существует');
-        return res.json('Клиент существует');
+        return res.status(400).json('Клиент существует');
       }
       console.log('created_client', client);
       return res.json(client);
@@ -51,7 +51,7 @@ class ClientController {
       key, //?
       order: queryOrder,
     } = req.query;
-    const { filter } = req.body;
+    const { filter } = req;
     try {
       const { limit, offset } = getPagination(pageNumber, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];

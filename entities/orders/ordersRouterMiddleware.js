@@ -88,7 +88,6 @@ class OrdersRouterMiddleware {
         throw ApiError.Forbidden('Нет доступа');
       }
       req.updates = await modelsService.checkUpdates(ordersModelFields, req.body, updateFields);
-
       next();
     } catch (e) {
       next(e);

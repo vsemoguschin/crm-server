@@ -50,6 +50,7 @@ class ClientsRouterMiddleware {
         throw ApiError.Forbidden('Нет доступа');
       }
       req.filter = await modelsService.searchFilter(searchFields, req.query);
+      console.log(req.filter);
       next();
     } catch (e) {
       next(e);

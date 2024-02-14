@@ -67,6 +67,7 @@ class DeliveriesController {
         order,
         limit,
         offset,
+        include: ['orders'],
       });
       const response = getPaginationData(deliveries, pageNumber, pageSize, 'deliveries');
       return res.json(response || []);
