@@ -8,7 +8,7 @@ const modelFields = {
   password: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Пароль' },
   roleName: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Роль' },
   info: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Информация' },
-  avatar: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Аватар' },
+  avatar: { type: DataTypes.STRING, allowNull: true, fieldType: 'string', fullName: 'Аватар' },
   department: {
     type: DataTypes.STRING,
     fieldType: 'string',

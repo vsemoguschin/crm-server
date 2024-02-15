@@ -106,46 +106,21 @@ class OrdersRouterMiddleware {
     }
   }
   async changeStage(req, res, next) {
-    const permissions = [
-      [],
-      ['ADMIN', 'G', 'KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'], //присвоить stage1(доступен фрезеровке)
-      ['ADMIN', 'G', 'DP', 'RP', 'FRZ'], //присвоить stage2(доступен пленке)
-      ['ADMIN', 'G', 'DP', 'RP', 'FRZ', 'LAM'], //присвоить stage3(доступен мастерам)
-    ];
     try {
-      const requester = req.user.role;
       if (!req.params.id || isNaN(+req.params.id) || !req.params.stageId || isNaN(+req.params.stageId)) {
         console.log(false, 'Забыл что то указать');
         throw ApiError.BadRequest('Забыл что то указать');
       }
-      const orderid = +req.params.id;
-      const stage = +req.params.stageId;
-      //проверка, может ли пользователь перемещать заказ в переданную stage
-      if (!permissions[stage].includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.BadRequest('no acces');
-      }
-      //проверка, является ли пользователь исполнителем заказа и на предыдущей стейдж
-      const order = await Order.findOne({
-        where: {
-          id: orderid,
-          status: 'В работе',
-          stageId: stage - 1,
-        },
-        include: [
-          {
-            association: 'executors',
-            where: {
-              id: req.user.id,
-            },
-          },
-        ],
+      const stage = await Stage.findOne({
+        where: { id: +req.params.stageId },
       });
-      if (!order) {
-        console.log(false, 'no acces');
-        throw ApiError.BadRequest('no acces');
+      if (!stage) {
+        throw ApiError.BadRequest('no stage');
       }
-      return res.json(order);
+
+      //проверка, является ли пользователь исполнителем заказа и на предыдущей стейдж
+      req.updates = { stageId: stage.id };
+      next();
     } catch (e) {
       next(e);
     }

@@ -14,7 +14,7 @@ router.put('/:id', workSpacesRouterMiddleware.update, workSpacesController.updat
 router.delete('/:id', workSpacesRouterMiddleware.delete, workSpacesController.delete);
 
 //добавление и получение заказов внутри workspace
-router.post('/:id/orders', workSpacesRouterMiddleware.addOrders, ordersController.update);
+router.put('/:id/orders/:orderId', workSpacesRouterMiddleware.addOrders, ordersController.update);
 // router.get('/:id/orders', ordersRouterMiddleware.getList, ordersController.getList); //получение всех заказов воркспейса
 
 //добавление и получение пользователей внутри workspace
