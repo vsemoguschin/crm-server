@@ -61,7 +61,7 @@ class ClientController {
           id: { [Op.gt]: 2 },
           ...filter,
         },
-        attributes: ['id', 'fullName', 'phone', 'gender', 'type', 'info', 'city', 'chatLink'],
+        attributes: ['id', 'fullName', 'phone', 'gender', 'type', 'info', 'city', 'chatLink', 'region'],
         order,
         limit,
         offset,

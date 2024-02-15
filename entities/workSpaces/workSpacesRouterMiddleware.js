@@ -115,7 +115,7 @@ class WorkSpacesRouterMiddleware {
         console.log(false, 'Забыл что то указать');
         throw ApiError.BadRequest('Забыл что то указать');
       }
-      if (!req.body.orderId || isNaN(+req.body.orderId)) {
+      if (!req.params.orderId || isNaN(+req.params.orderId)) {
         console.log(false, 'Забыл что то указать');
         throw ApiError.BadRequest('Забыл что то указать');
       }
@@ -126,14 +126,15 @@ class WorkSpacesRouterMiddleware {
         },
       });
       const order = await Order.findOne({
-        where: { id: +req.body.orderId },
+        where: { id: +req.params.orderId },
       });
-      if (!workspace || !order || order.workSpaceId !== null) {
+      if (!workspace || !order) {
+        //order.workSpaceId !== null
         console.log(false, 'No workspace or order');
         throw ApiError.BadRequest('No workspace or order');
       }
       // console.log(workspace.id);
-      req.params.id = req.body.orderId;
+      req.params.id = req.params.orderId;
       req.updates = { workSpaceId: workspace.id, status: 'Доступный', stageId: 1 };
 
       next();

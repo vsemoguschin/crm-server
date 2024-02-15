@@ -11,7 +11,10 @@ class UsersController {
   //создание пользователя
   async create(req, res, next) {
     const { newUser } = req;
-    const { email, avatar } = newUser;
+    const {
+      email,
+      // avatar
+    } = newUser;
     try {
       const role = await Role.findOne({ where: { shortName: newUser.roleName } });
       const roleId = role.dataValues.id;
@@ -30,12 +33,12 @@ class UsersController {
         throw ApiError.BadRequest('Пользователь с таким email уже существует');
       }
       // console.log('created_user', user);
-      const filePath = 'avatars/' + avatar;
-      fs.writeFileSync('public/' + filePath, req.files.img.data, (err) => {
-        if (err) {
-          throw ApiError.BadRequest('Wrong');
-        }
-      });
+      // const filePath = 'avatars/' + avatar;
+      // fs.writeFileSync('public/' + filePath, req.files.img.data, (err) => {
+      //   if (err) {
+      //     throw ApiError.BadRequest('Wrong');
+      //   }
+      // });
       return res.json(200);
     } catch (e) {
       next(e);

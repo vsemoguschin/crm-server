@@ -192,6 +192,7 @@ class WorkSpaceController {
               stageId: stageId,
               status: status || ['Доступный', 'В работе'],
             },
+            include: 'files',
           },
           'files',
         ],
@@ -199,8 +200,8 @@ class WorkSpaceController {
         offset,
         // order: { ['DESC']: ['deadline'] },//?
       });
-      // const response = getPaginationData(orders, pageNumber, pageSize, 'orders');
-      return res.json(orders || []);
+      const response = getPaginationData(orders, pageNumber, pageSize, 'orders');
+      return res.json(response || []);
     } catch (e) {
       next(e);
     }

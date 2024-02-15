@@ -50,16 +50,16 @@ class UsersRouterMiddleware {
         throw ApiError.BadRequest('Забыл что то указать');
       }
       //проверка на переданный аватар
-      if (!req?.files?.img) {
-        console.log(false, 'no avatar');
-        throw ApiError.BadRequest('Забыл что то указать');
-      }
-      //проверка формата изображения
-      const imgFormat = checkImgFormat(req.files.img.name);
-      if (!imgFormat) {
-        throw ApiError.BadRequest('Не верный формат изображения');
-      }
-      req.body.avatar = 'user_' + uuid.v4() + imgFormat;
+      // if (!req?.files?.img) {
+      //   console.log(false, 'no avatar');
+      //   throw ApiError.BadRequest('Забыл что то указать');
+      // }
+      // //проверка формата изображения
+      // const imgFormat = checkImgFormat(req.files.img.name);
+      // if (!imgFormat) {
+      //   throw ApiError.BadRequest('Не верный формат изображения');
+      // }
+      // req.body.avatar = 'user_' + uuid.v4() + imgFormat;
       const newUser = await modelsService.checkFields(usersModelFields, req.body);
       newUser.department = rolesList.find((role) => role.shortName == req.body.roleName).department;
       // fs.writeFileSync(__dirname, '..', '/static/', req.files.img.data, {encoding:'utf16le'})
