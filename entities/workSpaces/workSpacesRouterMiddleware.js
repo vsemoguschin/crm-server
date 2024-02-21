@@ -1,27 +1,33 @@
 const ApiError = require('../../error/apiError');
 const { modelFields: workSpacesModelFields, WorkSpace } = require('./workSpacesModel');
 const modelsService = require('../../services/modelsService');
-const { Stage, Order, User } = require('../association');
+const { Stage, Order, User, Deal, Role } = require('../association');
 const { ROLES: rolesList } = require('../roles/rolesList');
+const { Op } = require('sequelize');
 
-const frontOptions = {
-  modelFields: modelsService.getModelFields(workSpacesModelFields),
+const PERMISSIONS = {
+  ['PRODUCTION']: {
+    create: ['ADMIN', 'G', 'DP'],
+  },
+  ['COMMERCIAL']: {
+    create: ['ADMIN', 'G', 'KD'],
+  },
 };
-const permissions = ['ADMIN', 'G', 'DP', 'RP', 'FRZ', 'MASTER', 'PACKER', 'KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
-const updateFields = ['title'];
-const searchFields = ['title', 'department'];
 
 class WorkSpacesRouterMiddleware {
   async create(req, res, next) {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
     try {
       const requester = req.user.role;
-      if (!['ADMIN', 'G', 'DO', 'DP'].includes(requester)) {
+      if (requester !== 'ADMIN' || requester !== 'G') {
+        req.body.department = rolesList[requester].department;
+      }
+      req.newWorkSpace = await modelsService.checkFields([WorkSpace, workSpacesModelFields], req.body);
+      const { department } = req.body;
+      if (!PERMISSIONS[department].create.includes(requester)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      req.newWorkSpace = await modelsService.checkFields(workSpacesModelFields, req.body);
-
       next();
     } catch (e) {
       console.log(e);
@@ -31,36 +37,36 @@ class WorkSpacesRouterMiddleware {
   async getOne(req, res, next) {
     try {
       const requester = req.user.role;
-      if (!permissions.includes(requester)) {
+      const departmentFilter = rolesList[requester].department;
+      let workSpace;
+      if (requester == 'ADMIN' || requester == 'G') {
+        workSpace = await WorkSpace.findOne({
+          where: {
+            id: req.params.id,
+          },
+        });
+      } else {
+        workSpace = await WorkSpace.findOne({
+          where: {
+            id: req.params.id,
+            department: departmentFilter,
+          },
+          attributes: ['title', 'id', 'department'],
+          include: {
+            association: 'members',
+            // where: {
+            //   id: req.user.id,
+            // },
+            attributes: ['fullName'],
+          },
+        });
+      }
+      if (!workSpace) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      if (!req.params.id || isNaN(+req.params.id)) {
-        console.log(false, 'Забыл что то указать');
-        throw ApiError.BadRequest('Забыл что то указать');
-      }
-      let department = ['PRODUCTION', 'COMERCIAL'];
-      if (rolesList.find((user) => user.shortName === requester)) {
-        department = [rolesList.find((user) => user.shortName === requester).department];
-      }
-      const workspace = await WorkSpace.findOne({
-        where: {
-          id: +req.params.id,
-          department: department,
-        },
-        attributes: ['title', 'id', 'department'],
-        include: {
-          association: 'members',
-          // where: {
-          //   id: req.user.id,
-          // },
-        },
-      });
-      if (!workspace) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
-      req.workspace = workspace;
+      return res.json(workSpace);
+      req.workSpace = workSpace;
       next();
     } catch (e) {
       next(e);
@@ -68,12 +74,7 @@ class WorkSpacesRouterMiddleware {
   }
   async getList(req, res, next) {
     try {
-      const requester = req.user.role;
-      if (!permissions.includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
-      req.searchFields = searchFields;
+      req.searchFields = ['title', 'department'];
       next();
     } catch (e) {
       next(e);
@@ -82,11 +83,11 @@ class WorkSpacesRouterMiddleware {
   async update(req, res, next) {
     try {
       const requester = req.user.role;
-      if (!['ADMIN', 'G', 'DO', 'DP'].includes(requester)) {
+      if (!['ADMIN', 'G', 'KD', 'DP', 'DO', 'RP'].includes(requester)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      req.updateFields = updateFields;
+      req.updateFields = ['title'];
       next();
     } catch (e) {
       next(e);
@@ -94,32 +95,122 @@ class WorkSpacesRouterMiddleware {
   }
   async delete(req, res, next) {
     try {
-      const requester = req.user.role;
-      if (!['ADMIN', 'G', 'DO', 'DP'].includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
       next();
     } catch (e) {
       next(e);
     }
   }
-  async addOrders(req, res, next) {
+
+  //добавить пользователя в пространство
+  async addUsers(req, res, next) {
     try {
       const requester = req.user.role;
-      if (!['ADMIN', 'G', 'DO', 'DP', 'ROP', 'MOP', 'ROV', 'MOV'].includes(requester)) {
+      if (!['ADMIN', 'G', 'KD', 'DP', 'DO', 'RP'].includes(requester)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      if (!req.params.id || isNaN(+req.params.id)) {
-        console.log(false, 'Забыл что то указать');
-        throw ApiError.BadRequest('Забыл что то указать');
+      let include = [
+        {
+          model: User,
+          as: 'members',
+          where: {
+            id: req.user.id,
+          },
+        },
+      ];
+
+      if (['ADMIN', 'G'].includes(requester)) {
+        include = [];
       }
-      if (!req.params.orderId || isNaN(+req.params.orderId)) {
-        console.log(false, 'Забыл что то указать');
-        throw ApiError.BadRequest('Забыл что то указать');
+
+      const user = await User.findOne({
+        where: { id: req.params.userId },
+        include: [
+          {
+            model: Role,
+            where: {
+              shortName: rolesList[requester].availableRoles,
+            },
+          },
+        ],
+      });
+      if (!user) {
+        console.log(false, 'No user');
+        throw ApiError.BadRequest('No user');
       }
-      const workspace = await WorkSpace.findOne({
+
+      const workSpace = await WorkSpace.findOne({
+        where: {
+          id: req.params.id,
+          department: user.role.department,
+        },
+        include: include,
+      });
+      if (!workSpace) {
+        console.log(false, 'No workSpace');
+        throw ApiError.BadRequest('No workSpace');
+      }
+      await workSpace.addMembers(user);
+      return res.json(200);
+    } catch (e) {
+      next(e);
+    }
+  }
+  //добавить пользователя в пространство
+  async deleteUsers(req, res, next) {
+    try {
+      const requester = req.user.role;
+      if (!['ADMIN', 'G', 'KD', 'DP'].includes(requester)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      let include = [
+        {
+          model: User,
+          as: 'members',
+          where: {
+            id: req.user.id,
+          },
+        },
+      ];
+
+      if (['ADMIN', 'G'].includes(requester)) {
+        include = [];
+      }
+      const user = await User.findOne({
+        where: { id: req.params.userId },
+        include: 'role',
+      });
+      if (!user) {
+        console.log(false, 'No user');
+        throw ApiError.BadRequest('No user');
+      }
+      const workSpace = await WorkSpace.findOne({
+        where: {
+          id: req.params.id,
+          department: user.role.department,
+        },
+        include: include,
+      });
+      if (!workSpace) {
+        console.log(false, 'No workSpace');
+        throw ApiError.BadRequest('No workSpace');
+      }
+      await workSpace.removeMembers(user);
+      return res.json(200);
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  async addOrders(req, res, next) {
+    try {
+      const requester = req.user.role;
+      if (!['ADMIN', 'G', 'KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'].includes(requester)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      const workSpace = await WorkSpace.findOne({
         where: {
           id: req.params.id,
           department: 'PRODUCTION',
@@ -128,94 +219,20 @@ class WorkSpacesRouterMiddleware {
       const order = await Order.findOne({
         where: { id: +req.params.orderId },
       });
-      if (!workspace || !order) {
-        //order.workSpaceId !== null
-        console.log(false, 'No workspace or order');
-        throw ApiError.BadRequest('No workspace or order');
+      if (!workSpace || !order || order.workSpaceId !== null) {
+        console.log(false, 'No workSpace or order');
+        throw ApiError.BadRequest('No workSpace or order');
       }
-      // console.log(workspace.id);
+      // console.log(workSpace.id);
       req.params.id = req.params.orderId;
-      req.updates = { workSpaceId: workspace.id, status: 'Доступный', stageId: 1 };
+      req.updates = { workSpaceId: workSpace.id, status: 'Доступный', stageId: 1 };
 
       next();
     } catch (e) {
       next(e);
     }
   }
-  async addUsers(req, res, next) {
-    try {
-      const requester = req.user.role;
-      if (!['ADMIN', 'G', 'DO', 'DP'].includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
-      if (!req.params.id || isNaN(+req.params.id)) {
-        console.log(false, 'Забыл что то указать');
-        throw ApiError.BadRequest('Забыл что то указать');
-      }
-      if (!req.params.userId || isNaN(+req.params.userId)) {
-        console.log(false, 'Забыл что то указать');
-        throw ApiError.BadRequest('Забыл что то указать');
-      }
-      const workspace = await WorkSpace.findOne({
-        where: {
-          id: req.params.id,
-          department: 'PRODUCTION',
-        },
-        include: {
-          association: 'members',
-        },
-      });
-      const user = await User.findOne({
-        where: { id: +req.params.userId },
-      });
-      if (!workspace || !user || user.department !== 'PRODUCTION') {
-        console.log(false, 'No workspace or user');
-        throw ApiError.BadRequest('No workspace or user');
-      }
-      await workspace.addMembers(user);
-      return res.json(workspace);
-    } catch (e) {
-      next(e);
-    }
-  }
-  async ordersList(req, res, next) {
-    try {
-      const requester = req.user.role;
-      if (!['ADMIN', 'G', 'DO', 'DP'].includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
-      if (!req.params.id || isNaN(+req.params.id)) {
-        console.log(false, 'Забыл что то указать');
-        throw ApiError.BadRequest('Забыл что то указать');
-      }
-      if (!req.params.stageId || isNaN(+req.params.stageId)) {
-        console.log(false, 'Забыл что то указать');
-        throw ApiError.BadRequest('Забыл что то указать');
-      }
-      const workspace = await WorkSpace.findOne({
-        where: {
-          id: +req.params.id,
-          department: 'PRODUCTION',
-        },
-        attributes: ['id'],
-      });
-      const stage = await Stage.findOne({
-        where: { id: +req.params.stageId },
-        attributes: ['id'],
-      });
-      if (!workspace || !stage) {
-        console.log(false, 'No workspace or stage');
-        throw ApiError.BadRequest('No workspace or stage');
-      }
-      req.stageId = stage.id;
-      req.workSpaceId = workspace.id;
-      next();
-    } catch (e) {
-      next(e);
-    }
-  }
+
   async getUsers(req, res, next) {
     try {
       const requester = req.user.role;
@@ -224,21 +241,16 @@ class WorkSpacesRouterMiddleware {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      if (!req.params.id || isNaN(+req.params.id)) {
-        console.log(false, 'Забыл что то указать');
-        throw ApiError.BadRequest('Забыл что то указать');
-      }
-      const workspace = await WorkSpace.findOne({
+      const workSpace = await WorkSpace.findOne({
         where: { id: +req.params.id },
         attributes: ['id'],
         include: 'members',
       });
-      if (!workspace) {
-        console.log(false, 'No workspace');
-        throw ApiError.BadRequest('No workspace');
+      if (!workSpace) {
+        console.log(false, 'No workSpace');
+        throw ApiError.BadRequest('No workSpace');
       }
-      return res.json(workspace.members);
-      next();
+      return res.json(workSpace.members);
     } catch (e) {
       next(e);
     }

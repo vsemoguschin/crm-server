@@ -1,5 +1,6 @@
 const Router = require('express');
 const router = new Router();
+const dealsPermissions = require('./dealsPermissions');
 const dealsRouterMiddleware = require('./dealsRouterMiddleware');
 const dealsController = require('./dealsController');
 const filesRouterMiddleware = require('../files/filesRouterMiddleware');
@@ -13,12 +14,11 @@ const dopsController = require('../dops/dopsController');
 const paymentsRouterMiddleware = require('../payments/paymentsRouterMiddleware');
 const paymentsController = require('../payments/paymentsController');
 
-router.post('/', dealsRouterMiddleware.create, dealsController.create); //создание только внутри клиента
-router.get('/workspace', dealsRouterMiddleware.getList, dealsController.getFullList);
-router.get('/:id', dealsRouterMiddleware.getOne, dealsController.getOne);
-router.get('/', dealsRouterMiddleware.getList, dealsController.getList);
-router.put('/:id', dealsRouterMiddleware.update, dealsController.update);
-router.delete('/:id', dealsRouterMiddleware.delete, dealsController.delete);
+// router.get('/workSpace', dealsRouterMiddleware.getList, dealsController.getFullList);
+router.get('/:id', dealsPermissions, dealsRouterMiddleware.getOne, dealsController.getOne);
+router.get('/', dealsPermissions, dealsRouterMiddleware.getList, dealsController.getList);
+router.put('/:id', dealsPermissions, dealsRouterMiddleware.update, dealsController.update);
+router.delete('/:id', dealsPermissions, dealsRouterMiddleware.delete, dealsController.delete);
 
 //создание и получение заказов внутри сделки
 router.post('/:id/orders', ordersRouterMiddleware.create, ordersController.create);
@@ -28,7 +28,7 @@ router.get('/:id/orders', ordersRouterMiddleware.getList, ordersController.getLi
 router.post('/:id/deliveries', deliveriesRouterMiddleware.create, deliveriesController.create);
 router.get('/:id/deliveries', deliveriesRouterMiddleware.getList, deliveriesController.getList);
 
-//создание и получение доставок внутри сделки
+//создание и получение допов внутри сделки
 router.post('/:id/dops', dopsRouterMiddleware.create, dopsController.create);
 router.get('/:id/dops', dopsRouterMiddleware.getList, dopsController.getList);
 

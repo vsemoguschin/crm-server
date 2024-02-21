@@ -19,10 +19,9 @@ const colors = [
 
 const types = ['уличный', 'смарт', 'подсветка', 'обычный'];
 
-['width', 'length', 'color', 'type'];
 const modelFields = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  width: { type: DataTypes.STRING, valdateFields: width, fieldType: 'number', fullName: 'Толщина неона' },
+  width: { type: DataTypes.STRING, allowNull: false, valdateFields: width, fieldType: 'number', fullName: 'Толщина неона' },
   length: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'Длина неона' },
   color: { type: DataTypes.STRING, allowNull: false, valdateFields: colors, fieldType: 'string' },
   type: { type: DataTypes.STRING, allowNull: false, valdateFields: types, fieldType: 'string' }, // берется из ордера или если цвет

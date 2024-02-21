@@ -4,11 +4,8 @@ const profileController = require('../controllers/profileController');
 const profileRouterMiddleware = require('../middleware/profileRouterMiddleware');
 
 router.get('/', profileController.getProfile);
-router.put(
-  '/',
-  profileRouterMiddleware.updateProfile,
-  // avatarUploadMiddleware.uploadFile,
-  profileController.update,
-);
+router.patch('/', profileRouterMiddleware.updateProfile, profileController.update);
 
+//аватарка
+// router.put('/avatar');
 module.exports = router;

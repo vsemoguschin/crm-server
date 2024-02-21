@@ -1,44 +1,22 @@
 const ApiError = require('../../error/apiError');
 const bcrypt = require('bcrypt');
 const { User, modelFields: usersModelFields } = require('./usersModel');
-const { Role } = require('../association');
 const modelsService = require('../../services/modelsService');
-const fs = require('fs-extra');
 const getPagination = require('../../utils/getPagination');
 const getPaginationData = require('../../utils/getPaginationData');
+const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
+const { Op } = require('sequelize');
 
 class UsersController {
   //создание пользователя
   async create(req, res, next) {
-    const { newUser } = req;
-    const {
-      email,
-      // avatar
-    } = newUser;
+    const { newUser, userRole } = req;
     try {
-      const role = await Role.findOne({ where: { shortName: newUser.roleName } });
-      const roleId = role.dataValues.id;
+      // console.log(newUser);
+      // console.log(userRole);
       // хешируем пароль
       newUser.password = await bcrypt.hash(newUser.password, 3);
-      const [, created] = await User.findOrCreate({
-        where: { email },
-        defaults: {
-          ...newUser,
-          roleId: roleId,
-        },
-      });
-      // console.log(user);
-      if (!created) {
-        console.log(false, 'Пользователь с таким email уже существует');
-        throw ApiError.BadRequest('Пользователь с таким email уже существует');
-      }
-      // console.log('created_user', user);
-      // const filePath = 'avatars/' + avatar;
-      // fs.writeFileSync('public/' + filePath, req.files.img.data, (err) => {
-      //   if (err) {
-      //     throw ApiError.BadRequest('Wrong');
-      //   }
-      // });
+      await userRole.createUser(newUser);
       return res.json(200);
     } catch (e) {
       next(e);
@@ -50,12 +28,13 @@ class UsersController {
     try {
       const { id } = req.params;
       const { rolesFilter } = req;
+      console.log(id, rolesFilter);
       const user = await User.findOne({
         where: {
           id,
-          roleName: rolesFilter,
+          '$role.shortName$': rolesFilter,
         },
-        include: ['role', 'deals'],
+        include: ['role'],
       });
       if (!user) {
         return res.status(404).json('user not found');
@@ -74,24 +53,32 @@ class UsersController {
       pageNumber,
       key, //?
       order: queryOrder,
+      role,
     } = req.query;
     try {
+      checkReqQueriesIsNumber({ pageSize, pageNumber });
       const { limit, offset } = getPagination(pageNumber, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
       const { rolesFilter, searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
+      filter['$role.shortName$'] = rolesFilter;
+      if (role) {
+        filter[Op.and] = [{ '$role.shortName$': rolesFilter }, { '$role.shortName$': role }];
+      }
       const users = await User.findAndCountAll({
         where: {
-          roleName: rolesFilter,
           ...filter,
         },
+        include: ['role'],
         order,
         limit,
         offset,
       });
 
       const response = getPaginationData(users, pageNumber, pageSize, 'users');
+      // response.createdFields = modelsService.getModelFields(usersModelFields);
+      // response.createdFields.push({ roles: rolesFilter });
       return res.json(response);
     } catch (e) {
       next(e);
@@ -99,37 +86,31 @@ class UsersController {
   }
 
   //обновляем данные пользователя
-  async update(req, res) {
+  async update(req, res, next) {
     // patch-запрос  в теле запроса(body) передаем строку(raw) в формате JSON
     try {
-      const { rolesFilter } = req;
+      const { rolesFilter, reqRole } = req;
       const { id } = req.params;
-      if (req.body.roleName && !rolesFilter.includes(req.body.roleName)) {
-        throw ApiError.Forbidden('Нет доступа');
-      }
+
       const updates = await modelsService.checkUpdates(usersModelFields, req.body, req.updateFields);
-      //смена роли
-      if (updates.roleName) {
-        const role = await Role.findOne({
-          where: {
-            shortName: updates.roleName,
-          },
-        });
-        updates.roleId = role.dataValues.id;
-      }
-      const [updated, user] = await User.update(updates, {
+
+      const user = await User.findOne({
         where: {
-          id: id,
-          roleName: rolesFilter,
+          id,
+          '$role.shortName$': rolesFilter,
         },
-        individualHooks: true,
-        include: 'role',
+        include: ['role'],
       });
-      return res.json(!!updated, updates);
-    } catch (error) {
-      return res.status(404).message({
-        message: 'Ошибка сохранения пользователя. Обратитесь к администратору',
-      });
+      if (!user) {
+        return res.status(404).json('user not found');
+      }
+      await user.update(updates);
+      if (reqRole) {
+        await user.setRole(reqRole);
+      }
+      return res.status(200).json('succes');
+    } catch (e) {
+      next(e);
     }
   }
 
@@ -138,7 +119,6 @@ class UsersController {
     try {
       const { rolesFilter } = req;
       const { id } = req.params;
-      console.log(rolesFilter);
       const deletedUser = await User.destroy({
         where: {
           id,

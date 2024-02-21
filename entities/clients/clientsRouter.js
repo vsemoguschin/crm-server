@@ -4,12 +4,13 @@ const clientsRouterMiddleware = require('./clientsRouterMiddleware');
 const clientsController = require('./clientsController');
 const dealsRouterMiddleware = require('../deals/dealsRouterMiddleware');
 const dealsController = require('../deals/dealsController');
+const checkReqParamsIsNumber = require('../../checking/checkReqParamsIsNumber');
 
-router.post('/', clientsRouterMiddleware.create, clientsController.create);
-router.get('/:id', clientsRouterMiddleware.getOne, clientsController.getOne);
+// router.post('/', clientsPermissions, clientsRouterMiddleware.create, clientsController.create); //через воркспейс
+router.get('/:id', checkReqParamsIsNumber, clientsRouterMiddleware.getOne, clientsController.getOne);
 router.get('/', clientsRouterMiddleware.getList, clientsController.getList);
-router.put('/:id', clientsRouterMiddleware.update, clientsController.update);
-router.delete('/:id', clientsRouterMiddleware.delete, clientsController.delete);
+router.patch('/:id', checkReqParamsIsNumber, clientsRouterMiddleware.update, clientsController.update);
+router.delete('/:id', checkReqParamsIsNumber, clientsRouterMiddleware.delete, clientsController.delete);
 
 //создание и получение заказов внутри сделки
 router.post('/:id/deals', dealsRouterMiddleware.create, dealsController.create);

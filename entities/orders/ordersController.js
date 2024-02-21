@@ -55,14 +55,14 @@ class OrdersController {
         id: { [Op.gt]: 0 },
       };
       const include = [];
-      if (req.baseUrl.includes('/deals') && req.params.id && !isNaN(+req.params.id)) {
-        modelSearch = { dealId: +req.params.id }; //!добавить инклюды ордера в getOne сделки
+      if (req.baseUrl.includes('/deals')) {
+        modelSearch = { dealId: +req.params.id };
         include.push('neons', 'executors', 'files', 'stage');
       }
-      if (req.baseUrl.includes('/workspaces') && req.params.id && !isNaN(+req.params.id)) {
+      if (req.baseUrl.includes('/workspaces')) {
         modelSearch = { workSpaceId: +req.params.id };
       }
-      if (req.baseUrl.includes('/deliveries') && req.params.id && !isNaN(+req.params.id)) {
+      if (req.baseUrl.includes('/deliveries')) {
         modelSearch = { deliveryId: +req.params.id };
       }
       const orders = await Order.findAndCountAll({
@@ -90,6 +90,7 @@ class OrdersController {
         where: {
           id: id,
         },
+        include: 'executors',
         individualHooks: true,
       });
       return res.status(200).json(order);
@@ -105,6 +106,7 @@ class OrdersController {
       const deletedOrder = await Order.destroy({
         where: {
           id,
+          stage: null,
         },
       });
       // console.log(deletedOrder);

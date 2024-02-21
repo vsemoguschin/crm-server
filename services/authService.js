@@ -22,6 +22,7 @@ class AuthController {
     const userDto = new UserDto(user);
     const tokens = tokenService.generateTokens({ ...userDto });
     await tokenService.saveToken(userDto.id, tokens.refreshToken);
+    // console.log(userDto);
     return { ...tokens, user: userDto };
   }
   async logout(refreshToken) {

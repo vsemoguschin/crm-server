@@ -25,7 +25,6 @@ module.exports = function (req, res, next) {
         [Op.and]: { deletedAt: null },
       },
     });
-
     if (!currentUser) {
       return next(ApiError.BadRequest('Пользователь не найден'));
     }

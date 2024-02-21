@@ -1,4 +1,4 @@
-const { Client, Order, File, Delivery } = require('../association');
+const { Client, Order, Delivery } = require('../association');
 const { Deal, modelFields: dealsModelFields } = require('./dealsModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
@@ -8,13 +8,13 @@ const { Op } = require('sequelize');
 class DealsController {
   async create(req, res, next) {
     try {
-      const { newDeal } = req;
-      const deal = await Deal.create({
-        ...newDeal,
-        userId: req.user.id,
-        clientId: req.body.clientId || req.params.id,
-        status: 'created',
-      });
+      const { client, newDeal } = req;
+
+      newDeal.userId = req.user.id;
+      newDeal.status = 'created';
+      newDeal.workSpaceId = client.workSpaceId;
+
+      const deal = await client.createDeal(newDeal);
 
       return res.json(deal);
     } catch (e) {
@@ -77,6 +77,9 @@ class DealsController {
       if (req.baseUrl.includes('/clients')) {
         modelSearch = { clientId: +req.params.id };
       }
+      if (req.baseUrl.includes('/workspace')) {
+        modelSearch = { workSpaceId: +req.params.id };
+      }
       const deals = await Deal.findAndCountAll({
         where: {
           ...filter,
@@ -87,48 +90,6 @@ class DealsController {
         limit,
         offset,
       });
-      const response = getPaginationData(deals, pageNumber, pageSize, 'deals');
-      return res.json(response || []);
-    } catch (e) {
-      next(e);
-    }
-  }
-
-  async getFullList(req, res, next) {
-    const {
-      pageSize,
-      pageNumber,
-      key, //?
-      order: queryOrder,
-      status,
-    } = req.query;
-    try {
-      const { limit, offset } = getPagination(pageNumber, pageSize);
-      const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
-
-      const { searchFields } = req;
-      const filter = await modelsService.searchFilter(searchFields, req.query);
-      console.log(filter);
-
-      const deals = await Deal.findAndCountAll({
-        where: {
-          ...filter,
-          status: status || 'process',
-        },
-        include: [
-          { model: Client },
-          {
-            model: Order,
-            include: ['stage', 'files'],
-          },
-          'files',
-        ],
-        attributes: ['id', 'title', 'price', 'clothingMethod', 'deadline', 'status'],
-        // order,
-        limit,
-        offset,
-      });
-      console.log(deals);
       const response = getPaginationData(deals, pageNumber, pageSize, 'deals');
       return res.json(response || []);
     } catch (e) {
@@ -170,6 +131,48 @@ class DealsController {
       }
       console.log('Сделка удалена');
       return res.json('Сделка удалена');
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  async commercialList(req, res, next) {
+    const {
+      pageSize,
+      pageNumber,
+      key, //?
+      order: queryOrder,
+      status,
+    } = req.query;
+    try {
+      const { limit, offset } = getPagination(pageNumber, pageSize);
+      const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
+
+      const { searchFields } = req;
+      const filter = await modelsService.searchFilter(searchFields, req.query);
+
+      const deals = await Deal.findAndCountAll({
+        where: {
+          workSpaceId: +req.params.id,
+          ...filter,
+          status: status || 'process',
+        },
+        include: [
+          { model: Client },
+          {
+            model: Order,
+            include: ['stage', 'files'],
+          },
+          'files',
+        ],
+        attributes: ['id', 'title', 'price', 'clothingMethod', 'deadline', 'status', 'workSpaceId'],
+        // order,
+        limit,
+        offset,
+      });
+      console.log(deals);
+      const response = getPaginationData(deals, pageNumber, pageSize, 'deals');
+      return res.json(response || []);
     } catch (e) {
       next(e);
     }

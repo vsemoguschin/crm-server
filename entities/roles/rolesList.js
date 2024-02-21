@@ -1,102 +1,92 @@
-const administration = [
-  {
-    shortName: 'ADMIN',
+const ROLES = {
+  //admins
+  ['ADMIN']: {
     fullName: 'Admin',
     department: 'administration',
-    workStages: [1, 2, 3, 4, 5],
+    availableRoles: ['KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV', 'DP', 'RP', 'FRZ', 'MASTER', 'PACKER'],
   },
-  {
-    shortName: 'G',
+  ['G']: {
     fullName: 'Владелец системы',
     department: 'administration',
-    workStages: [1, 2, 3, 4, 5],
+    availableRoles: ['KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV', 'DP', 'RP', 'FRZ', 'MASTER', 'PACKER'],
   },
-];
-const ROLES = [
   //КОММЕРЧЕСКИЙ ОТДЕЛ
-  {
-    shortName: 'KD',
+  ['KD']: {
     fullName: 'Коммерческий директор',
-    department: 'COMERCIAL',
+    department: 'COMMERCIAL',
+    availableRoles: ['DO', 'ROP', 'MOP', 'ROV', 'MOV'],
   },
   //менеджеры
-  {
-    shortName: 'DO',
+  ['DO']: {
     fullName: 'Директор отдела продаж',
-    department: 'COMERCIAL',
+    department: 'COMMERCIAL',
+    availableRoles: ['ROP', 'MOP'],
   },
-  {
-    shortName: 'ROP',
+  ['ROP']: {
     fullName: 'Руководитель отдела продаж',
-    department: 'COMERCIAL',
+    department: 'COMMERCIAL',
+    availableRoles: ['MOP'],
   },
-  {
-    shortName: 'MOP',
+  ['MOP']: {
     fullName: 'Менеджер отдела продаж',
-    department: 'COMERCIAL',
+    department: 'COMMERCIAL',
+    availableRoles: [],
   },
   //ведение(лтв)
-  {
-    shortName: 'ROV',
+  ['ROV']: {
     fullName: 'Руководитель отдела ведения',
-    department: 'COMERCIAL',
+    department: 'LTV',
+    availableRoles: ['MOV'],
   },
-  {
-    shortName: 'MOV',
+  ['MOV']: {
     fullName: 'Менеджер отдела ведения',
-    department: 'COMERCIAL',
+    department: 'LTV',
+    availableRoles: [],
   },
   //дизайнеры
-  {
-    shortName: 'ROD',
+  ['ROD']: {
     fullName: 'Руководитель отдела дизайна',
     department: 'DESIGN',
+    availableRoles: [],
   },
-  {
-    shortName: 'DIZ',
+  ['DIZ']: {
     fullName: 'Дизайнер',
     department: 'DESIGN',
+    availableRoles: [],
   },
   //ПРОИЗВОДСТВО
-  {
-    shortName: 'DP',
+  ['DP']: {
     fullName: 'Директор производств',
     department: 'PRODUCTION',
-    workStages: [1, 2, 3, 4, 5],
+    availableRoles: ['RP', 'FRZ', 'MASTER', 'PACKER'],
   },
-  {
-    shortName: 'RP',
+  ['RP']: {
     fullName: 'Руководитель филиала',
     department: 'PRODUCTION',
-    workStages: [1, 2, 3, 4, 5],
+    availableRoles: ['FRZ', 'MASTER', 'PACKER'],
   },
-  {
-    shortName: 'FRZ',
+  ['FRZ']: {
     fullName: 'Фрезеровщик',
     department: 'PRODUCTION',
-    workStages: [1],
+    availableRoles: [],
   },
-  {
-    shortName: 'LAM',
+  ['LAM']: {
     fullName: 'Монтажник пленки',
     department: 'PRODUCTION',
-    workStages: [1, 2],
+    availableRoles: [],
   },
-  {
-    shortName: 'MASTER',
+  ['MASTER']: {
     fullName: 'Сборщик',
     department: 'PRODUCTION',
-    workStages: [3],
+    availableRoles: [],
   },
-  {
-    shortName: 'PACKER',
+  ['PACKER']: {
     fullName: 'Упаковщик',
     department: 'PRODUCTION',
-    workStages: [4, 5],
+    availableRoles: [],
   },
-];
+};
 
 module.exports = {
-  administration,
   ROLES,
 };

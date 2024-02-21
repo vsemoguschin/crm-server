@@ -8,18 +8,10 @@ class ClientController {
   async create(req, res, next) {
     try {
       const { newClient } = req;
-      const [client, created] = await Client.findOrCreate({
-        where: { phone: newClient.phone },
-        defaults: {
-          ...newClient,
-          userId: req.user.id,
-        },
+      const client = await Client.create({
+        ...newClient,
+        userId: req.user.id,
       });
-      if (!created) {
-        console.log(false, 'Клиент существует');
-        return res.status(400).json('Клиент существует');
-      }
-      console.log('created_client', client);
       return res.json(client);
     } catch (e) {
       next(e);
@@ -35,7 +27,7 @@ class ClientController {
         where: {
           id,
         },
-        include: ['deals'],
+        // include: ['deals'],
       });
       return res.json(client);
     } catch (e) {
@@ -56,12 +48,22 @@ class ClientController {
       const { limit, offset } = getPagination(pageNumber, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
+      let modelSearch = {
+        id: { [Op.gt]: 2 },
+      };
+      if (req.baseUrl.includes('/workspaces')) {
+        modelSearch = {
+          id: { [Op.gt]: 2 },
+          workSpaceId: +req.params.id,
+        };
+      }
+
       const clients = await Client.findAndCountAll({
         where: {
-          id: { [Op.gt]: 2 },
+          ...modelSearch,
           ...filter,
         },
-        attributes: ['id', 'fullName', 'phone', 'gender', 'type', 'info', 'city', 'chatLink', 'region'],
+        // attributes: ['id', 'fullName', 'phone', 'gender', 'type', 'info', 'city', 'chatLink'],
         order,
         limit,
         offset,
@@ -81,15 +83,13 @@ class ClientController {
       const { id } = req.params;
       const updates = await modelsService.checkUpdates(clientsModelFields, req.body, req.updateFields);
 
-      const [, client] = await Client.update(updates, {
+      await Client.update(updates, {
         where: {
           id: id,
         },
-        individualHooks: true,
       });
-      return res.status(200).json(client);
+      return res.status(200).json('succes');
     } catch (e) {
-      // console.log(e);
       next(e);
     }
   }

@@ -23,8 +23,8 @@ router.use(
   AuthMiddleware, //проверка авторизации
 );
 router.use('/users', usersRouter);
+router.use('/workSpaces', workSpacesRouter);
 router.use('/clients', clientsRouter);
-router.use('/workspaces', workSpacesRouter);
 router.use('/dops', dopsRouter);
 router.use('/deals', dealsRouter);
 router.use('/payments', paymentsRouter);
@@ -35,10 +35,8 @@ router.use('/neons', neonsRouter);
 router.use('/stages', stagesRouter);
 router.use('/delivery', deliveriesRouter);
 router.use('/profile', profileRouter);
-router.use('/', (req, res) => {
+router.use('/', () => {
   throw ApiError.BadRequest('Wrong Path');
 });
 
-//git commit --amend --no-edit // позлей изменения в предыдущий коммит
-//git commit --amend -m 'text' // Изменить коммит на новый
 module.exports = router;

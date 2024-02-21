@@ -42,48 +42,26 @@ app.use(
 app.use('/api', router);
 app.use(
   '/api',
-  async (req, res, next) => {
-    await sequelize.authenticate();
-    next();
-  },
+  // async (req, res, next) => {
+  //   await sequelize.authenticate();
+  //   next();
+  // },
   router,
 );
 app.use(errorHandling);
 
 const start = async () => {
   try {
-    // await sequelize.drop();
-    // await sequelize.authenticate();
-    // await sequelize.sync({ alter: true, force: true });
+    await sequelize.drop();
+    await sequelize.authenticate();
+    await sequelize.sync({ alter: true, force: true });
 
-    // await presets.createRoles();
-    // await presets.createAdmin();
-    // await presets.createWorkSpaces();
-    // await presets.createStages();
-    // await presets.createMarketPlaces();
-    // const delivery = await Delivery.findOne({
-    //   where: { id: 1 },
-    //   attributes: ['id'],
-    // });
-    // const deliveryId = delivery.dataValues.id
-    // const deals = await Deal.findAll({
-    //   // where: {
-    //   //   '$order.deliveryId$ ':deliveryId
-    //   //   '$order.workSpaceId$ ':workSpaceId
-    //   // },
-    //   attributes: ['title'],
-    //   include: [{
-    //     model: Client,
-    //     attributes: ['chatLink']
-    //   },
-    //   // model: Order,
-    //   // attributes: ['name'],
-    //   // where: {
-    //   //   '$orders.deliveryId$': 1,
-    //     // }
-    //   ]
-    // });
-    // console.log(deals[0]);
+    await presets.createRoles();
+    await presets.createAdmin();
+    await presets.createUsers();
+    await presets.createStages();
+    await presets.createWorkSpaces();
+    await presets.createMarketPlaces();
     app.listen(PORT, () => console.log(`${PORT}`));
   } catch (error) {
     console.log(error);

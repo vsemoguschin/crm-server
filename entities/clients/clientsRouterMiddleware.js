@@ -1,11 +1,13 @@
 const ApiError = require('../../error/apiError');
-const { modelFields: clientsModelFields } = require('./clientsModel');
+const { modelFields: clientsModelFields, Client } = require('./clientsModel');
 const modelsService = require('../../services/modelsService');
+const { WorkSpace } = require('../association');
+const checkPermissions = require('./clientsPermissions');
 
 const frontOptions = {
   modelFields: modelsService.getModelFields(clientsModelFields),
 };
-const permissions = ['ADMIN', 'G', 'KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
+
 const updateFields = ['gender', 'city', 'region', 'type', 'sphere', 'fullName', 'chatLink', 'phone', 'info'];
 const searchFields = ['gender', 'city', 'region', 'type', 'sphere', 'fullName', 'chatLink', 'phone'];
 
@@ -14,12 +16,20 @@ class ClientsRouterMiddleware {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
     try {
       const requester = req.user.role;
-      if (!permissions.includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
+      checkPermissions(requester);
+      const workSpace = await WorkSpace.findOne({
+        where: {
+          id: req.params.id,
+          department: 'COMMERCIAL',
+        },
+      });
+      if (!workSpace) {
+        console.log(false, 'No workSpace');
+        throw ApiError.BadRequest('No workSpace');
       }
       // сделать валидацию номера телефона
-      req.newClient = await modelsService.checkFields(clientsModelFields, req.body);
+      req.newClient = await modelsService.checkFields([Client, clientsModelFields], req.body);
+      req.newClient.workSpaceId = workSpace.id;
       next();
     } catch (e) {
       console.log(e);
@@ -29,10 +39,7 @@ class ClientsRouterMiddleware {
   async getOne(req, res, next) {
     try {
       const requester = req.user.role;
-      if (!permissions.includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
+      checkPermissions(requester);
       if (requester !== 'ADMIN' && req.params.id < 3) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
@@ -45,12 +52,9 @@ class ClientsRouterMiddleware {
   async getList(req, res, next) {
     try {
       const requester = req.user.role;
-      if (!permissions.includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
+      checkPermissions(requester);
       req.filter = await modelsService.searchFilter(searchFields, req.query);
-      console.log(req.filter);
+      // console.log(req.filter);
       next();
     } catch (e) {
       next(e);
@@ -59,10 +63,7 @@ class ClientsRouterMiddleware {
   async update(req, res, next) {
     try {
       const requester = req.user.role;
-      if (!permissions.includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
+      checkPermissions(requester);
       if (requester !== 'ADMIN' && req.params.id < 3) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
@@ -76,10 +77,7 @@ class ClientsRouterMiddleware {
   async delete(req, res, next) {
     try {
       const requester = req.user.role;
-      if (!permissions.includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
+      checkPermissions(requester);
       if (requester !== 'ADMIN' && req.params.id < 3) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');

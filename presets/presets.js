@@ -1,12 +1,12 @@
-const { User, Client, Deal, WorkSpace, workSpacesList, stageList, Stage } = require('../entities/association');
+const { User, Client, Deal, WorkSpace, stageList, Stage } = require('../entities/association');
 const { Role } = require('../entities/roles/rolesModel');
-const { ROLES: rolesList, administration } = require('../entities/roles/rolesList');
+const { ROLES: rolesList } = require('../entities/roles/rolesList');
 const bcrypt = require('bcrypt');
 
 class Presets {
   async createAdmin() {
     const hashPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 3); //хешируем пароль
-    return await User.findOrCreate({
+    await User.findOrCreate({
       where: { email: process.env.ADMIN_EMAIL },
       defaults: {
         email: process.env.ADMIN_EMAIL,
@@ -18,18 +18,98 @@ class Presets {
       },
       paranoid: false,
     });
+    return await User.findOrCreate({
+      where: { email: 'GGG' },
+      defaults: {
+        email: 'GGG',
+        fullName: 'MAX',
+        roleName: 'G',
+        password: await bcrypt.hash('root', 3),
+        roleId: 2,
+      },
+      paranoid: false,
+    });
   }
-  async createRoles() {
-    for (let i = 0; i < administration.length; i++) {
-      await Role.findOrCreate({
-        where: { shortName: administration[i].shortName },
-        defaults: administration[i],
+  async createUsers() {
+    const users = [
+      {
+        email: 'mail',
+        fullName: 'Mark',
+        role: 'KD',
+      },
+      {
+        email: 'mail',
+        fullName: 'Sasha',
+        role: 'DP',
+      },
+      {
+        email: 'mail',
+        fullName: 'Sergey',
+        role: 'DO',
+      },
+      {
+        email: 'mail',
+        fullName: 'Julia',
+        role: 'DO',
+      },
+      {
+        email: 'mail',
+        fullName: 'someRop',
+        role: 'ROP',
+      },
+      {
+        email: 'mail',
+        fullName: 'someRop',
+        role: 'ROP',
+      },
+      {
+        email: 'mail',
+        fullName: 'someMop',
+        role: 'MOP',
+      },
+      {
+        email: 'mail',
+        fullName: 'someMop',
+        role: 'MOP',
+      },
+      {
+        email: 'mail',
+        fullName: 'Dima',
+        role: 'RP',
+      },
+      {
+        email: 'mail',
+        fullName: 'Arkasha',
+        role: 'FRZ',
+      },
+      {
+        email: 'mail',
+        fullName: 'Braga',
+        role: 'MASTER',
+      },
+    ];
+    const hashPassword = await bcrypt.hash('root', 3);
+    for (let i = 0; i < users.length; i++) {
+      users[i].email += i;
+      users[i].password = hashPassword;
+      const role = await Role.findOne({
+        where: { shortName: users[i].role },
+      });
+      await User.findOrCreate({
+        where: { email: users[i].email },
+        defaults: {
+          ...users[i],
+          roleId: role.id,
+        },
       });
     }
-    for (let i = 0; i < rolesList.length; i++) {
+    return;
+  }
+  async createRoles() {
+    for (const role in rolesList) {
       await Role.findOrCreate({
-        where: { shortName: rolesList[i].shortName },
-        defaults: rolesList[i],
+        where: { shortName: role },
+        defaults: rolesList[role],
       });
     }
   }
@@ -104,13 +184,20 @@ class Presets {
     }
   }
   async createWorkSpaces() {
+    const workSpacesList = [
+      { title: 'Краснодар', department: 'PRODUCTION', creatorId: 3 },
+      { title: 'Москва', department: 'PRODUCTION', creatorId: 3 },
+      { title: 'Санкт-петербург', department: 'PRODUCTION', creatorId: 3 },
+      { title: 'ВКонтакте', department: 'COMMERCIAL', creatorId: 2 },
+      { title: 'Авито', department: 'COMMERCIAL', creatorId: 2 },
+    ];
     for (let i = 0; i < workSpacesList.length; i++) {
-      const [workSpace] = await WorkSpace.findOrCreate({
+      const workSpace = await WorkSpace.findOrCreate({
         where: { title: workSpacesList[i].title },
         defaults: workSpacesList[i],
       });
-      await workSpace.setCreator(1);
     }
+    return;
   }
   async createStages() {
     for (let i = 0; i < stageList.length; i++) {

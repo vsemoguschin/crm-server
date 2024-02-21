@@ -9,7 +9,7 @@ class ProfileController {
       const user = await User.findOne({
         where: { id: req.user.id },
         attributes: { exclude: ['password'] },
-        include: 'role',
+        include: ['role', 'avatar'],
       });
       return res.json(user);
     } catch (error) {

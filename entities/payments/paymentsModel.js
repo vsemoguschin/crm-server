@@ -9,7 +9,7 @@ const modelFields = {
   price: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'Сумма' },
   date: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Дата отплаты' },
   method: { type: DataTypes.STRING, allowNull: false, validateFields: methods, fieldType: 'string', fullName: 'Способ оплаты' },
-  description: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Описание' },
+  description: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Описание' },
 };
 
 //добавить отправку по готовности

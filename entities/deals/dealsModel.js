@@ -11,9 +11,9 @@ const modelFields = {
   clothingMethod: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Метод закрытия' },
   // source: { type: DataTypes.STRING, allowNull: false },
   // adLink: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Ссылка на рекламу' },
-  status: { type: DataTypes.STRING, fieldType: 'string', validateFields: statuses, fullName: 'Статус' },
-  deadline: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Дедлайн' },
-  description: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Описание' },
+  status: { type: DataTypes.STRING, defaultValue: 'created', fieldType: 'string', validateFields: statuses, fullName: 'Статус' },
+  deadline: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Дедлайн' },
+  description: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Описание' },
 };
 
 //status заменить на isDone
