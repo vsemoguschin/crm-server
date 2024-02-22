@@ -36,12 +36,12 @@ class OrdersController {
   async getList(req, res, next) {
     const {
       pageSize,
-      pageNumber,
+      current,
       key, //?
       order: queryOrder,
     } = req.query;
     try {
-      const { limit, offset } = getPagination(pageNumber, pageSize);
+      const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
       const { searchFields } = req;
@@ -53,7 +53,7 @@ class OrdersController {
         offset,
         // include: 'orders',
       });
-      const response = getPaginationData(orders, pageNumber, pageSize, 'orders');
+      const response = getPaginationData(orders, current, pageSize, 'orders');
       return res.json(response || []);
     } catch (e) {
       next(e);

@@ -1,6 +1,6 @@
 const ApiError = require('../../error/apiError');
 const modelsService = require('../../services/modelsService');
-const { modelFields: dopsModelFields } = require('./dopsModel');
+const { modelFields: dopsModelFields, Dop } = require('./dopsModel');
 const { Deal } = require('../association');
 
 const frontOptions = {
@@ -32,7 +32,7 @@ class DopsRouterMiddleware {
         console.log(false, 'No deal');
         throw ApiError.BadRequest('No deal');
       }
-      const newDop = await modelsService.checkFields(dopsModelFields, req.body);
+      const newDop = await modelsService.checkFields([Dop, dopsModelFields], req.body);
       req.newDop = newDop;
       next();
     } catch (e) {

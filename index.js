@@ -52,16 +52,16 @@ app.use(errorHandling);
 
 const start = async () => {
   try {
-    await sequelize.drop();
-    await sequelize.authenticate();
-    await sequelize.sync({ alter: true, force: true });
+    // await sequelize.drop();
+    // await sequelize.authenticate();
+    // await sequelize.sync({ alter: true, force: true });
 
-    await presets.createRoles();
-    await presets.createAdmin();
-    await presets.createUsers();
-    await presets.createStages();
-    await presets.createWorkSpaces();
-    await presets.createMarketPlaces();
+    // await presets.createRoles();
+    // await presets.createAdmin();
+    // await presets.createUsers();
+    // await presets.createStages();
+    // await presets.createWorkSpaces();
+    // await presets.createMarketPlaces();
     app.listen(PORT, () => console.log(`${PORT}`));
   } catch (error) {
     console.log(error);

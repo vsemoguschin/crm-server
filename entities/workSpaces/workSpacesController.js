@@ -77,7 +77,6 @@ class WorkSpaceController {
       next(e);
     }
   }
-
   //old
   async getOld(req, res, next) {
     // get-запрос, получаем данные из param
@@ -137,13 +136,13 @@ class WorkSpaceController {
   async getList(req, res, next) {
     const {
       pageSize,
-      pageNumber,
+      current,
       key, //?
       order: queryOrder,
     } = req.query;
     try {
       const requester = req.user.role;
-      const { limit, offset } = getPagination(pageNumber, pageSize);
+      const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
       const { searchFields } = req;
@@ -165,7 +164,7 @@ class WorkSpaceController {
           },
         });
       }
-      const response = getPaginationData(workSpaces, pageNumber, pageSize, 'workSpaces');
+      const response = getPaginationData(workSpaces, current, pageSize, 'workSpaces');
       response.createdFields = modelsService.getModelFields(workSpacesModelFields);
       return res.json(response || []);
     } catch (e) {
@@ -224,10 +223,10 @@ class WorkSpaceController {
     }
   }
   async ordersList(req, res, next) {
-    const { pageSize, pageNumber, status } = req.query;
+    const { pageSize, current, status } = req.query;
     const { stageId, workSpaceId } = req;
     try {
-      const { limit, offset } = getPagination(pageNumber, pageSize);
+      const { limit, offset } = getPagination(current, pageSize);
       const orders = await Deal.findAndCountAll({
         attributes: ['id', 'title'],
         include: [
@@ -249,7 +248,7 @@ class WorkSpaceController {
         offset,
         // order: { ['DESC']: ['deadline'] },//?
       });
-      // const response = getPaginationData(orders, pageNumber, pageSize, 'orders');
+      // const response = getPaginationData(orders, current, pageSize, 'orders');
       return res.json(orders || []);
     } catch (e) {
       next(e);

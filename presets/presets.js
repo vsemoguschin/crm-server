@@ -185,17 +185,15 @@ class Presets {
   }
   async createWorkSpaces() {
     const workSpacesList = [
-      { title: 'Краснодар', department: 'PRODUCTION', creatorId: 3 },
-      { title: 'Москва', department: 'PRODUCTION', creatorId: 3 },
-      { title: 'Санкт-петербург', department: 'PRODUCTION', creatorId: 3 },
-      { title: 'ВКонтакте', department: 'COMMERCIAL', creatorId: 2 },
-      { title: 'Авито', department: 'COMMERCIAL', creatorId: 2 },
+      { title: 'Краснодар', department: 'PRODUCTION', creatorId: 4 },
+      { title: 'Москва', department: 'PRODUCTION', creatorId: 4 },
+      { title: 'Санкт-петербург', department: 'PRODUCTION', creatorId: 4 },
+      { title: 'ВКонтакте', department: 'COMMERCIAL', creatorId: 3 },
+      { title: 'Авито', department: 'COMMERCIAL', creatorId: 3 },
     ];
     for (let i = 0; i < workSpacesList.length; i++) {
-      const workSpace = await WorkSpace.findOrCreate({
-        where: { title: workSpacesList[i].title },
-        defaults: workSpacesList[i],
-      });
+      const workSpace = await WorkSpace.create(workSpacesList[i]);
+      await workSpace.addMembers(workSpacesList[i].creatorId);
     }
     return;
   }

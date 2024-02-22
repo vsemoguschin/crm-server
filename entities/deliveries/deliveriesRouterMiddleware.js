@@ -7,9 +7,8 @@ const frontOptions = {
   modelFields: modelsService.getModelFields(deliveriesModelFields),
 };
 const permissions = ['ADMIN', 'G', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
-const updateFields = ['method', 'type', 'description', 'city', 'recived'];
-const searchFields = ['method', 'type', 'description', 'city', 'recived', 'price', 'track', 'sent'];
-
+const updateFields = ['method', 'type', 'description', 'city', 'recived', 'readyToSend'];
+const searchFields = ['method', 'type', 'description', 'city', 'recived', 'price', 'track', 'sent', 'readyToSend'];
 class DeliverysRouterMiddleware {
   async create(req, res, next) {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
@@ -20,11 +19,6 @@ class DeliverysRouterMiddleware {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      //проверка значения и наличия сделки
-      if (!req.params.id || isNaN(+req.params.id)) {
-        console.log(false, 'Забыл что то указать');
-        throw ApiError.BadRequest('Забыл что то указать');
-      }
       const deal = await Deal.findOne({
         where: { id: req.params.id },
       });
@@ -32,7 +26,7 @@ class DeliverysRouterMiddleware {
         console.log(false, 'No deal');
         throw ApiError.BadRequest('No deal');
       }
-      const newDelivery = await modelsService.checkFields(deliveriesModelFields, req.body);
+      const newDelivery = await modelsService.checkFields([Delivery, deliveriesModelFields], req.body);
       req.newDelivery = newDelivery;
       next();
     } catch (e) {
@@ -99,14 +93,6 @@ class DeliverysRouterMiddleware {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      if (!req.params.id || isNaN(+req.params.id)) {
-        console.log(false, 'Забыл что то указать');
-        throw ApiError.BadRequest('Забыл что то указать');
-      }
-      if (!req.params.orderId || isNaN(+req.params.orderId)) {
-        console.log(false, 'Забыл что то указать');
-        throw ApiError.BadRequest('Забыл что то указать');
-      }
       const delivery = await Delivery.findOne({
         where: { id: +req.params.id },
         attributes: ['id'],
@@ -133,14 +119,6 @@ class DeliverysRouterMiddleware {
       if (!permissions.includes(requester)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
-      }
-      if (!req.params.id || isNaN(+req.params.id)) {
-        console.log(false, 'Забыл что то указать');
-        throw ApiError.BadRequest('Забыл что то указать');
-      }
-      if (!req.params.orderId || isNaN(+req.params.orderId)) {
-        console.log(false, 'Забыл что то указать');
-        throw ApiError.BadRequest('Забыл что то указать');
       }
       const delivery = await Delivery.findOne({
         where: { id: +req.params.id },

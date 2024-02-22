@@ -3,6 +3,7 @@ const { DataTypes } = require('sequelize');
 
 const methods = ['СДЕК', 'ПОЧТА', 'Курьер', 'Балтийский курьер', 'Самовывоз'];
 const types = ['Платно', 'Бесплатно', 'Досыл'];
+const statuses = ['собираются', 'доступны', 'отправлено'];
 
 //фиксировать досылы, сделать галочку
 const modelFields = {

@@ -15,11 +15,6 @@ class FilesRouterMiddleware {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      //проверка значения и наличия сделки/заказа
-      if (!req.params.id || isNaN(+req.params.id)) {
-        console.log(false, 'Забыл что то указать');
-        throw ApiError.BadRequest('Забыл что то указать');
-      }
       const deal = await Deal.findOne({
         where: { id: +req.params.id },
       });
@@ -45,11 +40,6 @@ class FilesRouterMiddleware {
       if (!['ADMIN', 'G', 'DP', 'RP', 'MASTER', 'PACKER'].includes(requester)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
-      }
-      //проверка значения и наличия сделки/заказа
-      if (!req.params.id || isNaN(+req.params.id)) {
-        console.log(false, 'Забыл что то указать');
-        throw ApiError.BadRequest('Забыл что то указать');
       }
       const order = await Order.findOne({
         where: { id: +req.params.id },
@@ -92,11 +82,6 @@ class FilesRouterMiddleware {
       if (!permissions.includes(requester)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
-      }
-      //проверка значения и наличия сделки/заказа
-      if (!req.params.id || isNaN(+req.params.id)) {
-        console.log(false, 'Забыл что то указать');
-        throw ApiError.BadRequest('Забыл что то указать');
       }
       const file = await File.findOne({
         where: { id: req.params.id },

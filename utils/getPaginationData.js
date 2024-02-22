@@ -1,9 +1,9 @@
 function getPaginationData(data, page, limit, fieldName) {
-  const { count: totalItems, rows } = data;
+  const { count: total, rows } = data;
   const currentPage = page ? +page : 0;
-  const totalPages = Math.ceil(totalItems / limit);
+  const totalPages = Math.ceil(total / limit);
 
-  return { totalItems, [fieldName]: rows, totalPages, currentPage };
+  return { total, [fieldName]: rows, totalPages, currentPage };
 }
 
 module.exports = getPaginationData;

@@ -3,12 +3,30 @@ const { modelFields: usersModelFields, User } = require('./usersModel');
 const modelsService = require('../../services/modelsService');
 const { Role } = require('../association');
 const { Op } = require('sequelize');
+const { ROLES: rolesList } = require('../roles/rolesList');
+
+const PERMISSIONS = {
+  ['ADMIN']: true,
+  ['G']: true,
+  ['KD']: true,
+  ['DO']: true,
+  ['ROP']: true,
+  ['ROV']: true,
+  ['DP']: true,
+  ['RP']: true,
+};
 
 class UsersRouterMiddleware {
   async create(req, res, next) {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
     try {
-      const { availableRoles } = req; //доступные для создания роли
+      const requester = req.user.role;
+      if (!PERMISSIONS[requester]) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      //получение доступных ролей
+      const availableRoles = rolesList[requester].availableRoles;
       const reqRole = req.body.role; //переданная роль
       if (!reqRole) {
         console.log(false, 'no role');
@@ -42,7 +60,13 @@ class UsersRouterMiddleware {
 
   async getOne(req, res, next) {
     try {
-      const { availableRoles } = req;
+      const requester = req.user.role;
+      if (!PERMISSIONS[requester]) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      //получение доступных ролей
+      const availableRoles = rolesList[requester].availableRoles;
       req.rolesFilter = availableRoles;
       next();
     } catch (e) {
@@ -52,7 +76,13 @@ class UsersRouterMiddleware {
 
   async getList(req, res, next) {
     try {
-      const { availableRoles } = req;
+      const requester = req.user.role;
+      if (!PERMISSIONS[requester]) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      //получение доступных ролей
+      const availableRoles = rolesList[requester].availableRoles;
       req.rolesFilter = availableRoles;
       req.searchFields = ['fullName'];
       next();
@@ -63,7 +93,13 @@ class UsersRouterMiddleware {
 
   async update(req, res, next) {
     try {
-      const { availableRoles } = req;
+      const requester = req.user.role;
+      if (!PERMISSIONS[requester]) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      //получение доступных ролей
+      const availableRoles = rolesList[requester].availableRoles;
       let reqRole = req.body.role; //переданная роль
       if (reqRole) {
         reqRole = await Role.findOne({
@@ -93,7 +129,13 @@ class UsersRouterMiddleware {
   }
 
   async delete(req, res, next) {
-    const { availableRoles } = req;
+    const requester = req.user.role;
+    if (!PERMISSIONS[requester]) {
+      console.log(false, 'no acces');
+      throw ApiError.Forbidden('Нет доступа');
+    }
+    //получение доступных ролей
+    const availableRoles = rolesList[requester].availableRoles;
     req.rolesFilter = availableRoles;
     next();
   }

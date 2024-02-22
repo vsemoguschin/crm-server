@@ -16,8 +16,9 @@ class UsersController {
       // console.log(userRole);
       // хешируем пароль
       newUser.password = await bcrypt.hash(newUser.password, 3);
-      await userRole.createUser(newUser);
-      return res.json(200);
+      const user = await userRole.createUser(newUser);
+      delete user.dataValues.password;
+      return res.status(200).json(user);
     } catch (e) {
       next(e);
     }
@@ -50,14 +51,14 @@ class UsersController {
     // get-запрос передаем query параметры
     const {
       pageSize,
-      pageNumber,
+      current,
       key, //?
       order: queryOrder,
       role,
     } = req.query;
     try {
-      checkReqQueriesIsNumber({ pageSize, pageNumber });
-      const { limit, offset } = getPagination(pageNumber, pageSize);
+      checkReqQueriesIsNumber({ pageSize, current });
+      const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
       const { rolesFilter, searchFields } = req;
@@ -76,7 +77,7 @@ class UsersController {
         offset,
       });
 
-      const response = getPaginationData(users, pageNumber, pageSize, 'users');
+      const response = getPaginationData(users, current, pageSize, 'users');
       // response.createdFields = modelsService.getModelFields(usersModelFields);
       // response.createdFields.push({ roles: rolesFilter });
       return res.json(response);

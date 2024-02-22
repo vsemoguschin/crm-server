@@ -39,13 +39,13 @@ class ClientController {
   async getList(req, res, next) {
     const {
       pageSize,
-      pageNumber,
+      current,
       key, //?
       order: queryOrder,
     } = req.query;
     const { filter } = req;
     try {
-      const { limit, offset } = getPagination(pageNumber, pageSize);
+      const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
       let modelSearch = {
@@ -69,7 +69,7 @@ class ClientController {
         offset,
         // include: 'deals',
       });
-      const response = getPaginationData(clients, pageNumber, pageSize, 'clients');
+      const response = getPaginationData(clients, current, pageSize, 'clients');
       return res.json(response || []);
     } catch (e) {
       next(e);

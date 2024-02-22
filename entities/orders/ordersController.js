@@ -40,12 +40,12 @@ class OrdersController {
   async getList(req, res, next) {
     const {
       pageSize,
-      pageNumber,
+      current,
       key, //?
       order: queryOrder,
     } = req.query;
     try {
-      const { limit, offset } = getPagination(pageNumber, pageSize);
+      const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
       const { searchFields } = req;
@@ -75,7 +75,7 @@ class OrdersController {
         limit,
         offset,
       });
-      const response = getPaginationData(orders, pageNumber, pageSize, 'orders');
+      const response = getPaginationData(orders, current, pageSize, 'orders');
       return res.json(response || []);
     } catch (e) {
       next(e);
@@ -86,11 +86,11 @@ class OrdersController {
     try {
       const { id } = req.params;
       const { updates } = req;
-      const [, order] = await Order.update(updates, {
+      const order = await Order.update(updates, {
         where: {
           id: id,
         },
-        include: 'executors',
+        // include: 'executors',
         individualHooks: true,
       });
       return res.status(200).json(order);

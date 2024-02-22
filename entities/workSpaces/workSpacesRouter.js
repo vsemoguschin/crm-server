@@ -9,6 +9,7 @@ const clientsRouterMiddleware = require('../clients/clientsRouterMiddleware');
 const clientsController = require('../clients/clientsController');
 const dealsRouterMiddleware = require('../deals/dealsRouterMiddleware');
 const dealsController = require('../deals/dealsController');
+const deliveriesRouterMiddleware = require('../deliveries/deliveriesRouterMiddleware');
 
 router.post('/', workSpacesRouterMiddleware.create, workSpacesController.create);
 router.get('/', workSpacesRouterMiddleware.getList, workSpacesController.getList);
@@ -29,12 +30,11 @@ router.get('/:id/deals', checkReqParamsIsNumber, dealsRouterMiddleware.getList, 
 
 //добавление и получение заказов внутри workSpace
 router.put('/:id/orders/:orderId', checkReqParamsIsNumber, workSpacesRouterMiddleware.addOrders, ordersController.update);
-// router.get('/:id/orders', ordersRouterMiddleware.getList, ordersController.getList); //получение всех заказов воркспейса(для таблицы, как храненте)
 
 router.get('/:id', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, workSpacesController.getOne);
 // router.get('/:id/stage/:stageId', checkReqParamsIsNumber, workSpacesRouterMiddleware.ordersList, workSpacesController.ordersList);
 
 //отправки workSpace
-// router.get('/:id/users', ordersRouterMiddleware.getList, ordersController.getList);
+router.get('/:id/deliveries', checkReqParamsIsNumber, deliveriesRouterMiddleware.getList, dealsController.getList)
 
 module.exports = router;

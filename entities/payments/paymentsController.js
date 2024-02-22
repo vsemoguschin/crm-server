@@ -40,12 +40,12 @@ class PaymentsController {
   async getList(req, res, next) {
     const {
       pageSize,
-      pageNumber,
+      current,
       key, //?
       order: queryOrder,
     } = req.query;
     try {
-      const { limit, offset } = getPagination(pageNumber, pageSize);
+      const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
       const { searchFields } = req;
@@ -66,7 +66,7 @@ class PaymentsController {
         limit,
         offset,
       });
-      const response = getPaginationData(payments, pageNumber, pageSize, 'payments');
+      const response = getPaginationData(payments, current, pageSize, 'payments');
       return res.json(response || []);
     } catch (e) {
       next(e);

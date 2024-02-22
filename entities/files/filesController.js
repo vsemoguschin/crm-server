@@ -22,7 +22,7 @@ class FilesController {
   async getList(req, res, next) {
     const {
       pageSize,
-      pageNumber,
+      current,
       key, //?
       order: queryOrder,
     } = req.query;
@@ -35,7 +35,7 @@ class FilesController {
         modelSearch = { orderId: +req.params.id };
       }
       console.log(modelSearch);
-      const { limit, offset } = getPagination(pageNumber, pageSize);
+      const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
       const files = await File.findAndCountAll({
         where: modelSearch,
@@ -43,7 +43,7 @@ class FilesController {
         limit,
         offset,
       });
-      const response = getPaginationData(files, pageNumber, pageSize, 'files');
+      const response = getPaginationData(files, current, pageSize, 'files');
       return res.json(response || []);
     } catch (e) {
       next(e);

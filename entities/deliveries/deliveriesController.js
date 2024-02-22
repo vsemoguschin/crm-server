@@ -41,35 +41,54 @@ class DeliveriesController {
   async getList(req, res, next) {
     const {
       pageSize,
-      pageNumber,
+      current,
       key, //?
       order: queryOrder,
     } = req.query;
     try {
-      const { limit, offset } = getPagination(pageNumber, pageSize);
+      const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
       const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
 
-      let modelSearch = {
-        id: { [Op.gt]: 0 },
+      let options = {
+        where: {
+          id: { [Op.gt]: 0 },
+        },
       };
       if (req.baseUrl.includes('/deals')) {
-        modelSearch = { dealId: +req.params.id };
+        options.where = { dealId: +req.params.id };
+      }
+      if (req.baseUrl.includes('/workspaces')) {
+        options = {
+          where: {
+            readyToSend: true,
+            sent: false,
+          },
+          include: [
+            {
+              model: Deal,
+              workSpaceId: req.params.id,
+              attributes: ['id', 'title'],
+              include: 'files',
+            },
+            {
+              model: Order,
+              attributes: ['id', 'name', 'status'],
+              include: 'files',
+            },
+          ],
+        };
       }
 
       const deliveries = await Delivery.findAndCountAll({
-        where: {
-          ...filter,
-          ...modelSearch,
-        },
+        options,
         order,
         limit,
         offset,
-        include: ['orders'],
       });
-      const response = getPaginationData(deliveries, pageNumber, pageSize, 'deliveries');
+      const response = getPaginationData(deliveries, current, pageSize, 'deliveries');
       return res.json(response || []);
     } catch (e) {
       next(e);
@@ -142,9 +161,9 @@ class DeliveriesController {
     }
   }
   async ordersList(req, res, next) {
-    const { pageSize, pageNumber, stageId } = req.query;
+    const { pageSize, current, stageId } = req.query;
     try {
-      const { limit, offset } = getPagination(pageNumber, pageSize);
+      const { limit, offset } = getPagination(current, pageSize);
       const orders = await Deal.findAndCountAll({
         attributes: ['id', 'title'],
         include: [
@@ -163,7 +182,7 @@ class DeliveriesController {
         // offset,
         // order: { ['DESC']: ['deadline'] },//?
       });
-      // const response = getPaginationData(orders, pageNumber, pageSize, 'orders');
+      // const response = getPaginationData(orders, current, pageSize, 'orders');
       return res.json(orders || []);
     } catch (e) {
       next(e);

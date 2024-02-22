@@ -19,7 +19,7 @@ class WorkSpacesRouterMiddleware {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
     try {
       const requester = req.user.role;
-      if (requester !== 'ADMIN' || requester !== 'G') {
+      if (requester !== 'ADMIN' && requester !== 'G') {
         req.body.department = rolesList[requester].department;
       }
       req.newWorkSpace = await modelsService.checkFields([WorkSpace, workSpacesModelFields], req.body);
@@ -202,7 +202,6 @@ class WorkSpacesRouterMiddleware {
       next(e);
     }
   }
-
   async addOrders(req, res, next) {
     try {
       const requester = req.user.role;
@@ -218,11 +217,13 @@ class WorkSpacesRouterMiddleware {
       });
       const order = await Order.findOne({
         where: { id: +req.params.orderId },
+        include: 'deal',
       });
       if (!workSpace || !order || order.workSpaceId !== null) {
         console.log(false, 'No workSpace or order');
         throw ApiError.BadRequest('No workSpace or order');
       }
+
       // console.log(workSpace.id);
       req.params.id = req.params.orderId;
       req.updates = { workSpaceId: workSpace.id, status: 'Доступный', stageId: 1 };
@@ -234,6 +235,7 @@ class WorkSpacesRouterMiddleware {
   }
 
   async getUsers(req, res, next) {
+    const { role } = req.query;
     try {
       const requester = req.user.role;
       console.log(req.params, req.query);
@@ -241,14 +243,30 @@ class WorkSpacesRouterMiddleware {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
+      const filter = await modelsService.searchFilter(['fullName'], req.query);
+      const roleFilter = { id: { [Op.gt]: 0 } };
+      if (role) {
+        roleFilter.shortName = role;
+      }
       const workSpace = await WorkSpace.findOne({
         where: { id: +req.params.id },
         attributes: ['id'],
-        include: 'members',
+        include: [
+          {
+            association: 'members',
+            include: [
+              {
+                association: 'role',
+                where: roleFilter,
+              },
+            ],
+            where: { ...filter },
+          },
+        ],
       });
       if (!workSpace) {
-        console.log(false, 'No workSpace');
-        throw ApiError.BadRequest('No workSpace');
+        console.log(false, 'Not found');
+        throw ApiError.BadRequest('Not found');
       }
       return res.json(workSpace.members);
     } catch (e) {

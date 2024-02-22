@@ -60,12 +60,12 @@ class DealsController {
   async getList(req, res, next) {
     const {
       pageSize,
-      pageNumber,
+      current,
       key, //?
       order: queryOrder,
     } = req.query;
     try {
-      const { limit, offset } = getPagination(pageNumber, pageSize);
+      const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
       const { searchFields } = req;
@@ -90,7 +90,7 @@ class DealsController {
         limit,
         offset,
       });
-      const response = getPaginationData(deals, pageNumber, pageSize, 'deals');
+      const response = getPaginationData(deals, current, pageSize, 'deals');
       return res.json(response || []);
     } catch (e) {
       next(e);
@@ -139,13 +139,13 @@ class DealsController {
   async commercialList(req, res, next) {
     const {
       pageSize,
-      pageNumber,
+      current,
       key, //?
       order: queryOrder,
       status,
     } = req.query;
     try {
-      const { limit, offset } = getPagination(pageNumber, pageSize);
+      const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
       const { searchFields } = req;
@@ -171,7 +171,7 @@ class DealsController {
         offset,
       });
       console.log(deals);
-      const response = getPaginationData(deals, pageNumber, pageSize, 'deals');
+      const response = getPaginationData(deals, current, pageSize, 'deals');
       return res.json(response || []);
     } catch (e) {
       next(e);
