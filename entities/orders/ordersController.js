@@ -3,6 +3,9 @@ const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
 const { Op } = require('sequelize');
+const { Deal } = require('../association');
+
+const searchFields = ['name'];
 class OrdersController {
   async create(req, res, next) {
     try {
@@ -42,13 +45,13 @@ class OrdersController {
       pageSize,
       current,
       key, //?
+      status,
       order: queryOrder,
     } = req.query;
     try {
       const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
-      const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
       // console.log(filter);
       let modelSearch = {
@@ -60,7 +63,14 @@ class OrdersController {
         include.push('neons', 'executors', 'files', 'stage');
       }
       if (req.baseUrl.includes('/workspaces')) {
-        modelSearch = { workSpaceId: +req.params.id };
+        modelSearch = {
+          workSpaceId: +req.params.id,
+          stageId: 1,
+          status: status || 'Доступный',
+        };
+        if (req.params.stageId) {
+          modelSearch.stageId = req.params.stageId;
+        }
       }
       if (req.baseUrl.includes('/deliveries')) {
         modelSearch = { deliveryId: +req.params.id };
@@ -86,17 +96,29 @@ class OrdersController {
     try {
       const { id } = req.params;
       const { updates } = req;
-      const order = await Order.update(updates, {
+      const [, order] = await Order.update(updates, {
         where: {
           id: id,
         },
         // include: 'executors',
         individualHooks: true,
       });
-      return res.status(200).json(order);
-    } catch (error) {
-      console.log(error);
-      return res.status(400).json(error);
+      if (req.baseUrl.includes('/workspaces')) {
+        await Deal.update(
+          {
+            status: 'process',
+          },
+          {
+            where: {
+              id: order[0].dealId,
+            },
+          },
+        );
+      }
+      return res.status(200).json(order[0]);
+    } catch (e) {
+      console.log(e);
+      return res.status(400).json(e);
     }
   }
 

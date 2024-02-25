@@ -59,6 +59,7 @@ class DeliveriesController {
       };
       if (req.baseUrl.includes('/deals')) {
         options.where = { dealId: +req.params.id };
+        options.include = ['orders'];
       }
       if (req.baseUrl.includes('/workspaces')) {
         options = {
@@ -83,7 +84,7 @@ class DeliveriesController {
       }
 
       const deliveries = await Delivery.findAndCountAll({
-        options,
+        ...options,
         order,
         limit,
         offset,

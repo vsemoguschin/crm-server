@@ -1,6 +1,6 @@
 const ApiError = require('../../error/apiError');
 const modelsService = require('../../services/modelsService');
-const { modelFields: paymentsModelFields } = require('./paymentsModel');
+const { modelFields: paymentsModelFields, Payment } = require('./paymentsModel');
 const { Deal } = require('../association');
 
 const frontOptions = {
@@ -32,7 +32,7 @@ class PaymentsRouterMiddleware {
         console.log(false, 'No deal');
         throw ApiError.BadRequest('No deal');
       }
-      const newPayment = await modelsService.checkFields(paymentsModelFields, req.body);
+      const newPayment = await modelsService.checkFields([Payment, paymentsModelFields], req.body);
       req.newPayment = newPayment;
       next();
     } catch (e) {

@@ -18,8 +18,8 @@ router.patch('/:id', checkReqParamsIsNumber, workSpacesRouterMiddleware.update, 
 
 //добавление и получение пользователей внутри workSpace
 router.put('/:id/users/:userId', checkReqParamsIsNumber, workSpacesRouterMiddleware.addUsers);
-router.delete('/:id/users/:userId', checkReqParamsIsNumber, workSpacesRouterMiddleware.deleteUsers);
 router.get('/:id/users', checkReqParamsIsNumber, workSpacesRouterMiddleware.getUsers);
+router.delete('/:id/users/:userId', checkReqParamsIsNumber, workSpacesRouterMiddleware.deleteUsers);
 
 //создание и получение клиентов в воркспейсе
 router.post('/:id/clients/', checkReqParamsIsNumber, clientsRouterMiddleware.create, clientsController.create);
@@ -32,9 +32,9 @@ router.get('/:id/deals', checkReqParamsIsNumber, dealsRouterMiddleware.getList, 
 router.put('/:id/orders/:orderId', checkReqParamsIsNumber, workSpacesRouterMiddleware.addOrders, ordersController.update);
 
 router.get('/:id', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, workSpacesController.getOne);
-// router.get('/:id/stage/:stageId', checkReqParamsIsNumber, workSpacesRouterMiddleware.ordersList, workSpacesController.ordersList);
+router.get('/:id/stage/:stageId', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, ordersController.getList);
 
 //отправки workSpace
-router.get('/:id/deliveries', checkReqParamsIsNumber, deliveriesRouterMiddleware.getList, dealsController.getList)
+router.get('/:id/deliveries', checkReqParamsIsNumber, deliveriesRouterMiddleware.getList, dealsController.getList);
 
 module.exports = router;

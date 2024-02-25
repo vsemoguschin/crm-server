@@ -3,6 +3,7 @@ const modelsService = require('../../services/modelsService');
 const getPagination = require('../../utils/getPagination');
 const getPaginationData = require('../../utils/getPaginationData');
 const { Op } = require('sequelize');
+const { WorkSpace } = require('../association');
 
 class ClientController {
   async create(req, res, next) {
@@ -27,7 +28,7 @@ class ClientController {
         where: {
           id,
         },
-        // include: ['deals'],
+        include: ['user', 'delas'],
       });
       return res.json(client);
     } catch (e) {
@@ -52,9 +53,16 @@ class ClientController {
         id: { [Op.gt]: 2 },
       };
       if (req.baseUrl.includes('/workspaces')) {
+        const workSpace = await WorkSpace.findOne({
+          where: {
+            id: req.params.id,
+          },
+          include: ['members'],
+        });
+        const users = workSpace.members.map((member) => member.id);
         modelSearch = {
           id: { [Op.gt]: 2 },
-          workSpaceId: +req.params.id,
+          userId: users,
         };
       }
 

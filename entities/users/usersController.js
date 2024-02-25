@@ -35,7 +35,7 @@ class UsersController {
           id,
           '$role.shortName$': rolesFilter,
         },
-        include: ['role'],
+        include: ['role', 'membership'],
       });
       if (!user) {
         return res.status(404).json('user not found');

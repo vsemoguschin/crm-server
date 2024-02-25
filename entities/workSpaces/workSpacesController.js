@@ -2,7 +2,7 @@ const { WorkSpace, modelFields: workSpacesModelFields } = require('./workSpacesM
 const modelsService = require('../../services/modelsService');
 const getPagination = require('../../utils/getPagination');
 const getPaginationData = require('../../utils/getPaginationData');
-const { Order, Deal, Client } = require('../association');
+const { Order, Deal, Client, User } = require('../association');
 const { Op } = require('sequelize');
 const { ROLES: rolesList } = require('../roles/rolesList');
 const ApiError = require('../../error/apiError');
@@ -153,20 +153,18 @@ class WorkSpaceController {
           ...filter,
         });
       } else {
-        workSpaces = await WorkSpace.findAndCountAll({
-          ...filter,
-          include: {
-            association: 'members',
-            where: {
-              id: req.user.id,
-            },
-            // attributes: [],
+        const user = await User.findOne({
+          where: {
+            id: req.user.id,
           },
         });
+        console.log(user);
+        workSpaces = await user.getMembership();
+        return res.json(workSpaces);
       }
-      const response = getPaginationData(workSpaces, current, pageSize, 'workSpaces');
-      response.createdFields = modelsService.getModelFields(workSpacesModelFields);
-      return res.json(response || []);
+      // const response = getPaginationData(workSpaces, current, pageSize, 'workSpaces');
+      // response.createdFields = modelsService.getModelFields(workSpacesModelFields);
+      return res.json(workSpaces || []);
     } catch (e) {
       next(e);
     }

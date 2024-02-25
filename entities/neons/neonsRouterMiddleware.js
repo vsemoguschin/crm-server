@@ -1,6 +1,6 @@
 const ApiError = require('../../error/apiError');
 const modelsService = require('../../services/modelsService');
-const { modelFields: neonsModelFields } = require('./neonsModel');
+const { modelFields: neonsModelFields, Neon } = require('./neonsModel');
 const { Order } = require('../association');
 
 const frontOptions = {
@@ -32,7 +32,7 @@ class NeonsRouterMiddleware {
         console.log(false, 'No order');
         throw ApiError.BadRequest('No order');
       }
-      const newNeon = await modelsService.checkFields(neonsModelFields, req.body);
+      const newNeon = await modelsService.checkFields([Neon, neonsModelFields], req.body);
       req.newNeon = newNeon;
       next();
     } catch (e) {

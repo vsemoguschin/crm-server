@@ -1,4 +1,4 @@
-const { Client, Order, Delivery } = require('../association');
+const { Client, Order, Delivery, WorkSpace } = require('../association');
 const { Deal, modelFields: dealsModelFields } = require('./dealsModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
@@ -11,7 +11,6 @@ class DealsController {
       const { client, newDeal } = req;
 
       newDeal.userId = req.user.id;
-      newDeal.status = 'created';
       newDeal.workSpaceId = client.workSpaceId;
 
       const deal = await client.createDeal(newDeal);
@@ -63,6 +62,7 @@ class DealsController {
       current,
       key, //?
       order: queryOrder,
+      status,
     } = req.query;
     try {
       const { limit, offset } = getPagination(current, pageSize);
@@ -70,15 +70,27 @@ class DealsController {
 
       const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
-      // console.log(filter);
+
       let modelSearch = {
         id: { [Op.gt]: 0 },
       };
       if (req.baseUrl.includes('/clients')) {
         modelSearch = { clientId: +req.params.id };
       }
-      if (req.baseUrl.includes('/workspace')) {
-        modelSearch = { workSpaceId: +req.params.id };
+      if (req.baseUrl.includes('/workspaces')) {
+        const workSpace = await WorkSpace.findOne({
+          where: {
+            id: req.params.id,
+          },
+          include: ['members'],
+        });
+
+        const users = workSpace.members.map((member) => member.id);
+        modelSearch = {
+          id: { [Op.gt]: 2 },
+          userId: users,
+          status: status || 'created',
+        };
       }
       const deals = await Deal.findAndCountAll({
         where: {
@@ -150,10 +162,17 @@ class DealsController {
 
       const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
-
+      const workSpace = await WorkSpace.findOne({
+        where: {
+          id: req.params.id,
+        },
+        include: ['members'],
+      });
+      const users = workSpace.members.map((member) => member.id);
+      console.log(users);
       const deals = await Deal.findAndCountAll({
         where: {
-          workSpaceId: +req.params.id,
+          userId: users,
           ...filter,
           status: status || 'process',
         },
@@ -170,7 +189,6 @@ class DealsController {
         limit,
         offset,
       });
-      console.log(deals);
       const response = getPaginationData(deals, current, pageSize, 'deals');
       return res.json(response || []);
     } catch (e) {

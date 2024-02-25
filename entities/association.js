@@ -81,8 +81,9 @@ Stage.hasMany(Order);
 Order.belongsTo(Stage);
 
 //Рабочие пространства
-User.hasMany(WorkSpace);
-WorkSpace.belongsToMany(User, { through: 'WorkSpaceMembers', as: 'members' });
+// User.hasMany(WorkSpace);
+WorkSpace.belongsToMany(User, { through: 'WorkSpaceMembers', as: 'members', foreignKey: 'userId' });
+User.belongsToMany(WorkSpace, { through: 'WorkSpaceMembers', as: 'membership', foreignKey: 'workSpaceId' });
 WorkSpace.belongsTo(User, { as: 'creator' });
 
 WorkSpace.hasMany(Order); //для производства

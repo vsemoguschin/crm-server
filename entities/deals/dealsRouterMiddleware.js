@@ -2,6 +2,7 @@ const ApiError = require('../../error/apiError');
 const modelsService = require('../../services/modelsService');
 const { modelFields: dealsModelFields, Deal } = require('./dealsModel');
 const { Client } = require('../clients/clientsModel');
+const dealsPermissions = require('./dealsPermissions');
 
 const frontOptions = {
   modelFields: modelsService.getModelFields(dealsModelFields),
@@ -13,6 +14,8 @@ class DealsRouterMiddleware {
   async create(req, res, next) {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
     try {
+      const requester = req.user.role;
+      dealsPermissions(requester);
       const client = await Client.findOne({
         where: { id: req.params.id },
       });
@@ -31,6 +34,8 @@ class DealsRouterMiddleware {
   }
   async getOne(req, res, next) {
     try {
+      const requester = req.user.role;
+      dealsPermissions(requester);
       next();
     } catch (e) {
       next(e);
@@ -38,6 +43,8 @@ class DealsRouterMiddleware {
   }
   async getList(req, res, next) {
     try {
+      const requester = req.user.role;
+      dealsPermissions(requester);
       req.searchFields = searchFields;
       next();
     } catch (e) {
@@ -46,6 +53,8 @@ class DealsRouterMiddleware {
   }
   async update(req, res, next) {
     try {
+      const requester = req.user.role;
+      dealsPermissions(requester);
       req.updateFields = updateFields;
       next();
     } catch (e) {
@@ -54,6 +63,8 @@ class DealsRouterMiddleware {
   }
   async delete(req, res, next) {
     try {
+      const requester = req.user.role;
+      dealsPermissions(requester);
       next();
     } catch (e) {
       next(e);

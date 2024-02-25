@@ -44,6 +44,9 @@ class WorkSpacesRouterMiddleware {
           where: {
             id: req.params.id,
           },
+          include: {
+            association: 'members',
+          },
         });
       } else {
         workSpace = await WorkSpace.findOne({
@@ -65,7 +68,6 @@ class WorkSpacesRouterMiddleware {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      return res.json(workSpace);
       req.workSpace = workSpace;
       next();
     } catch (e) {
@@ -156,7 +158,7 @@ class WorkSpacesRouterMiddleware {
       next(e);
     }
   }
-  //добавить пользователя в пространство
+  //удалить пользователя из пространства
   async deleteUsers(req, res, next) {
     try {
       const requester = req.user.role;
@@ -202,6 +204,7 @@ class WorkSpacesRouterMiddleware {
       next(e);
     }
   }
+  //добавить заказ в пространство производства
   async addOrders(req, res, next) {
     try {
       const requester = req.user.role;
@@ -219,7 +222,7 @@ class WorkSpacesRouterMiddleware {
         where: { id: +req.params.orderId },
         include: 'deal',
       });
-      if (!workSpace || !order || order.workSpaceId !== null) {
+      if (!workSpace || !order) {
         console.log(false, 'No workSpace or order');
         throw ApiError.BadRequest('No workSpace or order');
       }

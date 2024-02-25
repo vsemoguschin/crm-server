@@ -30,81 +30,6 @@ class Presets {
       paranoid: false,
     });
   }
-  async createUsers() {
-    const users = [
-      {
-        email: 'mail',
-        fullName: 'Mark',
-        role: 'KD',
-      },
-      {
-        email: 'mail',
-        fullName: 'Sasha',
-        role: 'DP',
-      },
-      {
-        email: 'mail',
-        fullName: 'Sergey',
-        role: 'DO',
-      },
-      {
-        email: 'mail',
-        fullName: 'Julia',
-        role: 'DO',
-      },
-      {
-        email: 'mail',
-        fullName: 'someRop',
-        role: 'ROP',
-      },
-      {
-        email: 'mail',
-        fullName: 'someRop',
-        role: 'ROP',
-      },
-      {
-        email: 'mail',
-        fullName: 'someMop',
-        role: 'MOP',
-      },
-      {
-        email: 'mail',
-        fullName: 'someMop',
-        role: 'MOP',
-      },
-      {
-        email: 'mail',
-        fullName: 'Dima',
-        role: 'RP',
-      },
-      {
-        email: 'mail',
-        fullName: 'Arkasha',
-        role: 'FRZ',
-      },
-      {
-        email: 'mail',
-        fullName: 'Braga',
-        role: 'MASTER',
-      },
-    ];
-    const hashPassword = await bcrypt.hash('root', 3);
-    for (let i = 0; i < users.length; i++) {
-      users[i].email += i;
-      users[i].password = hashPassword;
-      const role = await Role.findOne({
-        where: { shortName: users[i].role },
-      });
-      await User.findOrCreate({
-        where: { email: users[i].email },
-        defaults: {
-          ...users[i],
-          roleId: role.id,
-        },
-      });
-    }
-    return;
-  }
   async createRoles() {
     for (const role in rolesList) {
       await Role.findOrCreate({
@@ -185,11 +110,11 @@ class Presets {
   }
   async createWorkSpaces() {
     const workSpacesList = [
-      { title: 'Краснодар', department: 'PRODUCTION', creatorId: 4 },
-      { title: 'Москва', department: 'PRODUCTION', creatorId: 4 },
-      { title: 'Санкт-петербург', department: 'PRODUCTION', creatorId: 4 },
-      { title: 'ВКонтакте', department: 'COMMERCIAL', creatorId: 3 },
-      { title: 'Авито', department: 'COMMERCIAL', creatorId: 3 },
+      { id: 1, title: 'Краснодар', department: 'PRODUCTION', creatorId: 4 },
+      { id: 2, title: 'Москва', department: 'PRODUCTION', creatorId: 4 },
+      { id: 3, title: 'Санкт-петербург', department: 'PRODUCTION', creatorId: 4 },
+      { id: 4, title: 'ВКонтакте', department: 'COMMERCIAL', creatorId: 3 },
+      { id: 5, title: 'Авито', department: 'COMMERCIAL', creatorId: 3 },
     ];
     for (let i = 0; i < workSpacesList.length; i++) {
       const workSpace = await WorkSpace.create(workSpacesList[i]);
@@ -203,6 +128,121 @@ class Presets {
         where: { title: stageList[i].title },
         defaults: stageList[i],
       });
+    }
+  }
+  async createUsers() {
+    const users = [
+      {
+        email: 'mail',
+        fullName: 'Mark',
+        role: 'KD',
+      },
+      {
+        email: 'mail',
+        fullName: 'Sasha',
+        role: 'DP',
+      },
+      {
+        email: 'mail',
+        fullName: 'Sergey',
+        role: 'DO',
+      },
+      {
+        email: 'mail',
+        fullName: 'Julia',
+        role: 'DO',
+      },
+      {
+        email: 'mail',
+        fullName: 'someRop',
+        role: 'ROP',
+      },
+      {
+        email: 'mail',
+        fullName: 'someRop',
+        role: 'ROP',
+      },
+      {
+        email: 'mail',
+        fullName: 'someMop',
+        role: 'MOP',
+      },
+      {
+        email: 'mail',
+        fullName: 'someMop',
+        role: 'MOP',
+      },
+      {
+        email: 'mail',
+        fullName: 'Dima',
+        role: 'RP',
+      },
+      {
+        email: 'mail',
+        fullName: 'Arkasha',
+        role: 'FRZ',
+      },
+      {
+        email: 'mail',
+        fullName: 'Braga',
+        role: 'MASTER',
+      },
+    ];
+    const hashPassword = await bcrypt.hash('root', 3);
+    for (let i = 0; i < users.length; i++) {
+      users[i].email += i;
+      users[i].password = hashPassword;
+      const role = await Role.findOne({
+        where: { shortName: users[i].role },
+      });
+      await User.findOrCreate({
+        where: { email: users[i].email },
+        defaults: {
+          ...users[i],
+          roleId: role.id,
+        },
+      });
+    }
+    return;
+  }
+  async createDatas() {
+    const workSpaceVK = await WorkSpace.findOne({ where: { title: 'ВКонтакте' } }); //4
+    const workSpaceAvito = await WorkSpace.findOne({ where: { title: 'Авито' } }); //5
+    const workSpaceMoscow = await WorkSpace.findOne({ where: { title: 'Москва' } }); //2
+
+    const vkManagers = [6, 7, 9];
+    const avitoManagers = [5, 8, 10];
+    const moscowWorkers = [11, 12, 13];
+
+    await workSpaceVK.addMembers(vkManagers);
+    await workSpaceAvito.addMembers(avitoManagers);
+    await workSpaceMoscow.addMembers(moscowWorkers);
+
+    const managers = await User.findAll({
+      where: {
+        id: [...vkManagers, ...avitoManagers],
+      },
+      include: 'membership',
+    });
+    for (let i = 0; i < managers.length; i++) {
+      // console.log(managers[i].membership[0].id);
+      const clientBlank = {
+        fullName: i + 'client',
+        phone: 13245 + i,
+        chatLink: 'https://vk.com',
+        type: 'ООО',
+        gender: 'M',
+        workSpaceId: managers[i].membership[0].id,
+      };
+      const dealBlank = {
+        title: managers[i].id + 'deal',
+        price: 12000 + i * 10,
+        clothingMethod: 'someting',
+        deadline: 'soon',
+        userId: managers[i].id,
+      };
+      const client = await managers[i].createClient(clientBlank);
+      await client.createDeal({ ...dealBlank, workSpaceId: client.workSpaceId });
     }
   }
 }

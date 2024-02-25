@@ -1,10 +1,7 @@
 const ApiError = require('../../error/apiError');
 const modelsService = require('../../services/modelsService');
 const { modelFields: ordersModelFields, Order } = require('./ordersModel');
-const { Deal, User, WorkSpace } = require('../association');
-const { ROLES: rolesList } = require('../roles/rolesList');
-const { availableStages } = require('../stages/stagesModel');
-const { Op } = require('sequelize');
+const { Deal, User, WorkSpace, Stage } = require('../association');
 
 const frontOptions = {
   modelFields: modelsService.getModelFields(ordersModelFields),
@@ -28,7 +25,6 @@ const updateFields = [
   'fittings',
   'status',
 ];
-const searchFields = ['name'];
 
 class OrdersRouterMiddleware {
   async create(req, res, next) {
@@ -78,7 +74,6 @@ class OrdersRouterMiddleware {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      req.searchFields = searchFields;
       next();
     } catch (e) {
       next(e);
@@ -156,56 +151,38 @@ class OrdersRouterMiddleware {
     }
   }
   async changeStage(req, res, next) {
-    const workStages = {
-      ['ADMIN']: [1, 2, 3, 4],
-      ['G']: [1, 2, 3, 4],
-      ['DP']: [1, 2, 3, 4],
-      ['RP']: [1, 2, 3, 4],
-      ['FRZ']: [1],
-      ['LAM']: [2],
-      ['MASTER']: [3],
-      ['PACKER']: [4],
-    };
-    const movement = {
-      ['ADMIN']: [1, 2, 3, 4, 5],
-      ['G']: [1, 2, 3, 4, 5],
-      ['DP']: [1, 2, 3, 4, 5],
-      ['RP']: [1, 2, 3, 4, 5],
-      ['FRZ']: [2],
-      ['LAM']: [3],
-      ['MASTER']: [4],
-      ['PACKER']: [5],
-    };
+    const permissions = ['ADMIN', 'G', 'DP', 'RP', 'FRZ', 'LAM', 'MASTER', 'PACKER'];
     try {
-      console.log(workStages);
       const requester = req.user.role;
       const orderid = req.params.id;
-      const newStage = req.params.stageId;
-      if (!workStages[requester] || !workStages[requester].includes(newStage)) {
+      let newStage = req.params.stageId;
+      if (!permissions.includes(requester)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      //находится ли заказ на стадии с которой может взаимодействовать роль
+
+      newStage = Stage.findOne({
+        where: {
+          id: newStage,
+        },
+      });
+
+      if (!newStage) {
+        console.log(false, 'no stage');
+        throw ApiError.BadRequest('no stage', 'stage');
+      }
+
       const order = await Order.findOne({
         where: {
           id: orderid,
-          stageId: workStages[requester],
         },
         attributes: ['stageId'],
-        include: [
-          {
-            model: User,
-            as: 'executors',
-          },
-        ],
       });
       if (!order) {
         console.log(false, 'no order');
         throw ApiError.BadRequest('no order');
       }
-
-      return res.json(order);
-      req.updates({ stageId: newStage, status: 'В работе' });
+      req.updates({ stageId: newStage, status: 'Доступен' });
       next();
     } catch (e) {
       next(e);
@@ -238,7 +215,7 @@ class OrdersRouterMiddleware {
             model: User,
             as: 'members',
             attributes: ['id'],
-            where: { id: candidat },
+            // where: { id: candidat },
             include: 'role',
           },
           {
@@ -248,25 +225,21 @@ class OrdersRouterMiddleware {
               status: 'Доступный',
               stageId: roleStage,
             },
-            include: {
-              model: User,
-              as: 'executors',
-              include: 'role',
-            },
           },
         ],
       });
+      console.log(workSpace);
       if (!workSpace) {
         console.log(false, 'no acces');
         throw ApiError.BadRequest('no acces');
       }
-      candidat = workSpace.members[0];
+      // candidat = workSpace.members[0];
       const order = workSpace.orders[0];
-      const orderExecutors = workSpace.orders[0].executors;
-      if (orderExecutors.find((user) => user.role.shortName === candidat.role.shortName)) {
-        console.log(false, 'Уже занят');
-        throw ApiError.BadRequest('занят');
-      }
+      // const orderExecutors = workSpace.orders[0].executors;
+      // if (orderExecutors.find((user) => user.role.shortName === candidat.role.shortName)) {
+      //   console.log(false, 'Уже занят');
+      //   throw ApiError.BadRequest('занят');
+      // }
 
       await order.addExecutors(candidat);
       req.updates = { status: 'В работе' };

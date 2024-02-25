@@ -6,7 +6,7 @@ const dealsRouterMiddleware = require('../deals/dealsRouterMiddleware');
 const dealsController = require('../deals/dealsController');
 const checkReqParamsIsNumber = require('../../checking/checkReqParamsIsNumber');
 
-// router.post('/', clientsPermissions, clientsRouterMiddleware.create, clientsController.create); //через воркспейс
+// router.post('/', clientsRouterMiddleware.create, clientsController.create); //через воркспейс
 router.get('/:id', checkReqParamsIsNumber, clientsRouterMiddleware.getOne, clientsController.getOne);
 router.get('/', clientsRouterMiddleware.getList, clientsController.getList);
 router.patch('/:id', checkReqParamsIsNumber, clientsRouterMiddleware.update, clientsController.update);

@@ -1,6 +1,5 @@
 const Router = require('express');
 const router = new Router();
-const dealsPermissions = require('./dealsPermissions');
 const dealsRouterMiddleware = require('./dealsRouterMiddleware');
 const dealsController = require('./dealsController');
 const filesRouterMiddleware = require('../files/filesRouterMiddleware');
@@ -15,10 +14,10 @@ const paymentsRouterMiddleware = require('../payments/paymentsRouterMiddleware')
 const paymentsController = require('../payments/paymentsController');
 
 // router.get('/workSpace', dealsRouterMiddleware.getList, dealsController.getFullList);
-router.get('/:id', dealsPermissions, dealsRouterMiddleware.getOne, dealsController.getOne);
-router.get('/', dealsPermissions, dealsRouterMiddleware.getList, dealsController.getList);
-router.put('/:id', dealsPermissions, dealsRouterMiddleware.update, dealsController.update);
-router.delete('/:id', dealsPermissions, dealsRouterMiddleware.delete, dealsController.delete);
+router.get('/:id', dealsRouterMiddleware.getOne, dealsController.getOne);
+router.get('/', dealsRouterMiddleware.getList, dealsController.getList);
+router.patch('/:id', dealsRouterMiddleware.update, dealsController.update);
+router.delete('/:id', dealsRouterMiddleware.delete, dealsController.delete);
 
 //создание и получение заказов внутри сделки
 router.post('/:id/orders', ordersRouterMiddleware.create, ordersController.create);
