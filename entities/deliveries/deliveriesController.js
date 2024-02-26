@@ -55,6 +55,7 @@ class DeliveriesController {
       let options = {
         where: {
           id: { [Op.gt]: 0 },
+          ...filter,
         },
       };
       if (req.baseUrl.includes('/deals')) {
@@ -62,22 +63,38 @@ class DeliveriesController {
         options.include = ['orders'];
       }
       if (req.baseUrl.includes('/workspaces')) {
-        options = {
+        const dels = await Delivery.findAll({
           where: {
             readyToSend: true,
             sent: false,
           },
           include: [
             {
+              model: Order,
+              attributes: ['id', 'name', 'status'],
+              where: {
+                workSpaceId: req.params.id,
+                stageId: 5,
+              },
+            },
+          ],
+        });
+        const ids = dels.map((del) => del.id);
+        options = {
+          where: {
+            id: ids,
+            ...filter,
+          },
+          include: [
+            {
               model: Deal,
-              workSpaceId: req.params.id,
               attributes: ['id', 'title'],
               include: 'files',
             },
             {
               model: Order,
               attributes: ['id', 'name', 'status'],
-              include: 'files',
+              include: ['stage', 'files'],
             },
           ],
         };

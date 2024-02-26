@@ -120,13 +120,17 @@ class UsersController {
     try {
       const { rolesFilter } = req;
       const { id } = req.params;
-      const deletedUser = await User.destroy({
+      const user = await User.findOne({
+        include: ['role'],
         where: {
           id,
-          roleName: rolesFilter,
+          '$role.shortName$': rolesFilter,
         },
       });
-      // console.log(deletedUser);
+      if (!user) {
+        return res.status(404).json('user not found');
+      }
+      const deletedUser = await user.destroy();
       if (deletedUser === 0) {
         console.log('Пользователь не удален');
         return res.json('Пользователь не удален');

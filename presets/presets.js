@@ -241,8 +241,32 @@ class Presets {
         deadline: 'soon',
         userId: managers[i].id,
       };
+      const orderBlank = {
+        name: 'someOrder',
+        elements: 12,
+        boardWidth: 100,
+        boardHeight: 100,
+        wireLength: 0,
+        adapter: 'Нет',
+        holeType: 'Нет',
+        fittings: 'Нет',
+        status: 'Создан',
+        userId: managers[i].id,
+        workSpaceId: workSpaceMoscow.id,
+        stageId: 1,
+      };
+      const deliveryBlank = {
+        method: 'Сдек',
+        type: 'Платно',
+        description: 'address',
+        city: 'MSC',
+        readyToSend: true,
+      };
       const client = await managers[i].createClient(clientBlank);
-      await client.createDeal({ ...dealBlank, workSpaceId: client.workSpaceId });
+      const deal = await client.createDeal({ ...dealBlank, workSpaceId: client.workSpaceId });
+      const delivery = await deal.createDelivery(deliveryBlank);
+      const order = await deal.createOrder({ ...orderBlank, deliveryId: delivery.id });
+      await delivery.addOrders(order);
     }
   }
 }

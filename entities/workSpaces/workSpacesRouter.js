@@ -10,6 +10,7 @@ const clientsController = require('../clients/clientsController');
 const dealsRouterMiddleware = require('../deals/dealsRouterMiddleware');
 const dealsController = require('../deals/dealsController');
 const deliveriesRouterMiddleware = require('../deliveries/deliveriesRouterMiddleware');
+const deliveriesController = require('../deliveries/deliveriesController');
 
 router.post('/', workSpacesRouterMiddleware.create, workSpacesController.create);
 router.get('/', workSpacesRouterMiddleware.getList, workSpacesController.getList);
@@ -35,6 +36,6 @@ router.get('/:id', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, wo
 router.get('/:id/stage/:stageId', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, ordersController.getList);
 
 //отправки workSpace
-router.get('/:id/deliveries', checkReqParamsIsNumber, deliveriesRouterMiddleware.getList, dealsController.getList);
+router.get('/:id/deliveries', checkReqParamsIsNumber, deliveriesRouterMiddleware.getList, deliveriesController.getList);
 
 module.exports = router;
