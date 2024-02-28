@@ -1,19 +1,16 @@
-const ApiError = require('../../error/apiError');
 const bcrypt = require('bcrypt');
 const { User, modelFields: usersModelFields } = require('./usersModel');
 const modelsService = require('../../services/modelsService');
 const getPagination = require('../../utils/getPagination');
 const getPaginationData = require('../../utils/getPaginationData');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
-const { Op } = require('sequelize');
+const { Role } = require('../association');
 
 class UsersController {
   //создание пользователя
   async create(req, res, next) {
     const { newUser, userRole } = req;
     try {
-      // console.log(newUser);
-      // console.log(userRole);
       // хешируем пароль
       newUser.password = await bcrypt.hash(newUser.password, 3);
       const user = await userRole.createUser(newUser);
@@ -29,18 +26,17 @@ class UsersController {
     try {
       const { id } = req.params;
       const { rolesFilter } = req;
-      console.log(id, rolesFilter);
       const user = await User.findOne({
+        include: ['role', 'membership', 'avatar'],
         where: {
           id,
           '$role.shortName$': rolesFilter,
         },
-        include: ['role', 'membership'],
       });
       if (!user) {
         return res.status(404).json('user not found');
       }
-      return res.json(user?.dataValues || null);
+      return res.json(user);
     } catch (e) {
       next(e);
     }
@@ -61,25 +57,41 @@ class UsersController {
       const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
-      const { rolesFilter, searchFields } = req;
-      const filter = await modelsService.searchFilter(searchFields, req.query);
-      filter['$role.shortName$'] = rolesFilter;
-      if (role) {
-        filter[Op.and] = [{ '$role.shortName$': rolesFilter }, { '$role.shortName$': role }];
+      let { rolesFilter, workSpace } = req;
+      const filter = await modelsService.searchFilter(['fullName'], req.query);
+      if (role && rolesFilter.includes(role)) {
+        rolesFilter = role;
       }
-      const users = await User.findAndCountAll({
+      const options = {
+        include: [
+          {
+            model: Role,
+            where: {
+              shortName: rolesFilter,
+            },
+          },
+        ],
         where: {
           ...filter,
         },
-        include: ['role'],
+        distinct: true,
+      };
+      if (req.baseUrl.includes('/workspaces')) {
+        options.include.push({
+          association: 'membership',
+          where: {
+            id: workSpace.id,
+          },
+        });
+      }
+      const users = await User.findAndCountAll({
+        ...options,
         order,
         limit,
         offset,
       });
 
       const response = getPaginationData(users, current, pageSize, 'users');
-      // response.createdFields = modelsService.getModelFields(usersModelFields);
-      // response.createdFields.push({ roles: rolesFilter });
       return res.json(response);
     } catch (e) {
       next(e);

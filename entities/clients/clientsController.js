@@ -28,7 +28,7 @@ class ClientController {
         where: {
           id,
         },
-        include: ['user', 'delas'],
+        include: ['user', 'deals'],
       });
       return res.json(client);
     } catch (e) {
@@ -53,16 +53,10 @@ class ClientController {
         id: { [Op.gt]: 2 },
       };
       if (req.baseUrl.includes('/workspaces')) {
-        const workSpace = await WorkSpace.findOne({
-          where: {
-            id: req.params.id,
-          },
-          include: ['members'],
-        });
-        const users = workSpace.members.map((member) => member.id);
+        const { workSpace } = req;
         modelSearch = {
           id: { [Op.gt]: 2 },
-          userId: users,
+          workSpaceId: workSpace.id,
         };
       }
 
@@ -72,9 +66,9 @@ class ClientController {
           ...filter,
         },
         // attributes: ['id', 'fullName', 'phone', 'gender', 'type', 'info', 'city', 'chatLink'],
-        order,
         limit,
         offset,
+        order,
         // include: 'deals',
       });
       const response = getPaginationData(clients, current, pageSize, 'clients');

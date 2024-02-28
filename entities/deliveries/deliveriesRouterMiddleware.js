@@ -8,7 +8,7 @@ const frontOptions = {
 };
 const permissions = ['ADMIN', 'G', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
 const updateFields = ['method', 'type', 'description', 'city', 'recived', 'readyToSend'];
-const searchFields = ['method', 'type', 'description', 'city', 'recived', 'price', 'track', 'sent', 'readyToSend'];
+const searchFields = ['method', 'type', 'description', 'city', 'track', 'status'];
 class DeliverysRouterMiddleware {
   async create(req, res, next) {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
@@ -28,6 +28,7 @@ class DeliverysRouterMiddleware {
       }
       const newDelivery = await modelsService.checkFields([Delivery, deliveriesModelFields], req.body);
       req.newDelivery = newDelivery;
+      req.deal = deal;
       next();
     } catch (e) {
       next(e);
@@ -67,7 +68,7 @@ class DeliverysRouterMiddleware {
       }
       req.updateFields = updateFields;
       if (['DP', 'RP', 'PACKER'].includes(requester)) {
-        req.updateFields = ['price', 'track', 'sent'];
+        req.updateFields = ['price', 'track', 'status'];
       }
       next();
     } catch (e) {
@@ -140,31 +141,6 @@ class DeliverysRouterMiddleware {
       next(e);
     }
   }
-  // async ordersList(req, res, next) {
-  //   try {
-  //     const requester = req.user.role;
-  //     if (!permissions.includes(requester) && !['ADMIN', 'G', 'DO', 'DP'].includes(requester)) {
-  //       console.log(false, 'no acces');
-  //       throw ApiError.Forbidden('Нет доступа');
-  //     }
-  //     if (!req.params.id || isNaN(+req.params.id)) {
-  //       console.log(false, 'Забыл что то указать');
-  //       throw ApiError.BadRequest('Забыл что то указать');
-  //     }
-  //     const delivery = await Delivery.findOne({
-  //       where: { id: +req.params.id },
-  //       attributes: ['id'],
-  //     });
-  //     if (!delivery) {
-  //       console.log(false, 'No delivery');
-  //       throw ApiError.BadRequest('No delivery');
-  //     }
-
-  //     next();
-  //   } catch (e) {
-  //     next(e);
-  //   }
-  // }
 }
 
 module.exports = new DeliverysRouterMiddleware();

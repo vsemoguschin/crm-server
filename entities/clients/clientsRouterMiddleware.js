@@ -17,15 +17,10 @@ class ClientsRouterMiddleware {
     try {
       const requester = req.user.role;
       checkPermissions(requester);
-      const workSpace = await WorkSpace.findOne({
-        where: {
-          id: req.params.id,
-          department: 'COMMERCIAL',
-        },
-      });
-      if (!workSpace) {
-        console.log(false, 'No workSpace');
-        throw ApiError.BadRequest('No workSpace');
+      const { workSpace } = req;
+      if (workSpace.department !== 'COMMERCIAL') {
+        console.log(false, 'No access');
+        throw ApiError.BadRequest('No access');
       }
       // сделать валидацию номера телефона
       req.newClient = await modelsService.checkFields([Client, clientsModelFields], req.body);

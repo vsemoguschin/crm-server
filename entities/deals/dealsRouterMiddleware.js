@@ -44,6 +44,12 @@ class DealsRouterMiddleware {
   async getList(req, res, next) {
     try {
       const requester = req.user.role;
+      const { workSpace } = req;
+      console.log(workSpace);
+      if (req.baseUrl.includes('/workspaces') && workSpace.department !== 'COMMERCIAL') {
+        console.log(false, 'wrong workspace department');
+        throw ApiError.BadRequest('wrong workspace department');
+      }
       dealsPermissions(requester);
       req.searchFields = searchFields;
       next();

@@ -2,7 +2,6 @@ const ApiError = require('../../error/apiError');
 const { modelFields: usersModelFields, User } = require('./usersModel');
 const modelsService = require('../../services/modelsService');
 const { Role } = require('../association');
-const { Op } = require('sequelize');
 const { ROLES: rolesList } = require('../roles/rolesList');
 
 const PERMISSIONS = {
@@ -14,6 +13,17 @@ const PERMISSIONS = {
   ['ROV']: true,
   ['DP']: true,
   ['RP']: true,
+  access: {
+    ['ADMIN']: ['KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV', 'DP', 'RP', 'FRZ', 'MASTER', 'PACKER'],
+    ['G']: ['KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV', 'DP', 'RP', 'FRZ', 'MASTER', 'PACKER'],
+    ['KD']: ['DO', 'ROP', 'MOP', 'ROV', 'MOV'],
+    //commercial
+    ['DO']: ['ROP', 'MOP', 'ROV', 'MOV'],
+    ['ROP']: ['MOP'],
+    //production
+    ['DP']: ['RP', 'FRZ', 'MASTER', 'PACKER'],
+    ['RP']: ['FRZ', 'MASTER', 'PACKER'],
+  },
 };
 
 class UsersRouterMiddleware {
@@ -21,35 +31,20 @@ class UsersRouterMiddleware {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
     try {
       const requester = req.user.role;
-      if (!PERMISSIONS[requester]) {
+      const req_role = req.body.role; //переданная роль
+      const access = PERMISSIONS.access[requester];
+      const roles_access = access.includes(req_role);
+      if (!access || !roles_access) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      //получение доступных ролей
-      const availableRoles = rolesList[requester].availableRoles;
-      const reqRole = req.body.role; //переданная роль
-      if (!reqRole) {
-        console.log(false, 'no role');
-        throw ApiError.BadRequest('Что то забыл', 'role');
-      }
-      // console.log(availableRoles, reqRole);
       const userRole = await Role.findOne({
-        where: {
-          [Op.and]: [
-            {
-              shortName: [reqRole],
-            },
-            {
-              shortName: availableRoles,
-            },
-          ],
-        },
+        where: { shortName: req_role },
       });
       if (!userRole) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа', 'role');
+        console.log(false, 'role not found');
+        throw ApiError.Forbidden('Not found', 'role');
       }
-      // console.log(usersModelFields);
       req.newUser = await modelsService.checkFields([User, usersModelFields], req.body);
       req.userRole = userRole;
       next();
@@ -61,13 +56,12 @@ class UsersRouterMiddleware {
   async getOne(req, res, next) {
     try {
       const requester = req.user.role;
-      if (!PERMISSIONS[requester]) {
+      const access = PERMISSIONS.access[requester];
+      if (!access) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      //получение доступных ролей
-      const availableRoles = rolesList[requester].availableRoles;
-      req.rolesFilter = availableRoles;
+      req.rolesFilter = access;
       next();
     } catch (e) {
       next(e);
@@ -77,14 +71,12 @@ class UsersRouterMiddleware {
   async getList(req, res, next) {
     try {
       const requester = req.user.role;
-      if (!PERMISSIONS[requester]) {
+      const access = PERMISSIONS.access[requester];
+      if (!access) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      //получение доступных ролей
-      const availableRoles = rolesList[requester].availableRoles;
-      req.rolesFilter = availableRoles;
-      req.searchFields = ['fullName'];
+      req.rolesFilter = access;
       next();
     } catch (e) {
       next(e);
@@ -94,34 +86,24 @@ class UsersRouterMiddleware {
   async update(req, res, next) {
     try {
       const requester = req.user.role;
-      if (!PERMISSIONS[requester]) {
+      const access = PERMISSIONS.access[requester];
+      if (!access) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
       //получение доступных ролей
-      const availableRoles = rolesList[requester].availableRoles;
+      const availableRoles = access;
       let reqRole = req.body.role; //переданная роль
-      if (reqRole) {
+      if (reqRole && availableRoles.includes(reqRole)) {
         reqRole = await Role.findOne({
           where: {
-            [Op.and]: [
-              {
-                shortName: reqRole,
-              },
-              {
-                shortName: availableRoles,
-              },
-            ],
+            shortName: reqRole,
           },
         });
-        if (!reqRole) {
-          console.log(false, 'no acces');
-          throw ApiError.Forbidden('Нет доступа', 'role');
-        }
+        req.reqRole = reqRole;
       }
       req.rolesFilter = availableRoles;
-      req.reqRole = reqRole;
-      req.updateFields = ['fullName', 'role'];
+      req.updateFields = ['fullName'];
       next();
     } catch (e) {
       next(e);

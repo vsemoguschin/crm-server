@@ -4,17 +4,18 @@ const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
 const { Order, Client, Deal } = require('../association');
 const { Op } = require('sequelize');
+const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
 
 class DeliveriesController {
   async create(req, res, next) {
     try {
-      const { newDelivery } = req;
-      const dop = await Delivery.create({
+      const { newDelivery, deal } = req;
+      const delivery = await Delivery.create({
         ...newDelivery,
         userId: req.user.id,
-        dealId: req.params.id,
+        dealId: deal.id,
       });
-      return res.json(dop);
+      return res.json(delivery);
     } catch (e) {
       next(e);
     }
@@ -46,6 +47,7 @@ class DeliveriesController {
       order: queryOrder,
     } = req.query;
     try {
+      checkReqQueriesIsNumber({ pageSize, current });
       const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
@@ -61,43 +63,6 @@ class DeliveriesController {
       if (req.baseUrl.includes('/deals')) {
         options.where = { dealId: +req.params.id };
         options.include = ['orders'];
-      }
-      if (req.baseUrl.includes('/workspaces')) {
-        const dels = await Delivery.findAll({
-          where: {
-            readyToSend: true,
-            sent: false,
-          },
-          include: [
-            {
-              model: Order,
-              attributes: ['id', 'name', 'status'],
-              where: {
-                workSpaceId: req.params.id,
-                stageId: 5,
-              },
-            },
-          ],
-        });
-        const ids = dels.map((del) => del.id);
-        options = {
-          where: {
-            id: ids,
-            ...filter,
-          },
-          include: [
-            {
-              model: Deal,
-              attributes: ['id', 'title'],
-              include: 'files',
-            },
-            {
-              model: Order,
-              attributes: ['id', 'name', 'status'],
-              include: ['stage', 'files'],
-            },
-          ],
-        };
       }
 
       const deliveries = await Delivery.findAndCountAll({
@@ -178,30 +143,57 @@ class DeliveriesController {
       next(e);
     }
   }
-  async ordersList(req, res, next) {
-    const { pageSize, current, stageId } = req.query;
+  async workSpaceList(req, res, next) {
+    const {
+      pageSize,
+      current,
+      key, //?
+      order: queryOrder,
+    } = req.query;
     try {
+      checkReqQueriesIsNumber({ pageSize, current });
       const { limit, offset } = getPagination(current, pageSize);
-      const orders = await Deal.findAndCountAll({
-        attributes: ['id', 'title'],
+      const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
+
+      const { workSpace } = req;
+      const searchFields = ['method', 'type', 'description', 'city', 'track', 'status'];
+      const filter = await modelsService.searchFilter(searchFields, req.query);
+      console.log(filter);
+
+      const deals = await Deal.findAndCountAll({
+        attributes: ['id', 'title', 'deadline', 'createdAt'],
         include: [
+          'files',
           {
             model: Client,
-            attributes: ['chatLink'],
+            attributes: ['id', 'chatLink'],
           },
-          'orders',
-          'files',
+          {
+            model: Delivery,
+            where: {
+              ...filter,
+            },
+            include: [
+              {
+                model: Order,
+                where: {
+                  workSpaceId: workSpace.id,
+                  // stageId: 1,
+                  // status: 'Доступен',
+                },
+                // required: false,
+                attributes: ['id', 'name', 'stageId', 'boardWidth', 'boardHeight', 'status'],
+              },
+            ],
+          },
         ],
-        where: {
-          '$orders.deliveryId$': req.params.id,
-          '$orders.status$': ['Выполнен'],
-        },
-        // limit,
-        // offset,
-        // order: { ['DESC']: ['deadline'] },//?
+        distinct: true,
+        order,
+        limit,
+        offset,
       });
-      // const response = getPaginationData(orders, current, pageSize, 'orders');
-      return res.json(orders || []);
+      const response = getPaginationData(deals, current, pageSize, 'deliveries');
+      return res.json(response || []);
     } catch (e) {
       next(e);
     }

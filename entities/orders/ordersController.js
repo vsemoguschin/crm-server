@@ -4,6 +4,8 @@ const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
 const { Op } = require('sequelize');
 const { Deal } = require('../association');
+const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
+const ApiError = require('../../error/apiError');
 
 const searchFields = ['name'];
 class OrdersController {
@@ -45,7 +47,6 @@ class OrdersController {
       pageSize,
       current,
       key, //?
-      status,
       order: queryOrder,
     } = req.query;
     try {
@@ -62,16 +63,16 @@ class OrdersController {
         modelSearch = { dealId: +req.params.id };
         include.push('neons', 'executors', 'files', 'stage');
       }
-      if (req.baseUrl.includes('/workspaces')) {
-        modelSearch = {
-          workSpaceId: +req.params.id,
-          stageId: 1,
-          status: status || 'Доступный',
-        };
-        if (req.params.stageId) {
-          modelSearch.stageId = req.params.stageId;
-        }
-      }
+      // if (req.baseUrl.includes('/workspaces')) {
+      //   modelSearch = {
+      //     workSpaceId: +req.params.id,
+      //     stageId: 1,
+      //     status: status || 'Доступный',
+      //   };
+      //   if (req.params.stageId) {
+      //     modelSearch.stageId = req.params.stageId;
+      //   }
+      // }
       if (req.baseUrl.includes('/deliveries')) {
         modelSearch = { deliveryId: +req.params.id };
       }
@@ -96,13 +97,17 @@ class OrdersController {
     try {
       const { id } = req.params;
       const { updates } = req;
-      const [, order] = await Order.update(updates, {
+      const order = await Order.findOne({
         where: {
           id: id,
         },
-        // include: 'executors',
-        individualHooks: true,
       });
+      console.log(order);
+      if (!order) {
+        console.log(false, 'no acces');
+        throw ApiError.BadRequest('no order found');
+      }
+      await order.update(updates);
       if (req.baseUrl.includes('/workspaces')) {
         await Deal.update(
           {
@@ -115,7 +120,7 @@ class OrdersController {
           },
         );
       }
-      return res.status(200).json(order[0]);
+      return res.status(200).json(order);
     } catch (e) {
       console.log(e);
       return res.status(400).json(e);
@@ -138,6 +143,53 @@ class OrdersController {
       }
       console.log('Заказ удален');
       return res.json('Заказ удален');
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  //просмотр заказов в пространстве
+  async stageList(req, res, next) {
+    const {
+      pageSize,
+      current,
+      key, //?
+      order: queryOrder,
+      status,
+    } = req.query;
+    try {
+      checkReqQueriesIsNumber({ pageSize, current });
+      const { limit, offset } = getPagination(current, pageSize);
+      const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
+
+      const searchFields = ['title'];
+      const filter = await modelsService.searchFilter(searchFields, req.query);
+      const { workSpace } = req;
+      const { stageId } = req.params;
+      const orders = await Deal.findAndCountAll({
+        where: {
+          ...filter,
+        },
+        attributes: ['id', 'title', 'deadline', 'createdAt'],
+        include: [
+          {
+            model: Order,
+            where: {
+              workSpaceId: workSpace.id,
+              stageId,
+              status: status || ['Доступен', 'В работе', 'Выполнен'],
+            },
+            include: ['neons', 'executors', 'files'],
+            attributes: ['status'],
+          },
+          'files',
+        ],
+        distinct: true,
+        limit,
+        offset,
+        order,
+      });
+      return res.json(orders);
     } catch (e) {
       next(e);
     }

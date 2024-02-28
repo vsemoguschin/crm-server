@@ -2,53 +2,10 @@ const { WorkSpace, modelFields: workSpacesModelFields } = require('./workSpacesM
 const modelsService = require('../../services/modelsService');
 const getPagination = require('../../utils/getPagination');
 const getPaginationData = require('../../utils/getPaginationData');
-const { Order, Deal, Client, User } = require('../association');
-const { Op } = require('sequelize');
+const { Order, Deal, User, Role } = require('../association');
 const { ROLES: rolesList } = require('../roles/rolesList');
 const ApiError = require('../../error/apiError');
-const { availableStages, stageList, Stage } = require('../stages/stagesModel');
-
-const getWork = {
-  ['PRODUCTION']: async (req) => {
-    const statuses = ['Доступный', 'В работе'];
-    const requester = req.user.role;
-    let { status, stage } = req.query;
-    stage = stageList[+stage - 1] || availableStages[requester][0];
-    status = statuses.includes[status] ? status : statuses[0];
-    console.log(status);
-    const cards = await Deal.findAndCountAll({
-      attributes: ['title', 'deadline'],
-      where: {
-        // status: 'process',
-      },
-      include: [
-        'files',
-        {
-          model: Order,
-          attributes: ['id', 'isMarketPlace', 'name', 'material', 'boardWidth', 'boardHeight', 'stand', 'holeType', 'fittings', 'status'],
-          where: {
-            status: status,
-          },
-          include: [
-            'neons',
-            {
-              model: Stage,
-              where: { id: stage.id },
-              attributes: [],
-            },
-          ],
-        },
-      ],
-    });
-    const datas = {
-      cards: get,
-      stages: availableStages[requester],
-      statuses: statuses,
-    };
-    const { workSpace } = req;
-    return datas;
-  },
-};
+const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
 
 class WorkSpaceController {
   async create(req, res, next) {
@@ -68,70 +25,12 @@ class WorkSpaceController {
     // get-запрос, получаем данные из param
     try {
       const { workSpace } = req;
-      const { department } = workSpace;
-      const datas = await getWork[department](req);
-      console.log(datas, false);
-
-      return res.json(datas);
+      const { id, title, department, creator } = workSpace;
+      return res.json({ id, title, department, creator });
     } catch (e) {
       next(e);
     }
   }
-  //old
-  async getOld(req, res, next) {
-    // get-запрос, получаем данные из param
-    try {
-      const { workSpace } = req;
-      let work;
-      if (workSpace.department === 'PRODUCTION') {
-        let stageId = 1;
-        if (req.query.stage && !isNaN(+req.query.stage)) {
-          stageId = +req.query.stage;
-        }
-        work = await Deal.findAll({
-          attributes: ['id', 'title', 'deadline'],
-          include: [
-            {
-              model: Client,
-              attributes: ['chatLink'],
-            },
-            {
-              model: Order,
-              where: {
-                workSpaceId: workSpace.id,
-                stageId,
-              },
-            },
-          ],
-        });
-      }
-      if (workSpace.department === 'COMMERCIAL') {
-        let status = 'created';
-        console.log(req.query.status);
-        if (req.query.status) {
-          status = req.query.status;
-        }
-        work = await Deal.findAndCountAll({
-          where: {
-            status: status,
-          },
-          // attributes: ['id', 'title', 'deadline'],
-          include: [
-            {
-              model: Client,
-            },
-            {
-              model: Order,
-            },
-          ],
-        });
-      }
-      return res.json(work);
-    } catch (e) {
-      next(e);
-    }
-  }
-
   //получения всех пространств по заданным параметрам
   async getList(req, res, next) {
     const {
@@ -141,6 +40,7 @@ class WorkSpaceController {
       order: queryOrder,
     } = req.query;
     try {
+      checkReqQueriesIsNumber({ pageSize, current });
       const requester = req.user.role;
       const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
@@ -153,35 +53,40 @@ class WorkSpaceController {
           ...filter,
         });
       } else {
-        const user = await User.findOne({
-          where: {
-            id: req.user.id,
-          },
+        workSpaces = await WorkSpace.findAndCountAll({
+          ...filter,
+          include: [
+            {
+              association: 'members',
+              where: {
+                id: req.user.id,
+              },
+            },
+          ],
+          distinct: true,
+          limit,
+          offset,
+          order,
         });
-        console.log(user);
-        workSpaces = await user.getMembership();
-        return res.json(workSpaces);
       }
-      // const response = getPaginationData(workSpaces, current, pageSize, 'workSpaces');
+      const response = getPaginationData(workSpaces, current, pageSize, 'workSpaces');
       // response.createdFields = modelsService.getModelFields(workSpacesModelFields);
-      return res.json(workSpaces || []);
+      return res.json(response);
     } catch (e) {
       next(e);
     }
   }
-
   async update(req, res, next) {
     // patch-запрос  в теле запроса(body) передаем строку(raw) в формате JSON
     try {
-      const { id } = req.params;
-      const updates = await modelsService.checkUpdates(workSpacesModelFields, req.body, req.updateFields);
-
-      const workSpace = await WorkSpace.update(updates, {
-        where: {
-          id: id,
-        },
-        individualHooks: true,
-      });
+      const { workSpace, user } = req;
+      const requester = req.user.role;
+      if (workSpace.creator.id !== user.id && requester !== 'ADMIN' && requester !== 'G') {
+        console.log(false, 'no access');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      const updates = await modelsService.checkUpdates(workSpacesModelFields, req.body, ['title']);
+      await workSpace.update(updates);
       return res.status(200).json(workSpace);
     } catch (e) {
       console.log(e);
@@ -190,13 +95,13 @@ class WorkSpaceController {
   }
   async delete(req, res, next) {
     try {
-      const { id } = req.params;
-      const deletedWorkSpace = await WorkSpace.destroy({
-        where: {
-          id,
-        },
-      });
-      // console.log(deletedWorkSpace);
+      const { workSpace, user } = req;
+      const requester = req.user.role;
+      if (workSpace.creator.id !== user.id && requester !== 'ADMIN' && requester !== 'G') {
+        console.log(false, 'no access');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      const deletedWorkSpace = await workSpace.destroy();
       if (deletedWorkSpace === 0) {
         console.log('Пространство не удалено');
         return res.json('Пространство не удалено');
@@ -207,47 +112,70 @@ class WorkSpaceController {
       next(e);
     }
   }
-  async addOrders(req, res, next) {
+  //добавить пользователя в пространство
+  async addUsers(req, res, next) {
     try {
-      const { ordersIds } = req.body;
-      const { workSpace } = req.body;
-      const orders = await Order.findAll({
-        where: { id: ordersIds },
+      const { workSpace } = req;
+      const requester = req.user.role;
+      if (!['ADMIN', 'G', 'KD', 'DP', 'DO', 'RP'].includes(requester)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+
+      const user = await User.findOne({
+        where: { id: req.params.userId },
+        include: [
+          {
+            model: Role,
+            where: {
+              shortName: rolesList[requester].availableRoles,
+            },
+          },
+        ],
       });
-      await workSpace.addOrders(orders);
-      return res.json(workSpace);
+      if (!user) {
+        console.log(false, 'No user');
+        throw ApiError.BadRequest('No user');
+      }
+      await workSpace.addMembers(user);
+      return res.json(200);
     } catch (e) {
       next(e);
     }
   }
-  async ordersList(req, res, next) {
-    const { pageSize, current, status } = req.query;
-    const { stageId, workSpaceId } = req;
+  //удалить пользователя из пространства
+  async deleteUsers(req, res, next) {
     try {
-      const { limit, offset } = getPagination(current, pageSize);
-      const orders = await Deal.findAndCountAll({
-        attributes: ['id', 'title'],
+      const { workSpace } = req;
+      const requester = req.user.role;
+      if (!['ADMIN', 'G', 'KD', 'DP', 'DO', 'RP'].includes(requester)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+
+      const user = await User.findOne({
+        where: { id: req.params.userId },
         include: [
           {
-            model: Client,
-            attributes: ['chatLink'],
-          },
-          {
-            model: Order,
+            model: Role,
             where: {
-              workSpaceId: workSpaceId,
-              stageId: stageId,
-              status: status || ['Доступный', 'В работе'],
+              shortName: rolesList[requester].availableRoles,
             },
           },
-          'files',
+          {
+            association: 'membership',
+            where: {
+              id: workSpace.id,
+            },
+          },
         ],
-        limit,
-        offset,
-        // order: { ['DESC']: ['deadline'] },//?
       });
-      // const response = getPaginationData(orders, current, pageSize, 'orders');
-      return res.json(orders || []);
+      if (!user) {
+        console.log(false, 'No user');
+        throw ApiError.BadRequest('No user');
+      }
+      await workSpace.removeMembers(user);
+      return res.json(200);
     } catch (e) {
       next(e);
     }

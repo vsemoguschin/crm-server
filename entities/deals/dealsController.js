@@ -1,4 +1,4 @@
-const { Client, Order, Delivery, WorkSpace } = require('../association');
+const { Client, Order, Delivery } = require('../association');
 const { Deal, modelFields: dealsModelFields } = require('./dealsModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
@@ -62,48 +62,43 @@ class DealsController {
       current,
       key, //?
       order: queryOrder,
-      status,
     } = req.query;
     try {
       const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
-      const { searchFields } = req;
+      const { searchFields, workSpace } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
 
-      let modelSearch = {
-        id: { [Op.gt]: 0 },
+      const options = {
+        where: {
+          id: { [Op.gt]: 0 },
+          ...filter,
+        },
       };
       if (req.baseUrl.includes('/clients')) {
-        modelSearch = { clientId: +req.params.id };
+        options.where.clientId = req.params.id;
       }
       if (req.baseUrl.includes('/workspaces')) {
-        const workSpace = await WorkSpace.findOne({
-          where: {
-            id: req.params.id,
+        options.where.workSpaceId = workSpace.id;
+        options.include = [
+          'client',
+          {
+            model: Order,
+            include: ['stage', 'files'],
           },
-          include: ['members'],
-        });
-
-        const users = workSpace.members.map((member) => member.id);
-        modelSearch = {
-          id: { [Op.gt]: 2 },
-          userId: users,
-          status: status || 'created',
-        };
+        ];
       }
       const deals = await Deal.findAndCountAll({
-        where: {
-          ...filter,
-          ...modelSearch,
-        },
-        attributes: ['id', 'title', 'price', 'clothingMethod', 'deadline', 'status'],
+        ...options,
+        // distinct: true,
+        attributes: ['id', 'title', 'price', 'clothingMethod', 'deadline', 'status', 'createdAt'],
         order,
         limit,
         offset,
       });
       const response = getPaginationData(deals, current, pageSize, 'deals');
-      return res.json(response || []);
+      return res.json(response);
     } catch (e) {
       next(e);
     }
@@ -143,54 +138,6 @@ class DealsController {
       }
       console.log('Сделка удалена');
       return res.json('Сделка удалена');
-    } catch (e) {
-      next(e);
-    }
-  }
-
-  async commercialList(req, res, next) {
-    const {
-      pageSize,
-      current,
-      key, //?
-      order: queryOrder,
-      status,
-    } = req.query;
-    try {
-      const { limit, offset } = getPagination(current, pageSize);
-      const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
-
-      const { searchFields } = req;
-      const filter = await modelsService.searchFilter(searchFields, req.query);
-      const workSpace = await WorkSpace.findOne({
-        where: {
-          id: req.params.id,
-        },
-        include: ['members'],
-      });
-      const users = workSpace.members.map((member) => member.id);
-      console.log(users);
-      const deals = await Deal.findAndCountAll({
-        where: {
-          userId: users,
-          ...filter,
-          status: status || 'process',
-        },
-        include: [
-          { model: Client },
-          {
-            model: Order,
-            include: ['stage', 'files'],
-          },
-          'files',
-        ],
-        attributes: ['id', 'title', 'price', 'clothingMethod', 'deadline', 'status', 'workSpaceId'],
-        // order,
-        limit,
-        offset,
-      });
-      const response = getPaginationData(deals, current, pageSize, 'deals');
-      return res.json(response || []);
     } catch (e) {
       next(e);
     }

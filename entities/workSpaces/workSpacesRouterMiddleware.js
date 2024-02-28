@@ -1,7 +1,7 @@
 const ApiError = require('../../error/apiError');
 const { modelFields: workSpacesModelFields, WorkSpace } = require('./workSpacesModel');
 const modelsService = require('../../services/modelsService');
-const { Stage, Order, User, Deal, Role } = require('../association');
+const { Order } = require('../association');
 const { ROLES: rolesList } = require('../roles/rolesList');
 const { Op } = require('sequelize');
 
@@ -44,9 +44,12 @@ class WorkSpacesRouterMiddleware {
           where: {
             id: req.params.id,
           },
-          include: {
-            association: 'members',
-          },
+          include: [
+            {
+              association: 'members',
+            },
+            'creator',
+          ],
         });
       } else {
         workSpace = await WorkSpace.findOne({
@@ -57,9 +60,9 @@ class WorkSpacesRouterMiddleware {
           attributes: ['title', 'id', 'department'],
           include: {
             association: 'members',
-            // where: {
-            //   id: req.user.id,
-            // },
+            where: {
+              id: req.user.id,
+            },
             attributes: ['fullName'],
           },
         });
@@ -68,6 +71,7 @@ class WorkSpacesRouterMiddleware {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
+      // delete workSpace.dataValues.members;
       req.workSpace = workSpace;
       next();
     } catch (e) {
@@ -102,108 +106,6 @@ class WorkSpacesRouterMiddleware {
       next(e);
     }
   }
-
-  //добавить пользователя в пространство
-  async addUsers(req, res, next) {
-    try {
-      const requester = req.user.role;
-      if (!['ADMIN', 'G', 'KD', 'DP', 'DO', 'RP'].includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
-      let include = [
-        {
-          model: User,
-          as: 'members',
-          where: {
-            id: req.user.id,
-          },
-        },
-      ];
-
-      if (['ADMIN', 'G'].includes(requester)) {
-        include = [];
-      }
-
-      const user = await User.findOne({
-        where: { id: req.params.userId },
-        include: [
-          {
-            model: Role,
-            where: {
-              shortName: rolesList[requester].availableRoles,
-            },
-          },
-        ],
-      });
-      if (!user) {
-        console.log(false, 'No user');
-        throw ApiError.BadRequest('No user');
-      }
-
-      const workSpace = await WorkSpace.findOne({
-        where: {
-          id: req.params.id,
-          department: user.role.department,
-        },
-        include: include,
-      });
-      if (!workSpace) {
-        console.log(false, 'No workSpace');
-        throw ApiError.BadRequest('No workSpace');
-      }
-      await workSpace.addMembers(user);
-      return res.json(200);
-    } catch (e) {
-      next(e);
-    }
-  }
-  //удалить пользователя из пространства
-  async deleteUsers(req, res, next) {
-    try {
-      const requester = req.user.role;
-      if (!['ADMIN', 'G', 'KD', 'DP'].includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
-      let include = [
-        {
-          model: User,
-          as: 'members',
-          where: {
-            id: req.user.id,
-          },
-        },
-      ];
-
-      if (['ADMIN', 'G'].includes(requester)) {
-        include = [];
-      }
-      const user = await User.findOne({
-        where: { id: req.params.userId },
-        include: 'role',
-      });
-      if (!user) {
-        console.log(false, 'No user');
-        throw ApiError.BadRequest('No user');
-      }
-      const workSpace = await WorkSpace.findOne({
-        where: {
-          id: req.params.id,
-          department: user.role.department,
-        },
-        include: include,
-      });
-      if (!workSpace) {
-        console.log(false, 'No workSpace');
-        throw ApiError.BadRequest('No workSpace');
-      }
-      await workSpace.removeMembers(user);
-      return res.json(200);
-    } catch (e) {
-      next(e);
-    }
-  }
   //добавить заказ в пространство производства
   async addOrders(req, res, next) {
     try {
@@ -219,7 +121,9 @@ class WorkSpacesRouterMiddleware {
         },
       });
       const order = await Order.findOne({
-        where: { id: +req.params.orderId },
+        where: {
+          id: +req.params.orderId,
+        },
         include: 'deal',
       });
       if (!workSpace || !order) {
@@ -232,46 +136,6 @@ class WorkSpacesRouterMiddleware {
       req.updates = { workSpaceId: workSpace.id, status: 'Доступный', stageId: 1 };
 
       next();
-    } catch (e) {
-      next(e);
-    }
-  }
-
-  async getUsers(req, res, next) {
-    const { role } = req.query;
-    try {
-      const requester = req.user.role;
-      console.log(req.params, req.query);
-      if (!['ADMIN', 'G', 'DO', 'DP'].includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
-      const filter = await modelsService.searchFilter(['fullName'], req.query);
-      const roleFilter = { id: { [Op.gt]: 0 } };
-      if (role) {
-        roleFilter.shortName = role;
-      }
-      const workSpace = await WorkSpace.findOne({
-        where: { id: +req.params.id },
-        attributes: ['id'],
-        include: [
-          {
-            association: 'members',
-            include: [
-              {
-                association: 'role',
-                where: roleFilter,
-              },
-            ],
-            where: { ...filter },
-          },
-        ],
-      });
-      if (!workSpace) {
-        console.log(false, 'Not found');
-        throw ApiError.BadRequest('Not found');
-      }
-      return res.json(workSpace.members);
     } catch (e) {
       next(e);
     }

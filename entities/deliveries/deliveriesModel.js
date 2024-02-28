@@ -3,7 +3,7 @@ const { DataTypes } = require('sequelize');
 
 const methods = ['СДЕК', 'ПОЧТА', 'Курьер', 'Балтийский курьер', 'Самовывоз'];
 const types = ['Платно', 'Бесплатно', 'Досыл'];
-const statuses = ['собираются', 'доступны', 'отправлено'];
+const statuses = ['Создана', 'Доступна', 'Отправлена'];
 
 //фиксировать досылы, сделать галочку
 const modelFields = {
@@ -16,10 +16,8 @@ const modelFields = {
   //ниже поля заполняются на производстве, не выводить при созданиии
   price: { type: DataTypes.INTEGER, defaultValue: 0, fieldType: 'number', fullName: 'Стоимость доставки' },
   track: { type: DataTypes.INTEGER, defaultValue: 0, fieldType: 'number', fullName: 'Трек-номер' },
-  sent: { type: DataTypes.BOOLEAN, defaultValue: false, fieldType: 'boolean', fullName: 'Отправлено' },
-  //поле после отправки доступно для редактирования
-  readyToSend: { type: DataTypes.BOOLEAN, defaultValue: false, fieldType: 'boolean', fullName: 'Отправить по готовности' },
-  received: { type: DataTypes.BOOLEAN, defaultValue: false, fieldType: 'boolean', fullName: 'Доставлен' },
+  // readyToSend: { type: DataTypes.BOOLEAN, defaultValue: false, fieldType: 'boolean', fullName: 'Отправить по готовности' },
+  status: { type: DataTypes.STRING, defaultValue: statuses[0], validateFields: statuses, fieldType: 'string' },
 };
 
 const Delivery = sequelize.define('delivery', modelFields, {

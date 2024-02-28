@@ -5,7 +5,7 @@ const holeTypes = ['6мм', 'Держатели', 'Нет'];
 const fittings = ['Держатели', 'Окно', 'Стена', 'Нет'];
 const materials = ['Полик', 'ПВХ'];
 const adapters = ['Обыный', 'Уличный', 'Нет'];
-const statuses = ['Создан', 'Доступен', 'В работе', 'Отправлен'];
+const statuses = ['Создан', 'Доступен', 'В работе', 'Выполнен'];
 const modelFields = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   isMarketPlace: { type: DataTypes.BOOLEAN, defaultValue: false, fieldType: 'boolean' },
