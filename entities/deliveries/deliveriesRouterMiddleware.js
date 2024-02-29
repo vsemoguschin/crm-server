@@ -62,12 +62,12 @@ class DeliverysRouterMiddleware {
   async update(req, res, next) {
     try {
       const requester = req.user.role;
-      if (!permissions.includes(requester) && !['DP', 'RP', 'PACKER'].includes(requester)) {
+      if (!permissions.includes(requester)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
       req.updateFields = updateFields;
-      if (['DP', 'RP', 'PACKER'].includes(requester)) {
+      if (['ADMIN', 'G', 'DP', 'RP', 'PACKER'].includes(requester)) {
         req.updateFields = ['price', 'track', 'status'];
       }
       next();
@@ -96,7 +96,7 @@ class DeliverysRouterMiddleware {
       }
       const delivery = await Delivery.findOne({
         where: { id: +req.params.id },
-        attributes: ['id'],
+        // attributes: ['id'],
         include: ['orders'],
       });
       const order = await Order.findOne({
@@ -106,8 +106,18 @@ class DeliverysRouterMiddleware {
         console.log(false, 'No delivery or order');
         throw ApiError.BadRequest('No delivery or order');
       }
+      if (order.workSpaceId === null) {
+        //это значит что перед тем как добавить заказ в доставку, надо ему присвоить воркспейс
+        throw ApiError.BadRequest('order has no workSpace');
+      }
+      if (delivery.workSpaceId !== null && delivery.workSpaceId !== order.workSpaceId) {
+        //это значит что перед тем как добавить заказ в доставку, надо ему присвоить воркспейс
+        throw ApiError.BadRequest('воркспейсы не совпадают');
+      }
+      await delivery.update({ workSpaceId: order.workSpaceId });
       // console.log(delivery.id);
       req.params.id = req.params.orderId;
+      req.delivery = delivery;
       req.updates = { deliveryId: delivery.id };
       next();
     } catch (e) {
@@ -132,6 +142,9 @@ class DeliverysRouterMiddleware {
       if (!delivery || !order) {
         console.log(false, 'No delivery or order');
         throw ApiError.BadRequest('No delivery or order');
+      }
+      if (delivery.dataValues.orders.length === 1) {
+        await delivery.update({ workSpaceId: null });
       }
       // console.log(delivery.id);
       req.params.id = req.params.orderId;

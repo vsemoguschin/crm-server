@@ -89,6 +89,9 @@ WorkSpace.belongsTo(User, { as: 'creator' });
 WorkSpace.hasMany(Order); //для производства
 Order.belongsTo(WorkSpace);
 
+WorkSpace.hasMany(Delivery); //для производства
+Delivery.belongsTo(WorkSpace);
+
 WorkSpace.hasMany(Client); //для отдела комерции
 Client.belongsTo(WorkSpace);
 

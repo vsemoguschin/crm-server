@@ -267,6 +267,7 @@ class Presets {
       const delivery = await deal.createDelivery(deliveryBlank);
       const order = await deal.createOrder({ ...orderBlank, deliveryId: delivery.id });
       await delivery.addOrders(order);
+      await delivery.update({ workSpaceId: order.workSpaceId });
     }
   }
 }

@@ -54,46 +54,35 @@ class OrdersController {
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
       const filter = await modelsService.searchFilter(searchFields, req.query);
-      // console.log(filter);
-      let modelSearch = {
-        id: { [Op.gt]: 0 },
+      const options = {
+        where: {
+          id: { [Op.gt]: 0 },
+          ...filter,
+        },
+        include: [],
       };
-      const include = [];
       if (req.baseUrl.includes('/deals')) {
-        modelSearch = { dealId: +req.params.id };
-        include.push('neons', 'executors', 'files', 'stage');
+        options.where.dealId = req.params.id;
+        options.include = ['neons', 'executors', 'files', 'stage'];
       }
-      // if (req.baseUrl.includes('/workspaces')) {
-      //   modelSearch = {
-      //     workSpaceId: +req.params.id,
-      //     stageId: 1,
-      //     status: status || 'Доступный',
-      //   };
-      //   if (req.params.stageId) {
-      //     modelSearch.stageId = req.params.stageId;
-      //   }
-      // }
       if (req.baseUrl.includes('/deliveries')) {
-        modelSearch = { deliveryId: +req.params.id };
+        options.where.deliveryId = req.params.id;
+        options.include = ['stage'];
       }
       const orders = await Order.findAndCountAll({
-        where: {
-          ...filter,
-          ...modelSearch,
-        },
-        include,
+        ...options,
         order,
         limit,
         offset,
       });
       const response = getPaginationData(orders, current, pageSize, 'orders');
-      return res.json(response || []);
+      return res.json(response);
     } catch (e) {
       next(e);
     }
   }
 
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
       const { updates } = req;
@@ -102,7 +91,7 @@ class OrdersController {
           id: id,
         },
       });
-      console.log(order);
+      // console.log(order);
       if (!order) {
         console.log(false, 'no acces');
         throw ApiError.BadRequest('no order found');
@@ -120,10 +109,9 @@ class OrdersController {
           },
         );
       }
-      return res.status(200).json(order);
+      return res.json(200);
     } catch (e) {
-      console.log(e);
-      return res.status(400).json(e);
+      next(e);
     }
   }
 

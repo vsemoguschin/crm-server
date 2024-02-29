@@ -28,7 +28,7 @@ class DeliveriesController {
         where: {
           id,
         },
-        include: 'orders',
+        include: ['orders', 'workSpace'],
       });
       if (!delivery) {
         return res.status(404).json('delivery not found');
@@ -101,6 +101,7 @@ class DeliveriesController {
       const deletedDelivery = await Delivery.destroy({
         where: {
           id,
+          status: ['Создана', 'Доступна'],
         },
       });
       // console.log(deletedDelivery);
@@ -120,25 +121,6 @@ class DeliveriesController {
       );
       console.log('Доставка удалена');
       return res.json('Доставка удалена');
-    } catch (e) {
-      next(e);
-    }
-  }
-
-  async addOrders(req, res, next) {
-    try {
-      const { id } = req.params;
-      const ordersIds = JSON.parse(req.body.orders);
-      const delivery = await Delivery.findOne({
-        where: { id },
-      });
-      // console.log(delivery);
-      const orders = await Order.findAll({
-        where: { id: ordersIds },
-      });
-      // console.log(orders);
-      const add = await delivery.addOrder(orders);
-      return res.json(add);
     } catch (e) {
       next(e);
     }
@@ -172,16 +154,12 @@ class DeliveriesController {
             model: Delivery,
             where: {
               ...filter,
+              // status: 'Доступна',
+              workSpaceId: workSpace.id,
             },
             include: [
               {
                 model: Order,
-                where: {
-                  workSpaceId: workSpace.id,
-                  // stageId: 1,
-                  // status: 'Доступен',
-                },
-                // required: false,
                 attributes: ['id', 'name', 'stageId', 'boardWidth', 'boardHeight', 'status'],
               },
             ],
