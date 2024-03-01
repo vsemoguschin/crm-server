@@ -24,18 +24,7 @@ class UsersController {
   //получение конкретного пользователя по id
   async getOne(req, res, next) {
     try {
-      const { id } = req.params;
-      const { rolesFilter } = req;
-      const user = await User.findOne({
-        include: ['role', 'membership', 'avatar'],
-        where: {
-          id,
-          '$role.shortName$': rolesFilter,
-        },
-      });
-      if (!user) {
-        return res.status(404).json('user not found');
-      }
+      const { user } = req;
       return res.json(user);
     } catch (e) {
       next(e);
@@ -50,42 +39,15 @@ class UsersController {
       current,
       key, //?
       order: queryOrder,
-      role,
     } = req.query;
     try {
+      const { searchParams } = req;
       checkReqQueriesIsNumber({ pageSize, current });
       const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
-      let { rolesFilter, workSpace } = req;
-      const filter = await modelsService.searchFilter(['fullName'], req.query);
-      if (role && rolesFilter.includes(role)) {
-        rolesFilter = role;
-      }
-      const options = {
-        include: [
-          {
-            model: Role,
-            where: {
-              shortName: rolesFilter,
-            },
-          },
-        ],
-        where: {
-          ...filter,
-        },
-        distinct: true,
-      };
-      if (req.baseUrl.includes('/workspaces')) {
-        options.include.push({
-          association: 'membership',
-          where: {
-            id: workSpace.id,
-          },
-        });
-      }
       const users = await User.findAndCountAll({
-        ...options,
+        ...searchParams,
         order,
         limit,
         offset,
@@ -105,7 +67,7 @@ class UsersController {
       const { rolesFilter, reqRole } = req;
       const { id } = req.params;
 
-      const updates = await modelsService.checkUpdates(usersModelFields, req.body, req.updateFields);
+      const updates = await modelsService.checkUpdates([User, usersModelFields], req.body, req.updateFields);
 
       const user = await User.findOne({
         where: {

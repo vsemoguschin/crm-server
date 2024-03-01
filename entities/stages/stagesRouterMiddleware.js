@@ -1,25 +1,52 @@
-const { Op } = require('sequelize');
 const ApiError = require('../../error/apiError');
-const { ROLES: rolesList } = require('../roles/rolesList');
+const { Stage } = require('./stagesModel');
 
-const permissions = ['ADMIN', 'G', 'DP', 'RP', 'FRZ', 'MASTER', 'PACKER'];
-const fullAcces = ['ADMIN', 'G', 'DP', 'RP'];
+const stageAccess = {
+  ['ADMIN']: [1, 2, 3, 4, 5],
+  ['G']: [1, 2, 3, 4, 5],
+  ['DP']: [1, 2, 3, 4, 5],
+  ['RP']: [1, 2, 3, 4, 5],
+  ['FRZ']: [1, 2],
+  ['LAM']: [1, 2],
+  ['MASTER']: [3, 4],
+  ['PACKER']: [4, 5],
+};
 
 class StagesRouterMiddleware {
-  async getList(req, res, next) {
+  async getOne(req, res, next) {
     try {
-      console.log(req.body);
-      const requester = req.user.role;
-      if (!permissions.includes(requester)) {
+      const requesterRole = req.requester.role;
+      const { id, stageId } = req.params;
+      if (!stageAccess[requesterRole]?.includes(stageId)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      const filter = {
-        id: { [Op.gt]: 0 },
-      };
-      if (!fullAcces.includes(requester)) {
-        filter.id = rolesList.find((user) => user.shortName === req.user.role).workStages;
+      const stage = await Stage.findOne({
+        where: {
+          id: stageId || id,
+        },
+      });
+      if (!stage) {
+        throw ApiError.NotFound('Stage не найдена');
       }
+      req.stage = stage;
+      req.stageAccess = stageAccess[requesterRole];
+      next();
+    } catch (e) {
+      next(e);
+    }
+  }
+  async getList(req, res, next) {
+    try {
+      const requesterRole = req.requester.role;
+      if (!stageAccess[requesterRole]) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      const stageFilter = stageAccess[requesterRole];
+      const filter = {
+        id: stageFilter,
+      };
       req.filter = filter;
       next();
     } catch (e) {

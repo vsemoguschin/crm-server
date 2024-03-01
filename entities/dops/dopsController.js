@@ -3,15 +3,15 @@ const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
 const { Op } = require('sequelize');
+const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
+const checkRepeatedValues = require('../../checking/checkRepeatedValues');
+const ApiError = require('../../error/apiError');
 class DopsController {
   async create(req, res, next) {
     try {
-      const { newDop } = req;
-      const dop = await Dop.create({
-        ...newDop,
-        userId: req.user.id,
-        dealId: req.params.id,
-      });
+      const { deal, newDop } = req;
+      newDop.userId = req.requester.id;
+      const dop = await deal.createDop(newDop);
       return res.json(dop);
     } catch (e) {
       console.log(e);
@@ -21,15 +21,7 @@ class DopsController {
 
   async getOne(req, res, next) {
     try {
-      const { id } = req.params;
-      const dop = await Dop.findOne({
-        where: {
-          id,
-        },
-      });
-      if (!dop) {
-        return res.status(404).json('dop not found');
-      }
+      const { dop } = req;
       return res.json(dop);
     } catch (e) {
       next(e);
@@ -44,46 +36,39 @@ class DopsController {
       order: queryOrder,
     } = req.query;
     try {
+      checkReqQueriesIsNumber({ pageSize, current });
       const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
-      const { searchFields } = req;
-      const filter = await modelsService.searchFilter(searchFields, req.query);
+      const { searchParams } = req;
 
-      let modelSearch = {
-        id: { [Op.gt]: 0 },
-      };
-      if (req.baseUrl.includes('/deals')) {
-        modelSearch = { dealId: +req.params.id };
-      }
       const dops = await Dop.findAndCountAll({
-        where: {
-          ...filter,
-          ...modelSearch,
-        },
+        ...searchParams,
         order,
         limit,
         offset,
       });
       const response = getPaginationData(dops, current, pageSize, 'dops');
-      return res.json(response || []);
+      return res.json(response);
     } catch (e) {
       next(e);
     }
   }
 
   async update(req, res, next) {
+    const updateFields = ['title', 'price', 'type', 'description'];
     try {
-      const { id } = req.params;
-      const updates = await modelsService.checkUpdates(dopsModelFields, req.body, req.updateFields);
+      const requesterRole = req.requester.role;
+      if (!['ADMIN', 'G', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'].includes(requesterRole)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      const { dop } = req;
+      const body = checkRepeatedValues(dop, req.body);
+      const updates = await modelsService.checkUpdates([Dop, dopsModelFields], body, updateFields);
 
-      const [, dop] = await Dop.update(updates, {
-        where: {
-          id: id,
-        },
-        individualHooks: true,
-      });
-      return res.status(200).json(dop);
+      await dop.update(updates);
+      return res.json(dop);
     } catch (e) {
       console.log(e);
       next(e);
@@ -92,12 +77,13 @@ class DopsController {
 
   async delete(req, res, next) {
     try {
-      const { id } = req.params;
-      const deletedDop = await Dop.destroy({
-        where: {
-          id,
-        },
-      });
+      const requesterRole = req.requester.role;
+      if (!['ADMIN', 'G', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'].includes(requesterRole)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      const { dop } = req;
+      const deletedDop = await dop.destroy();
       // console.log(deletedDop);
       if (deletedDop === 0) {
         console.log('Доп не удалена');

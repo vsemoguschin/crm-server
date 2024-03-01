@@ -4,7 +4,7 @@ const ApiError = require('../error/apiError');
 const { User } = require('../entities/users/usersModel');
 const { Op } = require('sequelize');
 
-module.exports = function (req, res, next) {
+module.exports = async function (req, res, next) {
   // console.log(req);
   try {
     const authorizationHeader = req.headers.authorization;
@@ -18,22 +18,23 @@ module.exports = function (req, res, next) {
     }
 
     const userData = tokenService.validateAccessToken(accessToken);
-    const currentUser = User.findOne({
+    const currentUser = await User.findOne({
       //выдавать актуальные role и fullName
       where: {
         id: userData.id,
         [Op.and]: { deletedAt: null },
       },
+      include: ['membership'],
     });
     if (!currentUser) {
       return next(ApiError.BadRequest('Пользователь не найден'));
     }
-
+    const asdcfc = 1;
     if (!userData) {
       return next(ApiError.UnauthorizedError());
     }
 
-    req.user = userData;
+    req.requester = userData;
     next();
   } catch (e) {
     console.log(e);

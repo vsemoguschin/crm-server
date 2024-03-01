@@ -7,7 +7,7 @@ class ProfileController {
   async getProfile(req, res) {
     try {
       const user = await User.findOne({
-        where: { id: req.user.id },
+        where: { id: req.requester.id },
         attributes: { exclude: ['password'] },
         include: ['role', 'avatar'],
       });
@@ -19,9 +19,9 @@ class ProfileController {
   }
 
   async update(req, res, next) {
-    const id = req.user.id;
+    const id = req.requester.id;
     try {
-      const updates = await modelsService.checkUpdates(usersModelFields, req.body, req.updateFields);
+      const updates = await modelsService.checkUpdates([User, usersModelFields], req.body, req.updateFields);
 
       const user = await User.scope(['fullScope']).findOne({
         where: {

@@ -1,52 +1,23 @@
 const ApiError = require('../../error/apiError');
 const modelsService = require('../../services/modelsService');
 const { modelFields: ordersModelFields, Order } = require('./ordersModel');
-const { Deal, User, WorkSpace, Stage } = require('../association');
+const { User, WorkSpace, Stage, Deal } = require('../association');
+const { Op } = require('sequelize');
 
 const frontOptions = {
   modelFields: modelsService.getModelFields(ordersModelFields),
 };
 const permissions = ['ADMIN', 'G', 'KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
-const updateFields = [
-  'name',
-  'description',
-  'material',
-  'elements',
-  'boardHeight',
-  'boardWidth',
-  'wireLength',
-  'dimer',
-  'acrylic',
-  'print',
-  'laminate',
-  'adapter',
-  'plug',
-  'holeType',
-  'fittings',
-  'status',
-];
 
 class OrdersRouterMiddleware {
   async create(req, res, next) {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
     try {
-      const requester = req.user.role;
+      const requesterRole = req.requester.role;
       //проверка на доступ к созданию
-      if (!permissions.includes(requester)) {
+      if (!permissions.includes(requesterRole)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
-      }
-      //проверка значения и наличия сделки
-      if (!req.params.id || isNaN(+req.params.id)) {
-        console.log(false, 'Забыл что то указать');
-        throw ApiError.BadRequest('Забыл что то указать');
-      }
-      const deal = await Deal.findOne({
-        where: { id: req.params.id },
-      });
-      if (!deal) {
-        console.log(false, 'No deal');
-        throw ApiError.BadRequest('No deal');
       }
       const newOrder = await modelsService.checkFields([Order, ordersModelFields], req.body);
       req.newOrder = newOrder;
@@ -57,133 +28,81 @@ class OrdersRouterMiddleware {
   }
   async getOne(req, res, next) {
     try {
-      const requester = req.user.role;
-      if (!permissions.includes(requester) && !['DP', 'RP', 'FRZ', 'MASTER', 'PACKER'].includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
+      const { id, orderId } = req.params;
+      const order = await Order.findOne({
+        where: {
+          id: orderId || id,
+        },
+        include: [
+          'neons',
+          'files',
+          'delivery',
+          {
+            association: 'executors',
+            include: 'role',
+          },
+          {
+            model: Deal,
+            include: 'files',
+          },
+        ],
+      });
+      if (!order) {
+        throw ApiError.NotFound('Order not found');
       }
+      req.order = order;
       next();
     } catch (e) {
       next(e);
     }
   }
   async getList(req, res, next) {
+    const searchFields = ['name'];
     try {
-      const requester = req.user.role;
-      if (!permissions.includes(requester) && !['DP', 'RP', 'FRZ', 'MASTER', 'PACKER'].includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
-      next();
-    } catch (e) {
-      next(e);
-    }
-  }
-  async update(req, res, next) {
-    try {
-      const requester = req.user.role;
-      if (!permissions.includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
-      req.updates = await modelsService.checkUpdates(ordersModelFields, req.body, updateFields);
-      next();
-    } catch (e) {
-      next(e);
-    }
-  }
-  async delete(req, res, next) {
-    try {
-      const requester = req.user.role;
-      if (!permissions.includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
-      next();
-    } catch (e) {
-      next(e);
-    }
-  }
-  async OLDchangeStage(req, res, next) {
-    const permissions = [
-      [],
-      ['ADMIN', 'G', 'KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'], //присвоить stage1(доступен фрезеровке)
-      ['ADMIN', 'G', 'DP', 'RP', 'FRZ'], //присвоить stage2(доступен пленке)
-      ['ADMIN', 'G', 'DP', 'RP', 'FRZ', 'LAM'], //присвоить stage3(доступен мастерам)
-    ];
-    try {
-      const requester = req.user.role;
-      if (!req.params.id || isNaN(+req.params.id) || !req.params.stageId || isNaN(+req.params.stageId)) {
-        console.log(false, 'Забыл что то указать');
-        throw ApiError.BadRequest('Забыл что то указать');
-      }
-      const orderid = +req.params.id;
-      const stage = +req.params.stageId;
-      //проверка, может ли пользователь перемещать заказ в переданную stage
-      console.log(requester, stage);
-      if (!permissions[stage].includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.BadRequest('no acces');
-      }
-      //проверка, является ли пользователь исполнителем заказа и на предыдущей стейдж
-      const order = await Order.findOne({
+      const searchFilter = await modelsService.searchFilter(searchFields, req.query);
+      let searchParams = {
         where: {
-          id: orderid,
-          status: 'В работе',
-          stageId: stage - 1,
+          id: { [Op.gt]: 0 },
         },
-        include: [
-          {
-            association: 'executors',
-            where: {
-              id: req.user.id,
-            },
-          },
-        ],
-      });
-      if (!order) {
-        console.log(false, 'no acces');
-        throw ApiError.BadRequest('no acces');
+      };
+      if (req.baseUrl.includes('/deals')) {
+        searchParams = {
+          where: { dealId: req.params.id },
+          include: ['neons', 'executors', 'files', 'stage'],
+        };
       }
-      return res.json(order);
+      if (req.baseUrl.includes('/deliveries')) {
+        const { delivery } = req;
+        searchParams = {
+          where: { deliveryId: delivery.id },
+          include: ['stage'],
+        };
+      }
+      if (req.baseUrl.includes('/users')) {
+        const { user } = req;
+        searchParams = {
+          where: { userId: user.id },
+          include: ['stage'],
+        };
+      }
+      req.searchParams = { ...searchParams, ...searchFilter };
+      next();
     } catch (e) {
       next(e);
     }
   }
   async changeStage(req, res, next) {
-    const permissions = ['ADMIN', 'G', 'DP', 'RP', 'FRZ', 'LAM', 'MASTER', 'PACKER'];
     try {
-      const requester = req.user.role;
-      const orderid = req.params.id;
-      let newStage = req.params.stageId;
-      if (!permissions.includes(requester)) {
+      const { stage, order, stageAccess } = req;
+      if (!stageAccess.includes(stage.id)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-
-      newStage = Stage.findOne({
-        where: {
-          id: newStage,
-        },
-      });
-
-      if (!newStage) {
-        console.log(false, 'no stage');
-        throw ApiError.BadRequest('no stage', 'stage');
+      if (stage.id === order.stageId) {
+        throw ApiError.BadRequest('у заказа уже этот стейдж');
       }
-
-      const order = await Order.findOne({
-        where: {
-          id: orderid,
-        },
-        attributes: ['stageId'],
-      });
-      if (!order) {
-        console.log(false, 'no order');
-        throw ApiError.BadRequest('no order');
-      }
-      req.updates({ stageId: newStage, status: 'Доступен' });
-      next();
+      await order.update({ stageId: stage.id, status: 'Доступен' });
+      return res.status(200).json(200);
     } catch (e) {
       next(e);
     }
@@ -200,50 +119,44 @@ class OrdersRouterMiddleware {
       ['PACKER']: [4],
     };
     try {
-      const requester = req.user.role;
-      if (!workStages[requester]) {
+      const requesterRole = req.requester.role;
+      if (!workStages[requesterRole]) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      const orderid = req.params.id;
-      let candidat = req.params.userId;
-      const roleStage = workStages[requester];
-
+      const { order, user: candidat } = req;
+      const roleStage = workStages[requesterRole];
       const workSpace = await WorkSpace.findOne({
         include: [
           {
             model: User,
             as: 'members',
-            attributes: ['id'],
-            // where: { id: candidat },
+            // attributes: ['id'],
+            where: { id: candidat.id },
             include: 'role',
           },
           {
             model: Order,
             where: {
-              id: orderid,
-              status: 'Доступный',
+              id: order.id,
+              status: 'Доступен',
               stageId: roleStage,
             },
           },
         ],
       });
-      console.log(workSpace);
+
+      // return res.json({workSpace.orders[0].executors, workSpace.members});
       if (!workSpace) {
         console.log(false, 'no acces');
         throw ApiError.BadRequest('no acces');
       }
-      // candidat = workSpace.members[0];
-      const order = workSpace.orders[0];
-      // const orderExecutors = workSpace.orders[0].executors;
-      // if (orderExecutors.find((user) => user.role.shortName === candidat.role.shortName)) {
-      //   console.log(false, 'Уже занят');
-      //   throw ApiError.BadRequest('занят');
-      // }
-
+      if (order.executors.find((executor) => executor.role.shortName === candidat.role.shortName)) {
+        throw ApiError.BadRequest('Уже назначен исполнитель с такой ролью');
+      }
       await order.addExecutors(candidat);
-      req.updates = { status: 'В работе' };
-      next();
+      await order.update({ status: 'В работе' });
+      return res.status(200).json(200);
     } catch (e) {
       next(e);
     }
@@ -260,14 +173,14 @@ class OrdersRouterMiddleware {
       ['PACKER']: [4],
     };
     try {
-      const requester = req.user.role;
-      if (!workStages[requester]) {
+      const requesterRole = req.requester.role;
+      if (!workStages[requesterRole]) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
       const orderid = req.params.id;
       const candidat = req.params.userId;
-      const roleStage = workStages[requester];
+      const roleStage = workStages[requesterRole];
 
       const order = await Order.findOne({
         where: {

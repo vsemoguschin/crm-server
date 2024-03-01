@@ -3,18 +3,15 @@ const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
 const { Order, Client, Deal } = require('../association');
-const { Op } = require('sequelize');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
+const checkRepeatedValues = require('../../checking/checkRepeatedValues');
 
 class DeliveriesController {
   async create(req, res, next) {
     try {
       const { newDelivery, deal } = req;
-      const delivery = await Delivery.create({
-        ...newDelivery,
-        userId: req.user.id,
-        dealId: deal.id,
-      });
+      newDelivery.userId = req.requester.id;
+      const delivery = await deal.createDelivery(newDelivery);
       return res.json(delivery);
     } catch (e) {
       next(e);
@@ -23,16 +20,7 @@ class DeliveriesController {
 
   async getOne(req, res, next) {
     try {
-      const { id } = req.params;
-      const delivery = await Delivery.findOne({
-        where: {
-          id,
-        },
-        include: ['orders', 'workSpace'],
-      });
-      if (!delivery) {
-        return res.status(404).json('delivery not found');
-      }
+      const { delivery } = req;
       return res.json(delivery);
     } catch (e) {
       next(e);
@@ -50,46 +38,31 @@ class DeliveriesController {
       checkReqQueriesIsNumber({ pageSize, current });
       const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
-
-      const { searchFields } = req;
-      const filter = await modelsService.searchFilter(searchFields, req.query);
-
-      let options = {
-        where: {
-          id: { [Op.gt]: 0 },
-          ...filter,
-        },
-      };
-      if (req.baseUrl.includes('/deals')) {
-        options.where = { dealId: +req.params.id };
-        options.include = ['orders'];
-      }
+      const { searchParams } = req;
 
       const deliveries = await Delivery.findAndCountAll({
-        ...options,
+        ...searchParams,
         order,
         limit,
         offset,
       });
       const response = getPaginationData(deliveries, current, pageSize, 'deliveries');
-      return res.json(response || []);
+      return res.json(response);
     } catch (e) {
       next(e);
     }
   }
 
   async update(req, res, next) {
-    try {
-      const { id } = req.params;
-      const updates = await modelsService.checkUpdates(deliveryModelFields, req.body, req.updateFields);
+    const updateFields = ['method', 'type', 'description', 'city', 'recived', 'readyToSend'];
 
-      const [, delivery] = await Delivery.update(updates, {
-        where: {
-          id: id,
-        },
-        individualHooks: true,
-      });
-      return res.status(200).json(delivery);
+    try {
+      const { delivery } = req;
+      const body = checkRepeatedValues(delivery, req.body);
+      let updates = await modelsService.checkUpdates([Delivery, deliveryModelFields], body, updateFields);
+
+      await delivery.update(updates);
+      return res.json(delivery);
     } catch (e) {
       next(e);
     }
@@ -97,13 +70,8 @@ class DeliveriesController {
 
   async delete(req, res, next) {
     try {
-      const { id } = req.params;
-      const deletedDelivery = await Delivery.destroy({
-        where: {
-          id,
-          status: ['Создана', 'Доступна'],
-        },
-      });
+      const { delivery } = req;
+      const deletedDelivery = await delivery.destroy();
       // console.log(deletedDelivery);
       if (deletedDelivery === 0) {
         console.log('Доставка не удалена');
@@ -115,7 +83,7 @@ class DeliveriesController {
         },
         {
           where: {
-            deliveryId: id,
+            deliveryId: delivery.id,
           },
         },
       );

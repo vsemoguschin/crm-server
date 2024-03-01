@@ -12,8 +12,8 @@ class WorkSpaceController {
     try {
       const { newWorkSpace } = req;
       const workSpace = await WorkSpace.create(newWorkSpace);
-      await workSpace.addMember(req.user.id);
-      await workSpace.setCreator(req.user.id);
+      await workSpace.addMember(req.requester.id);
+      await workSpace.setCreator(req.requester.id);
       return res.json(workSpace);
     } catch (e) {
       next(e);
@@ -41,14 +41,14 @@ class WorkSpaceController {
     } = req.query;
     try {
       checkReqQueriesIsNumber({ pageSize, current });
-      const requester = req.user.role;
+      const requesterRole = req.requester.role;
       const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
       const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
       let workSpaces;
-      if (rolesList[requester].department == 'administration') {
+      if (rolesList[requesterRole].department == 'administration') {
         workSpaces = await WorkSpace.findAndCountAll({
           ...filter,
         });
@@ -59,7 +59,7 @@ class WorkSpaceController {
             {
               association: 'members',
               where: {
-                id: req.user.id,
+                id: req.requester.id,
               },
             },
           ],
@@ -80,12 +80,12 @@ class WorkSpaceController {
     // patch-запрос  в теле запроса(body) передаем строку(raw) в формате JSON
     try {
       const { workSpace, user } = req;
-      const requester = req.user.role;
-      if (workSpace.creator.id !== user.id && requester !== 'ADMIN' && requester !== 'G') {
+      const requesterRole = req.requester.role;
+      if (workSpace.creator.id !== user.id && requesterRole !== 'ADMIN' && requesterRole !== 'G') {
         console.log(false, 'no access');
         throw ApiError.Forbidden('Нет доступа');
       }
-      const updates = await modelsService.checkUpdates(workSpacesModelFields, req.body, ['title']);
+      const updates = await modelsService.checkUpdates([WorkSpace, workSpacesModelFields], req.body, ['title']);
       await workSpace.update(updates);
       return res.status(200).json(workSpace);
     } catch (e) {
@@ -96,8 +96,8 @@ class WorkSpaceController {
   async delete(req, res, next) {
     try {
       const { workSpace, user } = req;
-      const requester = req.user.role;
-      if (workSpace.creator.id !== user.id && requester !== 'ADMIN' && requester !== 'G') {
+      const requesterRole = req.requester.role;
+      if (workSpace.creator.id !== user.id && requesterRole !== 'ADMIN' && requesterRole !== 'G') {
         console.log(false, 'no access');
         throw ApiError.Forbidden('Нет доступа');
       }
@@ -116,8 +116,8 @@ class WorkSpaceController {
   async addUsers(req, res, next) {
     try {
       const { workSpace } = req;
-      const requester = req.user.role;
-      if (!['ADMIN', 'G', 'KD', 'DP', 'DO', 'RP'].includes(requester)) {
+      const requesterRole = req.requester.role;
+      if (!['ADMIN', 'G', 'KD', 'DP', 'DO', 'RP'].includes(requesterRole)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
@@ -128,7 +128,7 @@ class WorkSpaceController {
           {
             model: Role,
             where: {
-              shortName: rolesList[requester].availableRoles,
+              shortName: rolesList[requesterRole].availableRoles,
             },
           },
         ],
@@ -147,8 +147,8 @@ class WorkSpaceController {
   async deleteUsers(req, res, next) {
     try {
       const { workSpace } = req;
-      const requester = req.user.role;
-      if (!['ADMIN', 'G', 'KD', 'DP', 'DO', 'RP'].includes(requester)) {
+      const requesterRole = req.requester.role;
+      if (!['ADMIN', 'G', 'KD', 'DP', 'DO', 'RP'].includes(requesterRole)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
@@ -159,7 +159,7 @@ class WorkSpaceController {
           {
             model: Role,
             where: {
-              shortName: rolesList[requester].availableRoles,
+              shortName: rolesList[requesterRole].availableRoles,
             },
           },
           {

@@ -18,13 +18,13 @@ class WorkSpacesRouterMiddleware {
   async create(req, res, next) {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
     try {
-      const requester = req.user.role;
-      if (requester !== 'ADMIN' && requester !== 'G') {
-        req.body.department = rolesList[requester].department;
+      const requesterRole = req.requester.role;
+      if (requesterRole !== 'ADMIN' && requesterRole !== 'G') {
+        req.body.department = rolesList[requesterRole].department;
       }
       req.newWorkSpace = await modelsService.checkFields([WorkSpace, workSpacesModelFields], req.body);
       const { department } = req.body;
-      if (!PERMISSIONS[department].create.includes(requester)) {
+      if (!PERMISSIONS[department].create.includes(requesterRole)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
@@ -36,10 +36,10 @@ class WorkSpacesRouterMiddleware {
   }
   async getOne(req, res, next) {
     try {
-      const requester = req.user.role;
-      const departmentFilter = rolesList[requester].department;
+      const requesterRole = req.requester.role;
+      const departmentFilter = rolesList[requesterRole].department;
       let workSpace;
-      if (requester == 'ADMIN' || requester == 'G') {
+      if (requesterRole == 'ADMIN' || requesterRole == 'G') {
         workSpace = await WorkSpace.findOne({
           where: {
             id: req.params.id,
@@ -61,7 +61,7 @@ class WorkSpacesRouterMiddleware {
           include: {
             association: 'members',
             where: {
-              id: req.user.id,
+              id: req.requester.id,
             },
             attributes: ['fullName'],
           },
@@ -88,8 +88,8 @@ class WorkSpacesRouterMiddleware {
   }
   async update(req, res, next) {
     try {
-      const requester = req.user.role;
-      if (!['ADMIN', 'G', 'KD', 'DP', 'DO', 'RP'].includes(requester)) {
+      const requesterRole = req.requester.role;
+      if (!['ADMIN', 'G', 'KD', 'DP', 'DO', 'RP'].includes(requesterRole)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
@@ -109,8 +109,8 @@ class WorkSpacesRouterMiddleware {
   //добавить заказ в пространство производства
   async addOrders(req, res, next) {
     try {
-      const requester = req.user.role;
-      if (!['ADMIN', 'G', 'KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'].includes(requester)) {
+      const requesterRole = req.requester.role;
+      if (!['ADMIN', 'G', 'KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'].includes(requesterRole)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
@@ -131,9 +131,9 @@ class WorkSpacesRouterMiddleware {
         throw ApiError.BadRequest('No workSpace or order');
       }
 
-      // console.log(workSpace.id);
       req.params.id = req.params.orderId;
-      req.updates = { workSpaceId: workSpace.id, status: 'Доступный', stageId: 1 };
+      req.order = order;
+      req.body = { workSpaceId: workSpace.id, status: 'Доступен', stageId: 1 };
 
       next();
     } catch (e) {

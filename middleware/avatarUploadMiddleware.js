@@ -8,7 +8,7 @@ const url = process.env.IDEV ? `http://localhost:${process.env.PORT}/` : `http:/
 
 class avatarUploadMiddleware {
   async uploadFile(req, res, next) {
-    const { id } = req.baseUrl === '/api/profile' ? req.user : req.params;
+    const { id } = req.baseUrl === '/api/profile' ? req.requester : req.params;
     try {
       const { avatar } = req.files;
       if (!avatar) {

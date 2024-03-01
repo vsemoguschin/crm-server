@@ -7,24 +7,46 @@ const neonsRouterMiddleware = require('../neons/neonsRouterMiddleware');
 const filesRouterMiddleware = require('../files/filesRouterMiddleware');
 const filesController = require('../files/filesController');
 const checkReqParamsIsNumber = require('../../checking/checkReqParamsIsNumber');
+const stagesRouterMiddleware = require('../stages/stagesRouterMiddleware');
+const usersRouterMiddleware = require('../users/usersRouterMiddleware');
+const usersController = require('../users/usersController');
 
 // router.post('/', ordersRouterMiddleware.create, ordersController.create); //создание заказа только внутри сделки
-router.get('/:id', checkReqParamsIsNumber, ordersRouterMiddleware.getOne, ordersController.getOne);
+router.get('/:id', ordersRouterMiddleware.getOne, ordersController.getOne);
 router.get('/', ordersRouterMiddleware.getList, ordersController.getList);
-router.patch('/:id', checkReqParamsIsNumber, ordersRouterMiddleware.update, ordersController.update);
-router.delete('/:id', checkReqParamsIsNumber, ordersRouterMiddleware.delete, ordersController.delete);
+router.patch('/:id', checkReqParamsIsNumber, ordersRouterMiddleware.getOne, ordersController.update);
+router.delete('/:id', checkReqParamsIsNumber, ordersRouterMiddleware.getOne, ordersController.delete);
 
-router.post('/:id/neons', checkReqParamsIsNumber, neonsRouterMiddleware.create, neonsController.create);
-router.get('/:id/neons', checkReqParamsIsNumber, neonsRouterMiddleware.getList, neonsController.getList);
-router.delete('/:id/neons', checkReqParamsIsNumber, neonsRouterMiddleware.delete, neonsController.delete);
+router.post('/:id/neons', checkReqParamsIsNumber, ordersRouterMiddleware.getOne, neonsRouterMiddleware.create, neonsController.create);
+router.get('/:id/neons', checkReqParamsIsNumber, ordersRouterMiddleware.getOne, neonsRouterMiddleware.getList, neonsController.getList);
 
-router.put('/:id/files', checkReqParamsIsNumber, filesRouterMiddleware.ordersImgs, filesController.create);
-router.get('/:id/files', checkReqParamsIsNumber, filesRouterMiddleware.getList, filesController.getList);
+router.patch('/:id/files', checkReqParamsIsNumber, ordersRouterMiddleware.getOne, filesRouterMiddleware.ordersImgs, filesController.create);
+router.get('/:id/files', checkReqParamsIsNumber, ordersRouterMiddleware.getOne, filesRouterMiddleware.getList, filesController.getList);
+
+router.get('/:id/executors', checkReqParamsIsNumber, ordersRouterMiddleware.getOne, usersRouterMiddleware.getList, usersController.getList);
+//добавление и удаление исполнителей из заказа
+router.patch(
+  '/:id/executors/:userId',
+  checkReqParamsIsNumber,
+  ordersRouterMiddleware.getOne,
+  usersRouterMiddleware.getOne,
+  ordersRouterMiddleware.setExecutor,
+);
+router.delete(
+  '/:id/executors/:userId',
+  checkReqParamsIsNumber,
+  ordersRouterMiddleware.getOne,
+  ordersRouterMiddleware.removeExecutor,
+  ordersController.update,
+);
 
 //перемещение заказа по стадиям
-router.patch('/:id/stage/:stageId', checkReqParamsIsNumber, ordersRouterMiddleware.changeStage, ordersController.update);
-//добавление и удаление исполнителей из заказа
-router.put('/:id/executors/:userId', checkReqParamsIsNumber, ordersRouterMiddleware.setExecutor, ordersController.update);
-router.delete('/:id/executors/:userId', checkReqParamsIsNumber, ordersRouterMiddleware.removeExecutor, ordersController.update);
+router.patch(
+  '/:id/stages/:stageId',
+  checkReqParamsIsNumber,
+  ordersRouterMiddleware.getOne,
+  stagesRouterMiddleware.getOne,
+  ordersRouterMiddleware.changeStage,
+);
 
 module.exports = router;
