@@ -33,8 +33,12 @@ Payment.belongsTo(User);
 User.hasMany(Dop);
 Dop.belongsTo(User);
 
+User.hasMany(Neon);
+Neon.belongsTo(User);
+
 User.hasMany(Order);
-Order.belongsToMany(User, { through: 'ordersExecutors', as: 'executors' });
+Order.belongsToMany(User, { through: 'ordersExecutors', as: 'executors', foreignKey: 'userId' });
+User.belongsToMany(Order, { through: 'ordersExecutors', as: 'work', foreignKey: 'orderId' });
 
 User.hasMany(File);
 File.belongsTo(User);

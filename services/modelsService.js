@@ -72,42 +72,51 @@ class ModelsController {
     // console.log(requiredFields);
     return requiredFields;
   }
-  async checkUpdates(model, body, allowUpdate) {
-    // console.log(model, body, allowUpdate);
+  async checkUpdates(BDmodel, body, allowUpdate) {
+    // console.log(modelFields, body, allowUpdate);
+    const [Model, modelFields] = BDmodel;
     const allowedFields = {};
     //найти поля в body
     //проверка обязательных полей
     for (let i = 0; i < allowUpdate.length; i++) {
-      if (body[allowUpdate[i]] !== undefined && model[allowUpdate[i]].allowNull == false && body[allowUpdate[i]] !== '') {
+      if (body[allowUpdate[i]] !== undefined && modelFields[allowUpdate[i]].allowNull == false && body[allowUpdate[i]] !== '') {
+        allowedFields[allowUpdate[i]] = body[allowUpdate[i]];
+      }
+      if (body[allowUpdate[i]] && modelFields[allowUpdate[i]].unique == true) {
+        const check = await Model.findOne({ where: { [allowUpdate[i]]: body[allowUpdate[i]] } });
+        if (check) {
+          throw ApiError.BadRequest('Уже существует', allowUpdate[i]);
+        }
         allowedFields[allowUpdate[i]] = body[allowUpdate[i]];
       }
     }
+
     //проверка необязательных полей
     for (let i = 0; i < allowUpdate.length; i++) {
-      if (body[allowUpdate[i]] !== undefined && model[allowUpdate[i]].allowNull == undefined) {
+      if (body[allowUpdate[i]] !== undefined && modelFields[allowUpdate[i]].allowNull == undefined) {
         allowedFields[allowUpdate[i]] = body[allowUpdate[i]];
       }
     }
     //проверить типы
-    // console.log(model);
+    // console.log(modelFields);
     for (const key in allowedFields) {
-      // console.log(model[key]);
-      if (model[key].fieldType === 'number') {
+      // console.log(modelFields[key]);
+      if (modelFields[key].fieldType === 'number') {
         const field = +allowedFields[key];
         if (isNaN(field)) {
           console.log('wrong type', key);
           throw ApiError.BadRequest('Неверный тип', [key]);
         }
       }
-      if (model[key].fieldType == 'string' && typeof allowedFields[key] !== 'string') {
+      if (modelFields[key].fieldType == 'string' && typeof allowedFields[key] !== 'string') {
         console.log('wrong type', key);
         throw ApiError.BadRequest('Неверный тип');
       }
-      if (model[key].fieldType == 'boolean' && typeof allowedFields[key] !== 'boolean') {
+      if (modelFields[key].fieldType == 'boolean' && typeof allowedFields[key] !== 'boolean') {
         console.log('wrong type', key);
         throw ApiError.BadRequest('Неверный тип');
       }
-      if (model[key].validateFields && !model[key].validateFields.includes(body[key])) {
+      if (modelFields[key].validateFields && !modelFields[key].validateFields.includes(body[key])) {
         console.log('wrong choice', key);
         throw ApiError.BadRequest('Неверный выбор');
       }

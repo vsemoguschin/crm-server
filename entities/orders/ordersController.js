@@ -1,22 +1,17 @@
-const { Order } = require('./ordersModel');
+const { Order, modelFields: ordersModelFields } = require('./ordersModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
-const { Op } = require('sequelize');
 const { Deal } = require('../association');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
-const ApiError = require('../../error/apiError');
+const checkRepeatedValues = require('../../checking/checkRepeatedValues');
 
-const searchFields = ['name'];
 class OrdersController {
   async create(req, res, next) {
     try {
-      const { newOrder } = req;
-      const order = await Order.create({
-        ...newOrder,
-        userId: req.user.id,
-        dealId: req.params.id,
-      });
+      const { deal, newOrder } = req;
+      newOrder.userId = req.requester.id;
+      const order = await deal.createOrder(newOrder);
       return res.json(order);
     } catch (e) {
       console.log(e);
@@ -26,16 +21,7 @@ class OrdersController {
 
   async getOne(req, res, next) {
     try {
-      const { id } = req.params;
-      const order = await Order.findOne({
-        where: {
-          id,
-        },
-        include: ['neons', 'files', 'executors', 'delivery'],
-      });
-      if (!order) {
-        return res.status(404).json('order not found');
-      }
+      const { order } = req;
       return res.json(order);
     } catch (e) {
       next(e);
@@ -52,25 +38,10 @@ class OrdersController {
     try {
       const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
+      const { searchParams } = req;
 
-      const filter = await modelsService.searchFilter(searchFields, req.query);
-      const options = {
-        where: {
-          id: { [Op.gt]: 0 },
-          ...filter,
-        },
-        include: [],
-      };
-      if (req.baseUrl.includes('/deals')) {
-        options.where.dealId = req.params.id;
-        options.include = ['neons', 'executors', 'files', 'stage'];
-      }
-      if (req.baseUrl.includes('/deliveries')) {
-        options.where.deliveryId = req.params.id;
-        options.include = ['stage'];
-      }
       const orders = await Order.findAndCountAll({
-        ...options,
+        ...searchParams,
         order,
         limit,
         offset,
@@ -83,33 +54,46 @@ class OrdersController {
   }
 
   async update(req, res, next) {
+    const updateFields = [
+      'name',
+      'description',
+      'material',
+      'elements',
+      'boardHeight',
+      'boardWidth',
+      'wireLength',
+      'dimer',
+      'acrylic',
+      'print',
+      'laminate',
+      'adapter',
+      'plug',
+      'holeType',
+      'fittings',
+      'status',
+    ];
     try {
-      const { id } = req.params;
-      const { updates } = req;
-      const order = await Order.findOne({
-        where: {
-          id: id,
-        },
-      });
-      // console.log(order);
-      if (!order) {
-        console.log(false, 'no acces');
-        throw ApiError.BadRequest('no order found');
+      const { order } = req;
+      let updates;
+      if (req.baseUrl.includes('/orders')) {
+        const body = checkRepeatedValues(order, req.body);
+        updates = await modelsService.checkUpdates([Order, ordersModelFields], body, updateFields);
       }
-      await order.update(updates);
       if (req.baseUrl.includes('/workspaces')) {
+        updates = req.body;
         await Deal.update(
           {
             status: 'process',
           },
           {
             where: {
-              id: order[0].dealId,
+              id: order.dealId,
             },
           },
         );
       }
-      return res.json(200);
+      await order.update(updates);
+      return res.json(order);
     } catch (e) {
       next(e);
     }
@@ -117,13 +101,8 @@ class OrdersController {
 
   async delete(req, res, next) {
     try {
-      const { id } = req.params;
-      const deletedOrder = await Order.destroy({
-        where: {
-          id,
-          stage: null,
-        },
-      });
+      const { order } = req;
+      const deletedOrder = await order.destroy();
       // console.log(deletedOrder);
       if (deletedOrder === 0) {
         console.log('Заказ не удален');
@@ -138,23 +117,32 @@ class OrdersController {
 
   //просмотр заказов в пространстве
   async stageList(req, res, next) {
+    const permissions = {
+      ['FRZ']: 1,
+      ['LAM']: 2,
+      ['MASTER']: 3,
+      ['PACKER']: 4,
+    };
     const {
       pageSize,
       current,
       key, //?
       order: queryOrder,
-      status,
     } = req.query;
+    let { status } = req.query;
     try {
+      const requesterRole = req.requester.role;
       checkReqQueriesIsNumber({ pageSize, current });
       const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
       const searchFields = ['title'];
       const filter = await modelsService.searchFilter(searchFields, req.query);
-      const { workSpace } = req;
-      const { stageId } = req.params;
-      const orders = await Deal.findAndCountAll({
+      const { workSpace, stage } = req;
+      if (status === undefined) {
+        status = 'Доступен';
+      }
+      const deals = await Deal.findAndCountAll({
         where: {
           ...filter,
         },
@@ -164,11 +152,11 @@ class OrdersController {
             model: Order,
             where: {
               workSpaceId: workSpace.id,
-              stageId,
-              status: status || ['Доступен', 'В работе', 'Выполнен'],
+              stageId: stage.id,
+              status: status,
             },
             include: ['neons', 'executors', 'files'],
-            attributes: ['status'],
+            // attributes: ['status'],
           },
           'files',
         ],
@@ -177,7 +165,13 @@ class OrdersController {
         offset,
         order,
       });
-      return res.json(orders);
+      console.log(requesterRole, stage.id, status);
+      const response = getPaginationData(deals, current, pageSize, 'deals');
+      response.action = 'Переместить';
+      if (permissions[requesterRole] == stage.id && status === 'Доступен') {
+        response.action = 'В работу';
+      }
+      return res.json(response);
     } catch (e) {
       next(e);
     }

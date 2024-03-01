@@ -6,12 +6,15 @@ const getPagination = require('../../utils/getPagination');
 class FilesController {
   async create(req, res, next) {
     try {
-      const { modelId } = req;
+      const { deal, order } = req;
       const fileDatas = await diskService.uploadFile(req.files.file);
-      const file = await File.create({
-        ...fileDatas,
-        ...modelId,
-      });
+      let file;
+      if (req.baseUrl.includes('/deals')) {
+        file = await deal.createFile(fileDatas);
+      }
+      if (req.baseUrl.includes('/orders')) {
+        file = await order.createFile(fileDatas);
+      }
 
       return res.json(file);
     } catch (e) {

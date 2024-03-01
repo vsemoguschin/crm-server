@@ -1,36 +1,22 @@
 const ApiError = require('../../error/apiError');
 const modelsService = require('../../services/modelsService');
 const { modelFields: paymentsModelFields, Payment } = require('./paymentsModel');
-const { Deal } = require('../association');
+const { Op } = require('sequelize');
 
 const frontOptions = {
   modelFields: modelsService.getModelFields(paymentsModelFields),
 };
 const permissions = ['ADMIN', 'G', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
-const updateFields = ['title', 'price', 'date', 'method', 'description'];
-const searchFields = ['title', 'method', 'date'];
 
 class PaymentsRouterMiddleware {
   async create(req, res, next) {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
     try {
-      const requester = req.user.role;
+      const requesterRole = req.requester.role;
       //проверка на доступ к созданию
-      if (!permissions.includes(requester)) {
+      if (!permissions.includes(requesterRole)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
-      }
-      //проверка значения и наличия сделки
-      if (!req.params.id || isNaN(+req.params.id)) {
-        console.log(false, 'Забыл что то указать');
-        throw ApiError.BadRequest('Забыл что то указать');
-      }
-      const deal = await Deal.findOne({
-        where: { id: req.params.id },
-      });
-      if (!deal) {
-        console.log(false, 'No deal');
-        throw ApiError.BadRequest('No deal');
       }
       const newPayment = await modelsService.checkFields([Payment, paymentsModelFields], req.body);
       req.newPayment = newPayment;
@@ -41,49 +27,45 @@ class PaymentsRouterMiddleware {
   }
   async getOne(req, res, next) {
     try {
-      const requester = req.user.role;
-      if (!permissions.includes(requester)) {
+      const requesterRole = req.requester.role;
+      if (!permissions.includes(requesterRole)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
+      const { id } = req.params;
+      const payment = await Payment.findOne({
+        where: {
+          id,
+        },
+      });
+      if (!payment) {
+        throw ApiError.NotFound('Платеж не найден');
+      }
+      req.payment = payment;
       next();
     } catch (e) {
       next(e);
     }
   }
   async getList(req, res, next) {
+    const searchFields = ['title', 'method', 'date'];
+
     try {
-      const requester = req.user.role;
-      if (!permissions.includes(requester)) {
+      const searchFilter = await modelsService.searchFilter(searchFields, req.query);
+      const requesterRole = req.requester.role;
+      if (!permissions.includes(requesterRole)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      req.searchFields = searchFields;
-      next();
-    } catch (e) {
-      next(e);
-    }
-  }
-  async update(req, res, next) {
-    try {
-      const requester = req.user.role;
-      if (!permissions.includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
+      const searchParams = {
+        where: {
+          id: { [Op.gt]: 0 },
+        },
+      };
+      if (req.baseUrl.includes('/deals')) {
+        searchParams.where.userId = req.params.id;
       }
-      req.updateFields = updateFields;
-      next();
-    } catch (e) {
-      next(e);
-    }
-  }
-  async delete(req, res, next) {
-    try {
-      const requester = req.user.role;
-      if (!permissions.includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
+      req.searchParams = { ...searchParams, ...searchFilter };
       next();
     } catch (e) {
       next(e);

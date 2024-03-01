@@ -3,16 +3,16 @@ const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
 const { Op } = require('sequelize');
+const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
+const ApiError = require('../../error/apiError');
+const checkRepeatedValues = require('../../checking/checkRepeatedValues');
 
 class PaymentsController {
   async create(req, res, next) {
     try {
-      const { newPayment } = req;
-      const payment = await Payment.create({
-        ...newPayment,
-        userId: req.user.id,
-        dealId: req.params.id,
-      });
+      const { deal, newPayment } = req;
+      newPayment.userId = req.requester.id;
+      const payment = await deal.createPayment(newPayment);
       return res.json(payment);
     } catch (e) {
       console.log(e);
@@ -22,15 +22,8 @@ class PaymentsController {
 
   async getOne(req, res, next) {
     try {
-      const { id } = req.params;
-      const payment = await Payment.findOne({
-        where: {
-          id,
-        },
-      });
-      if (!payment) {
-        return res.status(404).json('payment not found');
-      }
+      const { payment } = req;
+
       return res.json(payment);
     } catch (e) {
       next(e);
@@ -45,46 +38,41 @@ class PaymentsController {
       order: queryOrder,
     } = req.query;
     try {
+      checkReqQueriesIsNumber({ pageSize, current });
       const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
-      const { searchFields } = req;
-      const filter = await modelsService.searchFilter(searchFields, req.query);
+      const { searchParams } = req;
 
-      let modelSearch = {
-        id: { [Op.gt]: 0 },
-      };
-      if (req.baseUrl.includes('/deals')) {
-        modelSearch = { dealId: +req.params.id };
-      }
       const payments = await Payment.findAndCountAll({
-        where: {
-          ...filter,
-          ...modelSearch,
-        },
+        ...searchParams,
         order,
         limit,
         offset,
       });
       const response = getPaginationData(payments, current, pageSize, 'payments');
-      return res.json(response || []);
+      return res.json(response);
     } catch (e) {
       next(e);
     }
   }
 
   async update(req, res, next) {
-    try {
-      const { id } = req.params;
-      const updates = await modelsService.checkUpdates(paymentsModelFields, req.body, req.updateFields);
+    const permissions = ['ADMIN', 'G', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
+    const updateFields = ['title', 'price', 'date', 'method', 'description'];
 
-      const [, payment] = await Payment.update(updates, {
-        where: {
-          id: id,
-        },
-        individualHooks: true,
-      });
-      return res.status(200).json(payment);
+    try {
+      const { requesterRole } = req.requester.role;
+      if (!permissions.includes(requesterRole)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      const { payment } = req;
+      const body = checkRepeatedValues(payment, req.body);
+      const updates = await modelsService.checkUpdates([Payment, paymentsModelFields], body, updateFields);
+
+      await payment.update(updates);
+      return res.json(payment);
     } catch (e) {
       console.log(e);
       next(e);
@@ -92,13 +80,16 @@ class PaymentsController {
   }
 
   async delete(req, res, next) {
+    const permissions = ['ADMIN', 'G', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
+
     try {
-      const { id } = req.params;
-      const deletedPayment = await Payment.destroy({
-        where: {
-          id,
-        },
-      });
+      const { requesterRole } = req.requester.role;
+      if (!permissions.includes(requesterRole)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      const { payment } = req;
+      const deletedPayment = await payment.destroy();
       // console.log(deletedPayment);
       if (deletedPayment === 0) {
         console.log('Платеж не удален');

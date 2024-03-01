@@ -2,16 +2,14 @@ const { Neon, modelFields: neonsModelFields } = require('./neonsModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
-const { Op } = require('sequelize');
+const checkRepeatedValues = require('../../checking/checkRepeatedValues');
+const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
 class NeonsController {
   async create(req, res, next) {
     try {
-      const { newNeon } = req;
-      const neon = await Neon.create({
-        ...newNeon,
-        userId: req.user.id,
-        orderId: req.params.id,
-      });
+      const { order, newNeon } = req;
+      newNeon.userId = req.requester.id;
+      const neon = await order.createNeon(newNeon);
       return res.json(neon);
     } catch (e) {
       console.log(e);
@@ -21,12 +19,7 @@ class NeonsController {
 
   async getOne(req, res, next) {
     try {
-      const { id } = req.params;
-      const neon = await Neon.findOne({
-        where: {
-          id,
-        },
-      });
+      const { neon } = req;
       return res.json(neon);
     } catch (e) {
       next(e);
@@ -41,46 +34,35 @@ class NeonsController {
       order: queryOrder,
     } = req.query;
     try {
+      checkReqQueriesIsNumber({ pageSize, current });
       const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
+      const { searchParams } = req;
 
-      const { searchFields } = req;
-      const filter = await modelsService.searchFilter(searchFields, req.query);
-      let modelSearch = {
-        id: { [Op.gt]: 0 },
-      };
-      if (req.baseUrl.includes('/orders')) {
-        modelSearch = { orderId: +req.params.id };
-      }
       const neons = await Neon.findAndCountAll({
-        where: {
-          ...filter,
-          ...modelSearch,
-        },
+        ...searchParams,
         order,
         limit,
         offset,
-        // include: 'neons',
       });
       const response = getPaginationData(neons, current, pageSize, 'neons');
-      return res.json(response || []);
+      return res.json(response);
     } catch (e) {
       next(e);
     }
   }
 
   async update(req, res, next) {
-    try {
-      const { id } = req.params;
-      const updates = await modelsService.checkUpdates(neonsModelFields, req.body, req.updateFields);
+    const updateFields = ['width', 'length', 'color', 'type'];
 
-      const [, neon] = await Neon.update(updates, {
-        where: {
-          id: id,
-        },
-        individualHooks: true,
-      });
-      return res.status(200).json(neon);
+    try {
+      const { neon } = req;
+      const body = checkRepeatedValues(neon, req.body);
+
+      const updates = await modelsService.checkUpdates([Neon, neonsModelFields], body, updateFields);
+
+      await neon.update(updates);
+      return res.json(neon);
     } catch (e) {
       console.log(e);
       next(e);
@@ -89,12 +71,8 @@ class NeonsController {
 
   async delete(req, res, next) {
     try {
-      const { id } = req.params;
-      const deletedNeon = await Neon.destroy({
-        where: {
-          id,
-        },
-      });
+      const { neon } = req;
+      const deletedNeon = await neon.destroy();
       // console.log(deletedNeon);
       if (deletedNeon === 0) {
         console.log('Неон не удален');

@@ -11,8 +11,8 @@ const PERMISSIONS = {
   ['MOV']: true,
 };
 
-module.exports = function checkPermissions(requester) {
-  if (!PERMISSIONS[requester]) {
+module.exports = function checkPermissions(requesterRole) {
+  if (!PERMISSIONS[requesterRole]) {
     console.log(false, 'no acces');
     throw ApiError.Forbidden('Нет доступа');
   }

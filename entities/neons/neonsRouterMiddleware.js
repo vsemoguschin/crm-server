@@ -1,36 +1,22 @@
 const ApiError = require('../../error/apiError');
 const modelsService = require('../../services/modelsService');
 const { modelFields: neonsModelFields, Neon } = require('./neonsModel');
-const { Order } = require('../association');
+const { Op } = require('sequelize');
 
 const frontOptions = {
   modelFields: modelsService.getModelFields(neonsModelFields),
 };
 const permissions = ['ADMIN', 'G', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
-const updateFields = ['width', 'length', 'color', 'type'];
-const searchFields = ['width', 'color', 'type'];
 
 class NeonsRouterMiddleware {
   async create(req, res, next) {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
     try {
-      const requester = req.user.role;
+      const requesterRole = req.requester.role;
       //проверка на доступ к созданию
-      if (!permissions.includes(requester)) {
+      if (!permissions.includes(requesterRole)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
-      }
-      //проверка значения и наличия заказа
-      if (!req.params.id || isNaN(+req.params.id)) {
-        console.log(false, 'Забыл что то указать');
-        throw ApiError.BadRequest('Забыл что то указать');
-      }
-      const order = await Order.findOne({
-        where: { id: req.params.id },
-      });
-      if (!order) {
-        console.log(false, 'No order');
-        throw ApiError.BadRequest('No order');
       }
       const newNeon = await modelsService.checkFields([Neon, neonsModelFields], req.body);
       req.newNeon = newNeon;
@@ -41,49 +27,40 @@ class NeonsRouterMiddleware {
   }
   async getOne(req, res, next) {
     try {
-      const requester = req.user.role;
-      if (!permissions.includes(requester)) {
+      const requesterRole = req.requester.role;
+      if (!permissions.includes(requesterRole)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
+      const { id } = req.params;
+      const neon = await Neon.findOne({
+        where: {
+          id,
+        },
+      });
+      req.neon = neon;
       next();
     } catch (e) {
       next(e);
     }
   }
   async getList(req, res, next) {
+    const searchFields = ['width', 'color', 'type'];
     try {
-      const requester = req.user.role;
-      if (!permissions.includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
+      const searchFilter = await modelsService.searchFilter(searchFields, req.query);
+      let searchParams = {
+        where: {
+          id: { [Op.gt]: 0 },
+        },
+      };
+      if (req.baseUrl.includes('/orders')) {
+        const { order } = req;
+        searchParams = {
+          where: { orderId: order.id },
+        };
       }
-      req.searchFields = searchFields;
-      next();
-    } catch (e) {
-      next(e);
-    }
-  }
-  async update(req, res, next) {
-    try {
-      const requester = req.user.role;
-      if (!permissions.includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
-      req.updateFields = updateFields;
-      next();
-    } catch (e) {
-      next(e);
-    }
-  }
-  async delete(req, res, next) {
-    try {
-      const requester = req.user.role;
-      if (!permissions.includes(requester)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
+      req.searchParams = { ...searchParams, searchFilter };
+
       next();
     } catch (e) {
       next(e);
