@@ -63,7 +63,8 @@ class PaymentsRouterMiddleware {
         },
       };
       if (req.baseUrl.includes('/deals')) {
-        searchParams.where.userId = req.params.id;
+        const { deal } = req;
+        searchParams.where.dealId = deal.id;
       }
       req.searchParams = { ...searchParams, ...searchFilter };
       next();

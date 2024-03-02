@@ -58,15 +58,9 @@ class PaymentsController {
   }
 
   async update(req, res, next) {
-    const permissions = ['ADMIN', 'G', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
     const updateFields = ['title', 'price', 'date', 'method', 'description'];
 
     try {
-      const { requesterRole } = req.requester.role;
-      if (!permissions.includes(requesterRole)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
       const { payment } = req;
       const body = checkRepeatedValues(payment, req.body);
       const updates = await modelsService.checkUpdates([Payment, paymentsModelFields], body, updateFields);
@@ -80,14 +74,7 @@ class PaymentsController {
   }
 
   async delete(req, res, next) {
-    const permissions = ['ADMIN', 'G', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
-
     try {
-      const { requesterRole } = req.requester.role;
-      if (!permissions.includes(requesterRole)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
       const { payment } = req;
       const deletedPayment = await payment.destroy();
       // console.log(deletedPayment);

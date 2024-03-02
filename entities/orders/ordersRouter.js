@@ -20,7 +20,7 @@ router.delete('/:id', checkReqParamsIsNumber, ordersRouterMiddleware.getOne, ord
 router.post('/:id/neons', checkReqParamsIsNumber, ordersRouterMiddleware.getOne, neonsRouterMiddleware.create, neonsController.create);
 router.get('/:id/neons', checkReqParamsIsNumber, ordersRouterMiddleware.getOne, neonsRouterMiddleware.getList, neonsController.getList);
 
-router.patch('/:id/files', checkReqParamsIsNumber, ordersRouterMiddleware.getOne, filesRouterMiddleware.ordersImgs, filesController.create);
+router.post('/:id/files', checkReqParamsIsNumber, ordersRouterMiddleware.getOne, filesRouterMiddleware.ordersImgs, filesController.create);
 router.get('/:id/files', checkReqParamsIsNumber, ordersRouterMiddleware.getOne, filesRouterMiddleware.getList, filesController.getList);
 
 router.get('/:id/executors', checkReqParamsIsNumber, ordersRouterMiddleware.getOne, usersRouterMiddleware.getList, usersController.getList);

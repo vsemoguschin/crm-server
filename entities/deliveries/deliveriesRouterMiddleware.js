@@ -67,7 +67,7 @@ class DeliverysRouterMiddleware {
         searchParams.where = { dealId: +req.params.id };
         searchParams.include = ['orders'];
       }
-      req.searchFields = { ...searchParams, ...searchFilter };
+      req.searchParams = { ...searchParams, ...searchFilter };
       next();
     } catch (e) {
       next(e);

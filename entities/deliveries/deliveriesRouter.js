@@ -13,7 +13,7 @@ router.patch('/:id', checkReqParamsIsNumber, deliveriesRouterMiddleware.getOne, 
 router.delete('/:id', checkReqParamsIsNumber, deliveriesRouterMiddleware.getOne, deliveriesController.delete);
 
 //добавление заказов в доставку
-router.put(
+router.patch(
   '/:id/orders/:orderId',
   checkReqParamsIsNumber,
   deliveriesRouterMiddleware.getOne,
