@@ -56,13 +56,7 @@ class DopsController {
   }
 
   async update(req, res, next) {
-    const updateFields = ['title', 'price', 'type', 'description'];
     try {
-      const requesterRole = req.requester.role;
-      if (!['ADMIN', 'G', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'].includes(requesterRole)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
       const { dop } = req;
       const body = checkRepeatedValues(dop, req.body);
       const updates = await modelsService.checkUpdates([Dop, dopsModelFields], body, updateFields);
@@ -77,11 +71,6 @@ class DopsController {
 
   async delete(req, res, next) {
     try {
-      const requesterRole = req.requester.role;
-      if (!['ADMIN', 'G', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'].includes(requesterRole)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
       const { dop } = req;
       const deletedDop = await dop.destroy();
       // console.log(deletedDop);

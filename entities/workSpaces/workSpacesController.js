@@ -2,7 +2,7 @@ const { WorkSpace, modelFields: workSpacesModelFields } = require('./workSpacesM
 const modelsService = require('../../services/modelsService');
 const getPagination = require('../../utils/getPagination');
 const getPaginationData = require('../../utils/getPaginationData');
-const { Order, Deal, User, Role } = require('../association');
+const { User, Role } = require('../association');
 const { ROLES: rolesList } = require('../roles/rolesList');
 const ApiError = require('../../error/apiError');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
@@ -115,27 +115,11 @@ class WorkSpaceController {
   //добавить пользователя в пространство
   async addUsers(req, res, next) {
     try {
-      const { workSpace } = req;
+      const { workSpace, user } = req;
       const requesterRole = req.requester.role;
       if (!['ADMIN', 'G', 'KD', 'DP', 'DO', 'RP'].includes(requesterRole)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
-      }
-
-      const user = await User.findOne({
-        where: { id: req.params.userId },
-        include: [
-          {
-            model: Role,
-            where: {
-              shortName: rolesList[requesterRole].availableRoles,
-            },
-          },
-        ],
-      });
-      if (!user) {
-        console.log(false, 'No user');
-        throw ApiError.BadRequest('No user');
       }
       await workSpace.addMembers(user);
       return res.json(200);
@@ -146,33 +130,11 @@ class WorkSpaceController {
   //удалить пользователя из пространства
   async deleteUsers(req, res, next) {
     try {
-      const { workSpace } = req;
+      const { workSpace, user } = req;
       const requesterRole = req.requester.role;
       if (!['ADMIN', 'G', 'KD', 'DP', 'DO', 'RP'].includes(requesterRole)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
-      }
-
-      const user = await User.findOne({
-        where: { id: req.params.userId },
-        include: [
-          {
-            model: Role,
-            where: {
-              shortName: rolesList[requesterRole].availableRoles,
-            },
-          },
-          {
-            association: 'membership',
-            where: {
-              id: workSpace.id,
-            },
-          },
-        ],
-      });
-      if (!user) {
-        console.log(false, 'No user');
-        throw ApiError.BadRequest('No user');
       }
       await workSpace.removeMembers(user);
       return res.json(200);

@@ -13,6 +13,7 @@ const deliveriesController = require('../deliveries/deliveriesController');
 const usersController = require('../users/usersController');
 const usersRouterMiddleware = require('../users/usersRouterMiddleware');
 const stagesRouterMiddleware = require('../stages/stagesRouterMiddleware');
+const ordersRouterMiddleware = require('../orders/ordersRouterMiddleware');
 
 router.post('/', workSpacesRouterMiddleware.create, workSpacesController.create);
 router.get('/', workSpacesRouterMiddleware.getList, workSpacesController.getList);
@@ -21,8 +22,20 @@ router.patch('/:id', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, 
 router.delete('/:id', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, workSpacesController.delete);
 
 //добавление и получение пользователей внутри workSpace
-router.patch('/:id/users/:userId', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, workSpacesController.addUsers);
-router.delete('/:id/users/:userId', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, workSpacesController.deleteUsers);
+router.patch(
+  '/:id/users/:userId',
+  checkReqParamsIsNumber,
+  workSpacesRouterMiddleware.getOne,
+  usersRouterMiddleware.getOne,
+  workSpacesController.addUsers,
+);
+router.delete(
+  '/:id/users/:userId',
+  checkReqParamsIsNumber,
+  workSpacesRouterMiddleware.getOne,
+  usersRouterMiddleware.getOne,
+  workSpacesController.deleteUsers,
+);
 router.get('/:id/users', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, usersRouterMiddleware.getList, usersController.getList);
 
 //создание и получение клиентов в воркспейсе
@@ -32,8 +45,15 @@ router.get('/:id/clients/', checkReqParamsIsNumber, workSpacesRouterMiddleware.g
 //получение сделок воркспейса для коммерческого отдела
 router.get('/:id/deals', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, dealsRouterMiddleware.getList, dealsController.getList);
 
-//добавление и получение заказов внутри workSpace
-router.patch('/:id/orders/:orderId', checkReqParamsIsNumber, workSpacesRouterMiddleware.addOrders, ordersController.update);
+//добавление заказов в workSpace
+router.patch(
+  '/:id/orders/:orderId',
+  checkReqParamsIsNumber,
+  workSpacesRouterMiddleware.getOne,
+  ordersRouterMiddleware.getOne,
+  workSpacesRouterMiddleware.addOrders,
+  ordersController.update,
+);
 
 //доска заказов для PRODUCTION
 router.get(

@@ -114,23 +114,14 @@ class WorkSpacesRouterMiddleware {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      const workSpace = await WorkSpace.findOne({
-        where: {
-          id: req.params.id,
-          department: 'PRODUCTION',
-        },
-      });
-      const order = await Order.findOne({
-        where: {
-          id: +req.params.orderId,
-        },
-        include: 'deal',
-      });
-      if (!workSpace || !order) {
-        console.log(false, 'No workSpace or order');
-        throw ApiError.BadRequest('No workSpace or order');
+      const { workSpace, order } = req;
+      if (workSpace.department !== 'PRODUCTION') {
+        throw ApiError.BadRequest('wrong workspace');
       }
-
+      const deliveryWorkspace = order.delivery?.workSpaceId;
+      if (deliveryWorkspace !== workSpace.id) {
+        throw ApiError.BadRequest('Заказ в доставке другого пространства');
+      }
       req.params.id = req.params.orderId;
       req.order = order;
       req.body = { workSpaceId: workSpace.id, status: 'Доступен', stageId: 1 };
