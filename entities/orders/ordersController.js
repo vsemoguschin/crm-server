@@ -165,11 +165,11 @@ class OrdersController {
         offset,
         order,
       });
-      console.log(requesterRole, stage.id, status);
+      // console.log(requesterRole, stage.id, status);
       const response = getPaginationData(deals, current, pageSize, 'deals');
-      response.action = 'Переместить';
+      response.action = 'MOVE';
       if (permissions[requesterRole] == stage.id && status === 'Доступен') {
-        response.action = 'В работу';
+        response.action = 'TAKE';
       }
       return res.json(response);
     } catch (e) {

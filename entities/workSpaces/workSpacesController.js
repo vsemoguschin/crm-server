@@ -61,6 +61,7 @@ class WorkSpaceController {
               where: {
                 id: req.requester.id,
               },
+              attributes: [],
             },
           ],
           distinct: true,
