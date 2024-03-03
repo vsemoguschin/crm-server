@@ -10,6 +10,7 @@ const checkReqParamsIsNumber = require('../../checking/checkReqParamsIsNumber');
 const stagesRouterMiddleware = require('../stages/stagesRouterMiddleware');
 const usersRouterMiddleware = require('../users/usersRouterMiddleware');
 const usersController = require('../users/usersController');
+const workSpacesRouterMiddleware = require('../workSpaces/workSpacesRouterMiddleware');
 
 // router.post('/', ordersRouterMiddleware.create, ordersController.create); //создание заказа только внутри сделки
 router.get('/:id', ordersRouterMiddleware.getOne, ordersController.getOne);
@@ -22,6 +23,9 @@ router.get('/:id/neons', checkReqParamsIsNumber, ordersRouterMiddleware.getOne, 
 
 router.post('/:id/files', checkReqParamsIsNumber, ordersRouterMiddleware.getOne, filesRouterMiddleware.ordersImgs, filesController.create);
 router.get('/:id/files', checkReqParamsIsNumber, ordersRouterMiddleware.getOne, filesRouterMiddleware.getList, filesController.getList);
+
+//добавление заказов в workSpace
+router.patch('/:id/workspaces/:workSpaceId', checkReqParamsIsNumber, ordersRouterMiddleware.getOne, workSpacesRouterMiddleware.addOrders);
 
 router.get('/:id/executors', checkReqParamsIsNumber, ordersRouterMiddleware.getOne, usersRouterMiddleware.getList, usersController.getList);
 //добавление и удаление исполнителей из заказа

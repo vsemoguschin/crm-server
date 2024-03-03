@@ -28,7 +28,7 @@ class FilesRouterMiddleware {
       //проверка на доступ к созданию
       if (!['ADMIN', 'G', 'DP', 'RP', 'MASTER', 'PACKER'].includes(requesterRole)) {
         console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
+        throw ApiError.Forbidden('Нет достsddsdупа');
       }
       //проверка на file
       if (!req?.files?.file) {

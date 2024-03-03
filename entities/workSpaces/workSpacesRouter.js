@@ -45,16 +45,6 @@ router.get('/:id/clients/', checkReqParamsIsNumber, workSpacesRouterMiddleware.g
 //получение сделок воркспейса для коммерческого отдела
 router.get('/:id/deals', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, dealsRouterMiddleware.getList, dealsController.getList);
 
-//добавление заказов в workSpace
-router.patch(
-  '/:id/orders/:orderId',
-  checkReqParamsIsNumber,
-  workSpacesRouterMiddleware.getOne,
-  ordersRouterMiddleware.getOne,
-  workSpacesRouterMiddleware.addOrders,
-  ordersController.update,
-);
-
 //доска заказов для PRODUCTION
 router.get(
   '/:id/stage/:stageId',
