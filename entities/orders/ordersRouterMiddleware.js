@@ -28,6 +28,7 @@ class OrdersRouterMiddleware {
   }
   async getOne(req, res, next) {
     try {
+      // return console.log(req.baseUrl, req.params);
       const { id, orderId } = req.params;
       const order = await Order.findOne({
         where: {

@@ -155,7 +155,14 @@ class OrdersController {
               stageId: stage.id,
               status: status,
             },
-            include: ['neons', 'executors', 'files'],
+            include: [
+              'neons',
+              {
+                association: 'executors',
+                include: ['role'],
+              },
+              'files',
+            ],
             // attributes: ['status'],
           },
           'files',

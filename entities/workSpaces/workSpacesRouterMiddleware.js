@@ -37,41 +37,33 @@ class WorkSpacesRouterMiddleware {
   async getOne(req, res, next) {
     try {
       const requesterRole = req.requester.role;
-      const departmentFilter = rolesList[requesterRole].department;
-      let workSpace;
-      if (requesterRole == 'ADMIN' || requesterRole == 'G') {
-        workSpace = await WorkSpace.findOne({
-          where: {
-            id: req.params.id,
-          },
-          include: [
-            {
-              association: 'members',
-            },
-            'creator',
-          ],
-        });
-      } else {
-        workSpace = await WorkSpace.findOne({
-          where: {
-            id: req.params.id,
-            department: departmentFilter,
-          },
-          attributes: ['title', 'id', 'department'],
-          include: {
+      let { id, workSpaceId } = req.params;
+      id = workSpaceId || id;
+      const searchParams = {
+        where: {
+          id: id,
+        },
+        include: [
+          {
             association: 'members',
-            where: {
-              id: req.requester.id,
-            },
-            attributes: ['fullName'],
           },
-        });
+          'creator',
+        ],
+      };
+      if (requesterRole !== 'ADMIN' || requesterRole !== 'G') {
+        searchParams.where.department = rolesList[requesterRole].department;
+        searchParams.include = [
+          {
+            association: 'members',
+            where: { id: req.requester.id },
+          },
+        ];
       }
+      const workSpace = await WorkSpace.findOne(searchParams);
       if (!workSpace) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      // delete workSpace.dataValues.members;
       req.workSpace = workSpace;
       next();
     } catch (e) {
@@ -114,19 +106,24 @@ class WorkSpacesRouterMiddleware {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      const { workSpace, order } = req;
-      if (workSpace.department !== 'PRODUCTION') {
-        throw ApiError.BadRequest('wrong workspace');
+      const workSpace = await WorkSpace.findOne({
+        where: {
+          id: req.params.workSpaceId,
+          department: 'PRODUCTION',
+        },
+      });
+      const { order } = req;
+      console.log(order.workSpaceId, workSpace);
+      if (!workSpace) {
+        throw ApiError.BadRequest('no workspace');
       }
       const deliveryWorkspace = order.delivery?.workSpaceId;
       if (deliveryWorkspace !== workSpace.id) {
         throw ApiError.BadRequest('Заказ в доставке другого пространства');
       }
-      req.params.id = req.params.orderId;
-      req.order = order;
-      req.body = { workSpaceId: workSpace.id, status: 'Доступен', stageId: 1 };
+      await order.update({ workSpaceId: workSpace.id, status: 'Доступен', stageId: 1 });
 
-      next();
+      return res.status(200).json(200);
     } catch (e) {
       next(e);
     }
