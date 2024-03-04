@@ -14,7 +14,7 @@ const PERMISSIONS = {
   ['DP']: true,
   ['RP']: true,
   access: {
-    ['ADMIN']: ['KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV', 'DP', 'RP', 'FRZ', 'MASTER', 'PACKER'],
+    ['ADMIN']: ['KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV', 'DP', 'RP', 'FRZ', 'LAM', 'MASTER', 'PACKER'],
     ['G']: ['KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV', 'DP', 'RP', 'FRZ', 'MASTER', 'PACKER'],
     ['KD']: ['DO', 'ROP', 'MOP', 'ROV', 'MOV'],
     //commercial
@@ -30,14 +30,7 @@ class UsersRouterMiddleware {
   async create(req, res, next) {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
     try {
-      const requesterRole = req.requester.role;
       const req_role = req.body.role; //переданная роль
-      const access = PERMISSIONS.access[requesterRole];
-      const roles_access = access.includes(req_role);
-      if (!access || !roles_access) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
       const userRole = await Role.findOne({
         where: { shortName: req_role },
       });
@@ -59,22 +52,21 @@ class UsersRouterMiddleware {
       const rolesFilter = PERMISSIONS.access[requesterRole];
       let { id, userId } = req.params;
       id = userId || id;
-      let where = {};
-      console.log(rolesFilter, req.requester.id);
-      if (!rolesFilter && id === req.requester.id) {
-        where = {
-          id: id,
-        };
+      if (id === req.requester.id) {
+        req.user = await User.findOne({
+          include: ['role', 'membership', 'avatar'],
+          where: {
+            id: id,
+          },
+        });
+        return next();
       }
-      if (rolesList) {
-        where = { id: id, '$role.shortName$': rolesFilter };
-      } else {
+      if (!rolesFilter) {
         throw ApiError.Forbidden('Нет доступа');
       }
-      console.log(where);
       const user = await User.findOne({
         include: ['role', 'membership', 'avatar'],
-        where,
+        where: { id: id, '$role.shortName$': rolesFilter },
       });
       if (!user) {
         return res.status(404).json('user not found');

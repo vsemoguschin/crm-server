@@ -174,9 +174,11 @@ class OrdersController {
       });
       // console.log(requesterRole, stage.id, status);
       const response = getPaginationData(deals, current, pageSize, 'deals');
-      response.action = 'MOVE';
       if (permissions[requesterRole] == stage.id && status === 'Доступен') {
         response.action = 'TAKE';
+      }
+      if (['ADMIN', 'G', 'DP', 'RP'].includes(requesterRole)) {
+        response.action = 'MOVE';
       }
       return res.json(response);
     } catch (e) {

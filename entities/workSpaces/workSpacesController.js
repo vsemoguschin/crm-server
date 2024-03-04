@@ -48,6 +48,7 @@ class WorkSpaceController {
       const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
       let workSpaces;
+      console.log(requesterRole);
       if (rolesList[requesterRole].department == 'administration') {
         workSpaces = await WorkSpace.findAndCountAll({
           ...filter,
@@ -122,6 +123,7 @@ class WorkSpaceController {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
+      console.log(user);
       await workSpace.addMembers(user);
       return res.json(200);
     } catch (e) {

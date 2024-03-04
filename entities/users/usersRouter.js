@@ -11,10 +11,65 @@ const ordersRouterMiddleware = require('../orders/ordersRouterMiddleware');
 const ordersController = require('../orders/ordersController');
 const dopsRouterMiddleware = require('../dops/dopsRouterMiddleware');
 const dopsController = require('../dops/dopsController');
+const ApiError = require('../../error/apiError');
 
-router.post('/', usersRouterMiddleware.create, usersController.create);
+const allowed = {
+  ['ADMIN']: ['KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV', 'DP', 'RP', 'FRZ', 'LAM', 'MASTER', 'PACKER'],
+  ['G']: ['KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV', 'DP', 'RP', 'FRZ', 'MASTER', 'PACKER'],
+  ['KD']: ['DO', 'ROP', 'MOP', 'ROV', 'MOV'],
+  //commercial
+  ['DO']: ['ROP', 'MOP', 'ROV', 'MOV'],
+  ['ROP']: ['MOP'],
+  //production
+  ['DP']: ['RP', 'FRZ', 'MASTER', 'PACKER'],
+  ['RP']: ['FRZ', 'MASTER', 'PACKER'],
+};
+const PERMISSIONS = {
+  create(req, res, next) {
+    try {
+      const requesterRole = req.requester.role;
+      const req_role = req.body.role; //переданная роль
+      if (!req_role) {
+        console.log(false, 'no role');
+        throw ApiError.BadRequest('Нет роли', 'role');
+      }
+      if (!allowed[requesterRole] || !allowed[requesterRole].includes(req_role)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      next();
+    } catch (e) {
+      next(e);
+    }
+  },
+  get(req, res, next) {
+    try {
+      const requesterRole = req.requester.role;
+      const rolesFilter = allowed[requesterRole];
+      let { id, userId } = req.params;
+      id = userId || id;
+      if (id === req.requester.id) {
+        req.searchParams = {
+          where: {
+            id: id,
+          },
+        };
+        return next();
+      }
+      if (!rolesFilter) {
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      req.searchParams = { where: { id: id, '$role.shortName$': rolesFilter } };
+      next();
+    } catch (e) {
+      next(e);
+    }
+  },
+};
+
+router.post('/', PERMISSIONS.create, usersRouterMiddleware.create, usersController.create);
 router.get('/:id', checkReqParamsIsNumber, usersRouterMiddleware.getOne, usersController.getOne);
-router.get('/', usersRouterMiddleware.getList, usersController.getList);
+router.get('/', PERMISSIONS.get, usersRouterMiddleware.getList, usersController.getList);
 router.patch('/:id', checkReqParamsIsNumber, usersRouterMiddleware.getOne, usersRouterMiddleware.update, usersController.update);
 router.delete('/:id', checkReqParamsIsNumber, usersRouterMiddleware.getOne, usersRouterMiddleware.delete, usersController.delete);
 
