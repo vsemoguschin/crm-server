@@ -19,6 +19,10 @@ class WorkSpacesRouterMiddleware {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
     try {
       const requesterRole = req.requester.role;
+      if (!['ADMIN', 'G', 'KD', 'DP'].includes(requesterRole)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
       if (requesterRole !== 'ADMIN' && requesterRole !== 'G') {
         req.body.department = rolesList[requesterRole].department;
       }
@@ -50,7 +54,7 @@ class WorkSpacesRouterMiddleware {
           'creator',
         ],
       };
-      if (requesterRole !== 'ADMIN' || requesterRole !== 'G') {
+      if (requesterRole !== 'ADMIN' && requesterRole !== 'G') {
         searchParams.where.department = rolesList[requesterRole].department;
         searchParams.include = [
           {
@@ -113,7 +117,6 @@ class WorkSpacesRouterMiddleware {
         },
       });
       const { order } = req;
-      console.log(order.workSpaceId, workSpace);
       if (!workSpace) {
         throw ApiError.BadRequest('no workspace');
       }

@@ -25,8 +25,8 @@ router.delete('/:id', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne,
 router.patch(
   '/:id/users/:userId',
   checkReqParamsIsNumber,
-  workSpacesRouterMiddleware.getOne,
   usersRouterMiddleware.getOne,
+  workSpacesRouterMiddleware.getOne,
   workSpacesController.addUsers,
 );
 router.delete(
@@ -47,7 +47,7 @@ router.get('/:id/deals', checkReqParamsIsNumber, workSpacesRouterMiddleware.getO
 
 //доска заказов для PRODUCTION
 router.get(
-  '/:id/stage/:stageId',
+  '/:id/stages/:stageId',
   checkReqParamsIsNumber,
   workSpacesRouterMiddleware.getOne,
   stagesRouterMiddleware.getOne,
