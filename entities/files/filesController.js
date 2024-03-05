@@ -8,6 +8,7 @@ class FilesController {
     try {
       const { deal, order } = req;
       const fileDatas = await diskService.uploadFile(req.files.file);
+      fileDatas.userId = req.requester.id;
       let file;
       if (req.baseUrl.includes('/deals')) {
         file = await deal.createFile(fileDatas);

@@ -37,8 +37,8 @@ User.hasMany(Neon);
 Neon.belongsTo(User);
 
 User.hasMany(Order);
-Order.belongsToMany(User, { through: 'ordersExecutors', as: 'executors', foreignKey: 'userId' });
-User.belongsToMany(Order, { through: 'ordersExecutors', as: 'work', foreignKey: 'orderId' });
+Order.belongsToMany(User, { through: 'ordersExecutors', as: 'executors', foreignKey: 'orderId' });
+User.belongsToMany(Order, { through: 'ordersExecutors', as: 'work', foreignKey: 'userId' });
 
 User.hasMany(File);
 File.belongsTo(User);
@@ -86,8 +86,8 @@ Order.belongsTo(Stage);
 
 //Рабочие пространства
 // User.hasMany(WorkSpace);
-WorkSpace.belongsToMany(User, { through: 'WorkSpaceMembers', as: 'members', foreignKey: 'userId' });
-User.belongsToMany(WorkSpace, { through: 'WorkSpaceMembers', as: 'membership', foreignKey: 'workSpaceId' });
+WorkSpace.belongsToMany(User, { through: 'WorkSpaceMembers', as: 'members', foreignKey: 'workSpaceId' });
+User.belongsToMany(WorkSpace, { through: 'WorkSpaceMembers', as: 'membership', foreignKey: 'userId' });
 WorkSpace.belongsTo(User, { as: 'creator' });
 
 WorkSpace.hasMany(Order); //для производства
