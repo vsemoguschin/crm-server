@@ -104,9 +104,10 @@ class OrdersRouterMiddleware {
       ['PACKER']: [4],
     };
     try {
-      const { requesterRole } = req.requester.role;
+      const requesterRole = req.requester.role;
       const { stage, order } = req;
       const updates = { status: 'Доступен' };
+      console.log(stageAccess[requesterRole]);
       if (!stageAccess[requesterRole].includes(order.stageId)) {
         throw ApiError.Forbidden('Нет доступа');
       }
@@ -172,13 +173,14 @@ class OrdersRouterMiddleware {
 
       // return res.json({workSpace.orders[0].executors, workSpace.members});
       if (!workSpace) {
-        console.log(false, 'no acces');
-        throw ApiError.BadRequest('no acces');
+        console.log(false, 'no access');
+        throw ApiError.BadRequest('no access');
       }
       if (order.executors.find((executor) => executor.role.shortName === candidat.role.shortName)) {
         throw ApiError.BadRequest('Уже назначен исполнитель с такой ролью');
       }
-      await order.addExecutors(candidat);
+      // return console.log(workSpace.members[0]);
+      await order.addExecutors(workSpace.members[0]);
       await order.update({ status: 'В работе' });
       return res.status(200).json(200);
     } catch (e) {
@@ -227,8 +229,8 @@ class OrdersRouterMiddleware {
       }
 
       await order.removeExecutors(candidat);
-      req.updates = { status: 'Доступный' };
-      next();
+      await order.update({ status: 'Доступен' });
+      return res.status(200).json(200);
     } catch (e) {
       next(e);
     }
