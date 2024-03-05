@@ -23,7 +23,7 @@ router.use(
   AuthMiddleware, //проверка авторизации
 );
 router.use('/users', usersRouter);
-router.use('/workSpaces', workSpacesRouter);
+router.use('/workspaces', workSpacesRouter);
 router.use('/clients', clientsRouter);
 router.use('/dops', dopsRouter);
 router.use('/deals', dealsRouter);

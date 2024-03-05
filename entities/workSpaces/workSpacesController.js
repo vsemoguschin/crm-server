@@ -123,7 +123,10 @@ class WorkSpaceController {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
-      console.log(user);
+      if (workSpace.department !== user.role.department) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
       await workSpace.addMembers(user);
       return res.json(200);
     } catch (e) {

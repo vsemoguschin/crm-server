@@ -93,16 +93,39 @@ class OrdersRouterMiddleware {
     }
   }
   async changeStage(req, res, next) {
+    const stageAccess = {
+      ['ADMIN']: [1, 2, 3, 4, 5],
+      ['G']: [1, 2, 3, 4, 5],
+      ['DP']: [1, 2, 3, 4, 5],
+      ['RP']: [1, 2, 3, 4, 5],
+      ['FRZ']: [1],
+      ['LAM']: [2],
+      ['MASTER']: [3],
+      ['PACKER']: [4],
+    };
     try {
-      const { stage, order, stageAccess } = req;
-      if (!stageAccess.includes(stage.id)) {
-        console.log(false, 'no acces');
+      const { requesterRole } = req.requester.role;
+      const { stage, order } = req;
+      const updates = { status: 'Доступен' };
+      if (!stageAccess[requesterRole].includes(order.stageId)) {
         throw ApiError.Forbidden('Нет доступа');
       }
-      if (stage.id === order.stageId) {
+      if (!order.executors.find((user) => user.id === req.requester.id) && !['ADMIN', 'G', 'DP', 'RP'].includes(requesterRole)) {
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      if (['ADMIN', 'G', 'DP', 'RP'].includes(requesterRole)) {
+        updates.stageId = stage.id;
+      }
+      if (['FRZ', 'LAM', 'MASTER', 'PACKER'].includes(requesterRole)) {
+        updates.stageId = order.stageId + 1;
+      }
+      if (updates.stageId == 2 && order.laminate !== '') {
+        updates.stageId = 3;
+      }
+      if (updates.stageId === order.stageId) {
         throw ApiError.BadRequest('у заказа уже этот стейдж');
       }
-      await order.update({ stageId: stage.id, status: 'Доступен' });
+      await order.update(updates);
       return res.status(200).json(200);
     } catch (e) {
       next(e);

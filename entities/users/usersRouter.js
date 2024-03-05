@@ -42,34 +42,11 @@ const PERMISSIONS = {
       next(e);
     }
   },
-  get(req, res, next) {
-    try {
-      const requesterRole = req.requester.role;
-      const rolesFilter = allowed[requesterRole];
-      let { id, userId } = req.params;
-      id = userId || id;
-      if (id === req.requester.id) {
-        req.searchParams = {
-          where: {
-            id: id,
-          },
-        };
-        return next();
-      }
-      if (!rolesFilter) {
-        throw ApiError.Forbidden('Нет доступа');
-      }
-      req.searchParams = { where: { id: id, '$role.shortName$': rolesFilter } };
-      next();
-    } catch (e) {
-      next(e);
-    }
-  },
 };
 
 router.post('/', PERMISSIONS.create, usersRouterMiddleware.create, usersController.create);
 router.get('/:id', checkReqParamsIsNumber, usersRouterMiddleware.getOne, usersController.getOne);
-router.get('/', PERMISSIONS.get, usersRouterMiddleware.getList, usersController.getList);
+router.get('/', usersRouterMiddleware.getList, usersController.getList);
 router.patch('/:id', checkReqParamsIsNumber, usersRouterMiddleware.getOne, usersRouterMiddleware.update, usersController.update);
 router.delete('/:id', checkReqParamsIsNumber, usersRouterMiddleware.getOne, usersRouterMiddleware.delete, usersController.delete);
 

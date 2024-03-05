@@ -13,7 +13,6 @@ const deliveriesController = require('../deliveries/deliveriesController');
 const usersController = require('../users/usersController');
 const usersRouterMiddleware = require('../users/usersRouterMiddleware');
 const stagesRouterMiddleware = require('../stages/stagesRouterMiddleware');
-const ordersRouterMiddleware = require('../orders/ordersRouterMiddleware');
 
 router.post('/', workSpacesRouterMiddleware.create, workSpacesController.create);
 router.get('/', workSpacesRouterMiddleware.getList, workSpacesController.getList);
