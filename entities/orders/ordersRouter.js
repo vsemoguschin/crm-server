@@ -41,7 +41,6 @@ router.delete(
   checkReqParamsIsNumber,
   ordersRouterMiddleware.getOne,
   ordersRouterMiddleware.removeExecutor,
-  ordersController.update,
 );
 
 //перемещение заказа по стадиям
