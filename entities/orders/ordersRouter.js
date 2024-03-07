@@ -48,7 +48,7 @@ router.patch(
   '/:id/stages/:stageId',
   checkReqParamsIsNumber,
   ordersRouterMiddleware.getOne,
-  stagesRouterMiddleware.getOne,
+  // stagesRouterMiddleware.getOne,
   ordersRouterMiddleware.changeStage,
 );
 

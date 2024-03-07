@@ -107,7 +107,7 @@ class OrdersRouterMiddleware {
       const requesterRole = req.requester.role;
       const { stage, order } = req;
       const updates = { status: 'Доступен' };
-      console.log(stageAccess[requesterRole]);
+      console.log(order.stageId);
       if (!stageAccess[requesterRole].includes(order.stageId)) {
         throw ApiError.Forbidden('Нет доступа');
       }
