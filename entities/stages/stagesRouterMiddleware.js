@@ -16,14 +16,15 @@ class StagesRouterMiddleware {
   async getOne(req, res, next) {
     try {
       const requesterRole = req.requester.role;
-      const { id, stageId } = req.params;
-      if (!stageAccess[requesterRole]?.includes(stageId)) {
+      let { id, stageId } = req.params;
+      id = stageId || id;
+      if (!stageAccess[requesterRole].includes(id)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
       const stage = await Stage.findOne({
         where: {
-          id: stageId || id,
+          id: id,
         },
       });
       if (!stage) {
