@@ -59,9 +59,18 @@ class DeliveriesController {
     try {
       const { delivery } = req;
       const body = checkRepeatedValues(delivery, req.body);
-      let updates = await modelsService.checkUpdates([Delivery, deliveryModelFields], body, updateFields);
-
+      const updates = await modelsService.checkUpdates([Delivery, deliveryModelFields], body, updateFields);
       await delivery.update(updates);
+      return res.json(delivery);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async sent(req, res, next) {
+    try {
+      const { delivery } = req;
+
+      await delivery.update({ status: 'Отправлена' });
       return res.json(delivery);
     } catch (e) {
       next(e);

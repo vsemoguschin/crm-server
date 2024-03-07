@@ -123,6 +123,9 @@ class OrdersRouterMiddleware {
       if (updates.stageId == 2 && order.laminate !== '') {
         updates.stageId = 3;
       }
+      if (updates.stageId === 5) {
+        updates.status = 'Выполнен';
+      }
       if (updates.stageId === order.stageId) {
         throw ApiError.BadRequest('у заказа уже этот стейдж');
       }
