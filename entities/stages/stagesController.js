@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const { Stage } = require('./stagesModel');
 
 class StageController {
@@ -11,7 +12,10 @@ class StageController {
   }
   async getList(req, res, next) {
     try {
-      const { filter, requester } = req;
+      let { filter } = req;
+      if (!filter) {
+        filter = { id: { [Op.gt]: 0 } };
+      }
       const stages = await Stage.findAll({
         where: filter,
       });

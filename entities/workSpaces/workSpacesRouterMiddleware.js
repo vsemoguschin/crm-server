@@ -120,9 +120,11 @@ class WorkSpacesRouterMiddleware {
       if (!workSpace) {
         throw ApiError.BadRequest('no workspace');
       }
-      const deliveryWorkspace = order.delivery?.workSpaceId;
-      if (deliveryWorkspace !== workSpace.id) {
-        throw ApiError.BadRequest('Заказ в доставке другого пространства');
+      if (order.delivery) {
+        const deliveryWorkspace = order.delivery.workSpaceId;
+        if (deliveryWorkspace !== workSpace.id) {
+          throw ApiError.BadRequest('Заказ в доставке другого пространства');
+        }
       }
       await order.update({ workSpaceId: workSpace.id, status: 'Доступен', stageId: 1 });
 
