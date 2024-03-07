@@ -44,6 +44,7 @@ class DealsController {
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
       const { searchParams } = req;
+      console.log(searchParams);
 
       const deals = await Deal.findAndCountAll({
         ...searchParams,
