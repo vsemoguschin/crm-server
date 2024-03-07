@@ -52,6 +52,10 @@ class WorkSpaceController {
       if (rolesList[requesterRole].department == 'administration') {
         workSpaces = await WorkSpace.findAndCountAll({
           ...filter,
+          distinct: true,
+          limit,
+          offset,
+          order,
         });
       } else {
         workSpaces = await WorkSpace.findAndCountAll({
@@ -71,6 +75,34 @@ class WorkSpaceController {
           order,
         });
       }
+      const response = getPaginationData(workSpaces, current, pageSize, 'workSpaces');
+      // response.createdFields = modelsService.getModelFields(workSpacesModelFields);
+      return res.json(response);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async prod(req, res, next) {
+    const {
+      pageSize,
+      current,
+      key, //?
+      order: queryOrder,
+    } = req.query;
+    try {
+      checkReqQueriesIsNumber({ pageSize, current });
+      const { limit, offset } = getPagination(current, pageSize);
+      const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
+
+      const workSpaces = await WorkSpace.findAndCountAll({
+        where: {
+          department: 'PRODUCTION',
+        },
+        limit,
+        offset,
+        order,
+      });
+
       const response = getPaginationData(workSpaces, current, pageSize, 'workSpaces');
       // response.createdFields = modelsService.getModelFields(workSpacesModelFields);
       return res.json(response);
