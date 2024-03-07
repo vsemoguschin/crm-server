@@ -69,6 +69,7 @@ class DealsRouterMiddleware {
       const searchParams = {
         where: {
           id: { [Op.gt]: 0 },
+          ...searchFilter,
         },
         // attributes: ['id', 'title', 'price', 'clothingMethod', 'deadline', 'status', 'createdAt'],
       };
@@ -94,7 +95,7 @@ class DealsRouterMiddleware {
           'files',
         ];
       }
-      req.searchParams = { ...searchParams, ...searchFilter };
+      req.searchParams = searchParams;
       next();
     } catch (e) {
       next(e);
