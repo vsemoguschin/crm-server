@@ -1,7 +1,7 @@
 const ApiError = require('../../error/apiError');
 const { modelFields: workSpacesModelFields, WorkSpace } = require('./workSpacesModel');
 const modelsService = require('../../services/modelsService');
-const { Order } = require('../association');
+const { Order, Deal } = require('../association');
 const { ROLES: rolesList } = require('../roles/rolesList');
 const { Op } = require('sequelize');
 
@@ -127,7 +127,7 @@ class WorkSpacesRouterMiddleware {
         }
       }
       await order.update({ workSpaceId: workSpace.id, status: 'Доступен', stageId: 1 });
-
+      await Deal.update({ status: 'process' }, { where: { id: order.dealId } });
       return res.status(200).json(200);
     } catch (e) {
       next(e);
