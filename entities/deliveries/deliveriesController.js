@@ -76,6 +76,16 @@ class DeliveriesController {
       next(e);
     }
   }
+  async ready(req, res, next) {
+    try {
+      const { delivery } = req;
+
+      await delivery.update({ status: 'Доступна' });
+      return res.json(delivery);
+    } catch (e) {
+      next(e);
+    }
+  }
 
   async delete(req, res, next) {
     try {
