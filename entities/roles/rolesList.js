@@ -35,12 +35,12 @@ const ROLES = {
   //ведение(лтв)
   ['ROV']: {
     fullName: 'Руководитель отдела ведения',
-    department: 'LTV',
+    department: 'COMMERCIAL',
     availableRoles: ['MOV'],
   },
   ['MOV']: {
     fullName: 'Менеджер отдела ведения',
-    department: 'LTV',
+    department: 'COMMERCIAL',
     availableRoles: [],
   },
   //дизайнеры
