@@ -91,6 +91,7 @@ class DealsRouterMiddleware {
             model: Order,
             include: ['stage', 'files'],
           },
+          'files',
         ];
       }
       req.searchParams = { ...searchParams, ...searchFilter };
