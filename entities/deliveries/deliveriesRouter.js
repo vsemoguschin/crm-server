@@ -12,6 +12,8 @@ router.get('/', deliveriesRouterMiddleware.getList, deliveriesController.getList
 router.patch('/:id', checkReqParamsIsNumber, deliveriesRouterMiddleware.getOne, deliveriesController.update);
 router.delete('/:id', checkReqParamsIsNumber, deliveriesRouterMiddleware.getOne, deliveriesController.delete);
 
+router.patch('/:id/sent', checkReqParamsIsNumber, deliveriesRouterMiddleware.getOne, deliveriesController.sent);
+
 //добавление заказов в доставку
 router.patch(
   '/:id/orders/:orderId',

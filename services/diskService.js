@@ -81,6 +81,25 @@ class DiskService {
       throw ApiError.BadRequest('Ошибка удаления файла с диска');
     }
   }
+  async downloadFile(req, res) {
+    try {
+      const {
+        data: { href },
+      } = await axios.get('https://cloud-api.yandex.net/v1/disk/resources/download', {
+        params: {
+          path: '/EasyCRM/' + req.fileName,
+          permanently: 'true',
+        },
+        headers: {
+          Accept: 'application/json',
+          Authorization: 'OAuth ' + YaToken,
+        },
+      });
+      res.json({ href });
+    } catch (e) {
+      throw ApiError.BadRequest('Ошибка удаления файла с диска');
+    }
+  }
 }
 
 module.exports = new DiskService();

@@ -44,6 +44,22 @@ class FilesRouterMiddleware {
       next(e);
     }
   }
+  async getOne(req, res, next) {
+    try {
+      const requesterRole = req.requester.role;
+      if (!permissions.includes(requesterRole)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
+      const file = await File.findOne({
+        where: { id: req.params.id },
+      });
+      if (!file) return res.status(404);
+      req.fileName = `${file.type}/${file.ya_name}`;
+    } catch (e) {
+      next(e);
+    }
+  }
   async getList(req, res, next) {
     try {
       const requesterRole = req.requester.role;
