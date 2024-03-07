@@ -120,7 +120,7 @@ class OrdersRouterMiddleware {
       if (['FRZ', 'LAM', 'MASTER', 'PACKER'].includes(requesterRole)) {
         updates.stageId = order.stageId + 1;
       }
-      if (updates.stageId == 2 && order.laminate !== '') {
+      if (updates.stageId == 2 && order.laminate == '') {
         updates.stageId = 3;
       }
       if (updates.stageId === 5) {

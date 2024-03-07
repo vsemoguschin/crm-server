@@ -79,19 +79,6 @@ class OrdersController {
         const body = checkRepeatedValues(order, req.body);
         updates = await modelsService.checkUpdates([Order, ordersModelFields], body, updateFields);
       }
-      if (req.baseUrl.includes('/workspaces')) {
-        updates = req.body;
-        await Deal.update(
-          {
-            status: 'process',
-          },
-          {
-            where: {
-              id: order.dealId,
-            },
-          },
-        );
-      }
       await order.update(updates);
       return res.json(order);
     } catch (e) {
