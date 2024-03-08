@@ -74,10 +74,11 @@ class DeliveriesController {
       if (delivery.status !== 'Доступна') {
         throw ApiError.BadRequest('Доставка не доступна');
       }
+      console.log(delivery.method);
       if (['СДЕК', 'ПОЧТА', 'Курьер', 'Балтийский курьер'].includes(delivery.method) && !track) {
         throw ApiError.BadRequest('Необходимо указать трек');
       }
-      if (!price) {
+      if (!price && delivery.method !== 'Самовывоз') {
         throw ApiError.BadRequest('Необходимо указать стоимость доставки');
       }
       const updates = await modelsService.checkUpdates([Delivery, deliveryModelFields], req.body, ['track', 'price']);
