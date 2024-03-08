@@ -256,7 +256,7 @@ class Presets {
         stageId: 1,
       };
       const deliveryBlank = {
-        method: 'Сдек',
+        method: 'СДЕК',
         type: 'Платно',
         description: 'address',
         city: 'MSC',

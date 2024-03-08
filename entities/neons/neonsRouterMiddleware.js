@@ -51,15 +51,17 @@ class NeonsRouterMiddleware {
       let searchParams = {
         where: {
           id: { [Op.gt]: 0 },
+          ...searchFilter,
         },
       };
       if (req.baseUrl.includes('/orders')) {
         const { order } = req;
         searchParams = {
           where: { orderId: order.id },
+          ...searchFilter,
         };
       }
-      req.searchParams = { ...searchParams, searchFilter };
+      req.searchParams = searchParams;
 
       next();
     } catch (e) {

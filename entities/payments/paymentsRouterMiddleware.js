@@ -60,13 +60,14 @@ class PaymentsRouterMiddleware {
       const searchParams = {
         where: {
           id: { [Op.gt]: 0 },
+          ...searchFilter,
         },
       };
       if (req.baseUrl.includes('/deals')) {
         const { deal } = req;
         searchParams.where.dealId = deal.id;
       }
-      req.searchParams = { ...searchParams, ...searchFilter };
+      req.searchParams = searchParams;
       next();
     } catch (e) {
       next(e);

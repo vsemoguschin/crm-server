@@ -61,6 +61,7 @@ class ClientsRouterMiddleware {
       let searchParams = {
         where: {
           id: { [Op.gt]: 2 },
+          ...searchFilter,
         },
       };
       if (req.baseUrl.includes('/workspaces')) {
@@ -69,6 +70,7 @@ class ClientsRouterMiddleware {
           where: {
             id: { [Op.gt]: 2 },
             workSpaceId: workSpace.id,
+            ...searchFilter,
           },
         };
       }
@@ -80,10 +82,11 @@ class ClientsRouterMiddleware {
             id: { [Op.gt]: 2 },
             userId: req.params.id,
             workSpaceId: workSpaceId || { [Op.gt]: 0 },
+            ...searchFilter,
           },
         };
       }
-      req.searchParams = { ...searchParams, ...searchFilter };
+      req.searchParams = searchParams;
       next();
     } catch (e) {
       next(e);

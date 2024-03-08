@@ -15,7 +15,7 @@ const modelFields = {
   // region: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Регион' },
   //ниже поля заполняются на производстве, не выводить при созданиии
   price: { type: DataTypes.INTEGER, defaultValue: 0, fieldType: 'number', fullName: 'Стоимость доставки' },
-  track: { type: DataTypes.INTEGER, defaultValue: 0, fieldType: 'number', fullName: 'Трек-номер' },
+  track: { type: DataTypes.STRING, defaultValue: 0, fieldType: 'number', fullName: 'Трек-номер' },
   // readyToSend: { type: DataTypes.BOOLEAN, defaultValue: false, fieldType: 'boolean', fullName: 'Отправить по готовности' },
   status: { type: DataTypes.STRING, defaultValue: statuses[0], validateFields: statuses, fieldType: 'string' },
 };

@@ -5,6 +5,7 @@ const getPagination = require('../../utils/getPagination');
 const { Order, Client, Deal } = require('../association');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
 const checkRepeatedValues = require('../../checking/checkRepeatedValues');
+const ApiError = require('../../error/apiError');
 
 class DeliveriesController {
   async create(req, res, next) {
@@ -69,8 +70,18 @@ class DeliveriesController {
   async sent(req, res, next) {
     try {
       const { delivery } = req;
-
-      await delivery.update({ status: 'Отправлена' });
+      const { track, price } = req.body;
+      if (delivery.status !== 'Доступна') {
+        throw ApiError.BadRequest('Доставка не доступна');
+      }
+      if (['СДЕК', 'ПОЧТА', 'Курьер', 'Балтийский курьер'].includes(delivery.method) && !track) {
+        throw ApiError.BadRequest('Необходимо указать трек');
+      }
+      if (!price) {
+        throw ApiError.BadRequest('Необходимо указать стоимость доставки');
+      }
+      const updates = await modelsService.checkUpdates([Delivery, deliveryModelFields], req.body, ['track', 'price']);
+      await delivery.update({ status: 'Отправлена', ...updates });
       return res.json(delivery);
     } catch (e) {
       next(e);
@@ -79,7 +90,9 @@ class DeliveriesController {
   async ready(req, res, next) {
     try {
       const { delivery } = req;
-
+      if (delivery.status !== 'Доступна') {
+        throw ApiError.BadRequest('Доставка не доступна');
+      }
       await delivery.update({ status: 'Доступна' });
       return res.json(delivery);
     } catch (e) {

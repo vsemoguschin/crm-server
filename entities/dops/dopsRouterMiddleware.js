@@ -60,6 +60,7 @@ class DopsRouterMiddleware {
       const searchParams = {
         where: {
           id: { [Op.gt]: 0 },
+          ...searchFilter,
         },
       };
       if (req.baseUrl.includes('/deals')) {
@@ -69,7 +70,7 @@ class DopsRouterMiddleware {
         const { user } = req;
         searchParams.where.userId = user.id;
       }
-      req.searchParams = { ...searchParams, ...searchFilter };
+      req.searchParams = searchParams;
       next();
     } catch (e) {
       next(e);
