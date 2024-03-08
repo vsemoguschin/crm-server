@@ -64,29 +64,30 @@ class OrdersRouterMiddleware {
       let searchParams = {
         where: {
           id: { [Op.gt]: 0 },
+          ...searchFilter,
         },
       };
       if (req.baseUrl.includes('/deals')) {
         searchParams = {
-          where: { dealId: req.params.id },
+          where: { dealId: req.params.id, ...searchFilter },
           include: ['neons', 'executors', 'files', 'stage'],
         };
       }
       if (req.baseUrl.includes('/deliveries')) {
         const { delivery } = req;
         searchParams = {
-          where: { deliveryId: delivery.id },
+          where: { deliveryId: delivery.id, ...searchFilter },
           include: ['stage'],
         };
       }
       if (req.baseUrl.includes('/users')) {
         const { user } = req;
         searchParams = {
-          where: { userId: user.id },
+          where: { userId: user.id, ...searchFilter },
           include: ['stage'],
         };
       }
-      req.searchParams = { ...searchParams, ...searchFilter };
+      req.searchParams = searchParams;
       next();
     } catch (e) {
       next(e);

@@ -61,13 +61,14 @@ class DeliverysRouterMiddleware {
       const searchParams = {
         where: {
           id: { [Op.gt]: 0 },
+          ...searchFilter,
         },
       };
       if (req.baseUrl.includes('/deals')) {
-        searchParams.where = { dealId: +req.params.id };
+        searchParams.where = { dealId: +req.params.id, ...searchFilter };
         searchParams.include = ['orders'];
       }
-      req.searchParams = { ...searchParams, ...searchFilter };
+      req.searchParams = searchParams;
       next();
     } catch (e) {
       next(e);
