@@ -38,6 +38,8 @@ class OrdersRouterMiddleware {
           'neons',
           'files',
           'delivery',
+          'stage',
+          'workSpace',
           {
             association: 'executors',
             include: 'role',
