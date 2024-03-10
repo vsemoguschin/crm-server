@@ -12,6 +12,7 @@ class DiskService {
         console.log(false, 'wrong format');
         throw ApiError.BadRequest('wrong format');
       }
+      console.log(directory, format);
       const uuidName = uuid.v4();
       const filePath = 'EasyCRM/' + directory + '/' + uuidName + '.' + format;
       const { data } = await axios.get('https://cloud-api.yandex.net/v1/disk/resources/upload', {
@@ -33,23 +34,37 @@ class DiskService {
         },
       });
 
-      console.log(2);
-
-      const response = await axios.get('https://cloud-api.yandex.net/v1/disk/resources', {
-        params: {
-          path: filePath,
-        },
-        headers: {
-          Accept: 'application/json',
-          Authorization: 'OAuth ' + YaToken,
-        },
-      });
-      // console.log(response.data);
+      let response;
       let url;
+
       if (directory === 'documents' || directory === 'drafts') {
+        response = await axios.get('https://cloud-api.yandex.net/v1/disk/resources', {
+          params: {
+            path: filePath,
+          },
+          headers: {
+            Accept: 'application/json',
+            Authorization: 'OAuth ' + YaToken,
+          },
+        });
         url = response.data.file;
       }
       if (directory === 'imgs') {
+        response = await new Promise((resolve, reject) => {
+          setTimeout(async () => {
+            const resp = await axios.get('https://cloud-api.yandex.net/v1/disk/resources', {
+              params: {
+                path: filePath,
+              },
+              headers: {
+                Accept: 'application/json',
+                Authorization: 'OAuth ' + YaToken,
+              },
+            });
+            resolve(resp);
+          }, 1000);
+        });
+        // console.log(sizes);
         url = response.data.sizes[0].url;
       }
       return {
