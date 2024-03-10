@@ -56,6 +56,7 @@ class DopsController {
   }
 
   async update(req, res, next) {
+    const updateFields = ['title', 'type', 'price', 'description'];
     try {
       const { dop } = req;
       const body = checkRepeatedValues(dop, req.body);

@@ -15,7 +15,7 @@ const modelFields = {
   elements: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'Колличество элементов' },
   boardWidth: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'Ширина подложки' },
   boardHeight: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'Высота подложки' },
-  laminate: { type: DataTypes.STRING, defaultValue: false, fieldType: 'string', fullName: 'Пленка' },
+  laminate: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Пленка' },
   wireLength: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Длина аккустического провода' },
   dimer: { type: DataTypes.BOOLEAN, defaultValue: false, fieldType: 'boolean', fullName: 'Димер' },
   acrylic: { type: DataTypes.BOOLEAN, defaultValue: false, fieldType: 'boolean', fullName: 'Акрил' },

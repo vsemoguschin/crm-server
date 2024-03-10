@@ -1,5 +1,5 @@
 const directories = {
-  ['imgs']: ['jpeg', 'jpg', 'png'],
+  ['imgs']: ['jpeg', 'jpg', 'png', 'JPG'],
   ['documents']: ['pdf'],
   ['drafts']: ['cdr'],
 };
