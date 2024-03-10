@@ -58,6 +58,9 @@ class DeliverysRouterMiddleware {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
+      if (req.query.workSpaceId && !isNaN(req.query.workSpaceId)) {
+        searchFilter.workSpaceId = req.query.workSpaceId;
+      }
       const searchParams = {
         where: {
           id: { [Op.gt]: 0 },
