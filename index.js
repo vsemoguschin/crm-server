@@ -29,7 +29,7 @@ app.use(
 app.use(cookieParser());
 app.use(
   express.json({
-    limit: '2MB',
+    limit: '5MB',
   }),
 );
 app.use('/public', express.static(path.join(__dirname, '/public')));
