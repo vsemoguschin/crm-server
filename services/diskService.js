@@ -61,10 +61,11 @@ class DiskService {
                 Authorization: 'OAuth ' + YaToken,
               },
             });
+            console.log(resp.data);
             resolve(resp);
           }, 1000);
         });
-        // console.log(sizes);
+        // console.log(response.data);
         url = response.data.sizes[0].url;
       }
       return {
