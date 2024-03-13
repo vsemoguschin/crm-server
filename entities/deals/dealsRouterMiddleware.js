@@ -33,6 +33,7 @@ class DealsRouterMiddleware {
           id,
         },
         include: [
+          'sellers',
           {
             model: Client,
             attributes: ['id', 'fullName', 'chatLink'],
@@ -97,6 +98,33 @@ class DealsRouterMiddleware {
       }
       req.searchParams = searchParams;
       next();
+    } catch (e) {
+      next(e);
+    }
+  }
+  async addSellers(req, res, next) {
+    try {
+      const { deal, user } = req;
+
+      res.json(deal);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async deleteSellers(req, res, next) {
+    try {
+      const { deal, user } = req;
+
+      res.json(deal);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async getSellers(req, res, next) {
+    try {
+      const { deal } = req;
+      
+      res.json(deal);
     } catch (e) {
       next(e);
     }

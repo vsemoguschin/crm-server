@@ -2,7 +2,7 @@ const TokenSchema = require('./token/tokenModel');
 const { User } = require('./users/usersModel');
 const { Role } = require('./roles/rolesModel');
 const { Client } = require('./clients/clientsModel');
-const { Deal } = require('./deals/dealsModel');
+const { Deal, DealUsers, DealSources } = require('./deals/dealsModel');
 const { Payment } = require('./payments/paymentsModel');
 const { Dop } = require('./dops/dopsModel');
 const { Delivery } = require('./deliveries/deliveriesModel');
@@ -26,6 +26,9 @@ Client.belongsTo(User);
 
 User.hasMany(Deal);
 Deal.belongsTo(User);
+
+Deal.belongsToMany(User, { through: 'dealUsers', as: 'sellers' });
+User.belongsToMany(Deal, { through: 'dealUsers', as: 'seles' });
 
 User.hasMany(Payment);
 Payment.belongsTo(User);
@@ -51,6 +54,9 @@ Deal.belongsTo(Client);
 //Сделки
 Deal.hasMany(Order);
 Order.belongsTo(Deal);
+
+WorkSpace.hasMany(DealSources);
+DealSources.belongsTo(WorkSpace);
 
 // Deal.hasMany(Gift);
 // Gift.belongsTo(Deal);
@@ -117,4 +123,5 @@ module.exports = {
   Delivery,
   WorkSpace,
   File,
+  DealUsers,
 };

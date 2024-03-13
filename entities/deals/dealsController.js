@@ -14,6 +14,7 @@ class DealsController {
       newDeal.workSpaceId = client.workSpaceId;
 
       const deal = await client.createDeal(newDeal);
+      await deal.addSellers(req.requester.id);
 
       return res.json(deal);
     } catch (e) {

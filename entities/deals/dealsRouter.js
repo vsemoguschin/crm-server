@@ -13,12 +13,30 @@ const dopsController = require('../dops/dopsController');
 const paymentsRouterMiddleware = require('../payments/paymentsRouterMiddleware');
 const paymentsController = require('../payments/paymentsController');
 const checkReqParamsIsNumber = require('../../checking/checkReqParamsIsNumber');
+const usersRouterMiddleware = require('../users/usersRouterMiddleware');
 
 // router.get('/workSpace', dealsRouterMiddleware.getList, dealsController.getFullList);
 router.get('/:id', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, dealsController.getOne);
 router.get('/', dealsRouterMiddleware.getList, dealsController.getList);
 router.patch('/:id', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, dealsController.update);
 router.delete('/:id', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, dealsController.delete);
+
+//добавление заказов в доставку
+router.patch(
+  '/:id/sellers/:userId',
+  checkReqParamsIsNumber,
+  dealsRouterMiddleware.getOne,
+  usersRouterMiddleware.getOne,
+  dealsRouterMiddleware.addSellers,
+);
+router.delete(
+  '/:id/sellers/:userId',
+  checkReqParamsIsNumber,
+  dealsRouterMiddleware.getOne,
+  usersRouterMiddleware.getOne,
+  dealsRouterMiddleware.deleteSellers,
+);
+router.get('/:id/sellers', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, dealsRouterMiddleware.getSellers);
 
 //создание и получение заказов внутри сделки
 router.post('/:id/orders', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, ordersRouterMiddleware.create, ordersController.create);

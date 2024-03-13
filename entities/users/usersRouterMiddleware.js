@@ -20,6 +20,7 @@ const PERMISSIONS = {
     //commercial
     ['DO']: ['ROP', 'MOP', 'ROV', 'MOV'],
     ['ROP']: ['MOP'],
+    ['MOP']: ['MOP'],
     //production
     ['DP']: ['RP', 'FRZ', 'MASTER', 'PACKER'],
     ['RP']: ['FRZ', 'MASTER', 'PACKER'],

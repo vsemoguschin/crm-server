@@ -4,7 +4,6 @@ const modelsService = require('../../services/modelsService');
 const getPagination = require('../../utils/getPagination');
 const getPaginationData = require('../../utils/getPaginationData');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
-const { Role } = require('../association');
 
 class UsersController {
   //создание пользователя

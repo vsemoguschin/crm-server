@@ -1,4 +1,4 @@
-const { User, Client, Deal, WorkSpace, stageList, Stage } = require('../entities/association');
+const { User, Client, Deal, WorkSpace, stageList, Stage, DealUsers } = require('../entities/association');
 const { Role } = require('../entities/roles/rolesModel');
 const { ROLES: rolesList } = require('../entities/roles/rolesList');
 const bcrypt = require('bcrypt');
@@ -46,6 +46,7 @@ class Presets {
         chatLink: 'https://seller.ozon.ru/app/postings/fbs',
         type: 'Marketplace',
         gender: 'IT',
+        firstContact: 'soon',
       },
       {
         fullName: 'Wildberries',
@@ -53,6 +54,7 @@ class Presets {
         chatLink: 'https://seller.wildberries.ru/',
         type: 'Marketplace',
         gender: 'IT',
+        firstContact: 'soon',
       },
     ];
     for (let i = 0; i < marketplaces.length; i++) {
@@ -233,6 +235,7 @@ class Presets {
         type: 'ООО',
         gender: 'M',
         workSpaceId: managers[i].membership[0].id,
+        firstContact: 'soon',
       };
       const dealBlank = {
         title: managers[i].id + 'deal',
@@ -264,6 +267,7 @@ class Presets {
       };
       const client = await managers[i].createClient(clientBlank);
       const deal = await client.createDeal({ ...dealBlank, workSpaceId: client.workSpaceId });
+      await deal.addSellers(managers[i]);
       const delivery = await deal.createDelivery(deliveryBlank);
       const order = await deal.createOrder({ ...orderBlank, deliveryId: delivery.id });
       await delivery.addOrders(order);
