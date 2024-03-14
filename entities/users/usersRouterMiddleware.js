@@ -55,7 +55,7 @@ class UsersRouterMiddleware {
       id = userId || id;
       if (id === req.requester.id) {
         req.user = await User.findOne({
-          include: ['role', 'membership', 'avatar'],
+          include: ['role', 'membership', 'avatar', 'groups'],
           where: {
             id: id,
           },
@@ -66,7 +66,7 @@ class UsersRouterMiddleware {
         throw ApiError.Forbidden('Нет доступа');
       }
       const user = await User.findOne({
-        include: ['role', 'membership', 'avatar'],
+        include: ['role', 'membership', 'avatar', 'groups'],
         where: { id: id, '$role.shortName$': rolesFilter },
       });
       if (!user) {

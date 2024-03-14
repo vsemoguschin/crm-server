@@ -1,5 +1,5 @@
 const TokenSchema = require('./token/tokenModel');
-const { User } = require('./users/usersModel');
+const { User, Group } = require('./users/usersModel');
 const { Role } = require('./roles/rolesModel');
 const { Client } = require('./clients/clientsModel');
 const { Deal, DealUsers, DealSources } = require('./deals/dealsModel');
@@ -27,8 +27,13 @@ Client.belongsTo(User);
 User.hasMany(Deal);
 Deal.belongsTo(User);
 
-Deal.belongsToMany(User, { through: 'dealUsers', as: 'sellers' });
-User.belongsToMany(Deal, { through: 'dealUsers', as: 'seles' });
+Deal.belongsToMany(User, { through: 'dealUsers', as: 'sellers', foreignKey: 'dealId' });
+User.belongsToMany(Deal, { through: 'dealUsers', as: 'seles', foreignKey: 'userId' });
+
+WorkSpace.hasMany(Group);
+Group.belongsTo(WorkSpace);
+Group.belongsToMany(User, { through: 'groupUsers', as: 'group_members', foreignKey: 'groupId' });
+User.belongsToMany(Group, { through: 'groupUsers', as: 'groups', foreignKey: 'userId' });
 
 User.hasMany(Payment);
 Payment.belongsTo(User);

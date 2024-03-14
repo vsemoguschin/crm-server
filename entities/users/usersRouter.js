@@ -57,4 +57,6 @@ router.get('/:id/dops', checkReqParamsIsNumber, usersRouterMiddleware.getOne, do
 router.get('/:id/work', checkReqParamsIsNumber, usersRouterMiddleware.getOne, ordersRouterMiddleware.getList, ordersController.getList);
 // router.get('/:id/seles', ...);
 
+router.patch('/:id/groups/:groupId', checkReqParamsIsNumber, usersRouterMiddleware.getOne, usersController.setGroup);
+
 module.exports = router;

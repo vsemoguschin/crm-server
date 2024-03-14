@@ -24,4 +24,9 @@ const User = sequelize.define('user', modelFields, {
   paranoid: true,
 });
 
-module.exports = { User, modelFields };
+const Group = sequelize.define('group', {
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true, fieldType: 'number' },
+  title: { type: DataTypes.STRING, unique: true, fieldType: 'string', fullName: 'Название' },
+});
+
+module.exports = { User, modelFields, Group };

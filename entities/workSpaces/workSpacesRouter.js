@@ -68,4 +68,8 @@ router.get(
   deliveriesController.workSpaceList,
 );
 
+//создание тегов для пользователей
+router.post('/:id/groups', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, workSpacesController.createGroup);
+router.get('/:id/groups', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, workSpacesController.getGroup);
+
 module.exports = router;

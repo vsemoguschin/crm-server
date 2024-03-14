@@ -1,9 +1,10 @@
 const bcrypt = require('bcrypt');
-const { User, modelFields: usersModelFields } = require('./usersModel');
+const { User, modelFields: usersModelFields, Group } = require('./usersModel');
 const modelsService = require('../../services/modelsService');
 const getPagination = require('../../utils/getPagination');
 const getPaginationData = require('../../utils/getPaginationData');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
+const ApiError = require('../../error/apiError');
 
 class UsersController {
   //создание пользователя
@@ -110,6 +111,20 @@ class UsersController {
       }
       console.log('Пользователь удален');
       return res.json('Пользователь удален');
+    } catch (e) {
+      next(e);
+    }
+  }
+  async setGroup(req, res, next) {
+    try {
+      const { user } = req;
+      const { groupId } = req.params;
+      const group = await Group.findOne({ where: { id: groupId } });
+      if (!group) {
+        throw ApiError.BadRequest('Group not found');
+      }
+      await group.addGroup_members(user);
+      return res.json(user);
     } catch (e) {
       next(e);
     }
