@@ -1,9 +1,10 @@
-const { Deal, modelFields: dealsModelFields } = require('./dealsModel');
+const { Deal, modelFields: dealsModelFields, ClothingMethods, DealSources } = require('./dealsModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
 const checkRepeatedValues = require('../../checking/checkRepeatedValues');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
+const ApiError = require('../../error/apiError');
 
 class DealsController {
   async create(req, res, next) {
@@ -89,6 +90,77 @@ class DealsController {
       }
       console.log('Сделка удалена');
       return res.json('Сделка удалена');
+    } catch (e) {
+      next(e);
+    }
+  }
+  async getMethods(req, res, next) {
+    try {
+      const methods = await ClothingMethods.findAll();
+      return res.json(methods);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async createMethods(req, res, next) {
+    try {
+      const { title } = req.body;
+      if (!title) {
+        throw ApiError.BadRequest('title is required');
+      }
+      const [method, created] = await ClothingMethods.findOrCreate({ where: { title } });
+      return res.json(method);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async deleteMethods(req, res, next) {
+    try {
+      const { methodId } = req.params;
+      const method = await ClothingMethods.findOne({ where: { id: methodId } });
+      if (method) {
+        method.destroy();
+      }
+      return res.json(200);
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  async getSources(req, res, next) {
+    try {
+      const { workSpace } = req;
+      const sources = await DealSources.findAll({ where: { id: workSpace.id } });
+      return res.json(sources);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async createSources(req, res, next) {
+    try {
+      const { workSpace } = req;
+      const { title } = req.body;
+      if (!title) {
+        throw ApiError.BadRequest('title is required');
+      }
+      const [source, created] = await DealSources.findOrCreate({
+        where: { title, workSpaceId: workSpace.id },
+        defaults: { title, workSpaceId: workSpace.id },
+      });
+      return res.json(source);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async deleteSources(req, res, next) {
+    try {
+      const { workSpace } = req;
+      const { sourceId } = req.params;
+      const source = await DealSources.findOne({ where: { id: sourceId, workSpaceId: workSpace.id } });
+      if (source) {
+        source.destroy();
+      }
+      return res.json(200);
     } catch (e) {
       next(e);
     }

@@ -21,6 +21,11 @@ router.get('/:id', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, wo
 router.patch('/:id', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, workSpacesController.update);
 router.delete('/:id', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, workSpacesController.delete);
 
+//источники сделок
+router.get('/:id/sources', workSpacesRouterMiddleware.getOne, dealsController.getSources);
+router.post('/:id/sources', workSpacesRouterMiddleware.getOne, dealsController.createSources);
+router.delete('/:id/sources/:sourceId', workSpacesRouterMiddleware.getOne, checkReqParamsIsNumber, dealsController.deleteSources);
+
 //добавление и получение пользователей внутри workSpace
 router.patch(
   '/:id/users/:userId',

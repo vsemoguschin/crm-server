@@ -63,6 +63,7 @@ const start = async () => {
     // await presets.createWorkSpaces();
     // await presets.createMarketPlaces();
     // await presets.createDatas();
+    // await presets.createLists();
     app.listen(PORT, () => console.log(`${PORT}`));
   } catch (error) {
     console.log(error);

@@ -1,9 +1,10 @@
-const { Client, modelFields: clientsModelFields } = require('./clientsModel');
+const { Client, modelFields: clientsModelFields, Spheres } = require('./clientsModel');
 const modelsService = require('../../services/modelsService');
 const getPagination = require('../../utils/getPagination');
 const getPaginationData = require('../../utils/getPaginationData');
 const checkRepeatedValues = require('../../checking/checkRepeatedValues');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
+const ApiError = require('../../error/apiError');
 
 class ClientController {
   async create(req, res, next) {
@@ -90,6 +91,38 @@ class ClientController {
       }
       console.log('Клиент удален');
       return res.json('Клиент удален');
+    } catch (e) {
+      next(e);
+    }
+  }
+  async getSpheres(req, res, next) {
+    try {
+      const spheres = await Spheres.findAll();
+      return res.json(spheres);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async createSpheres(req, res, next) {
+    try {
+      const { title } = req.body;
+      if (!title) {
+        throw ApiError.BadRequest('title is required');
+      }
+      const [sphere, created] = await Spheres.findOrCreate({ where: { title } });
+      return res.json(sphere);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async deleteSpheres(req, res, next) {
+    try {
+      const { sphereId } = req.params;
+      const sphere = await Spheres.findOne({ where: { id: sphereId } });
+      if (sphere) {
+        sphere.destroy();
+      }
+      return res.json(200);
     } catch (e) {
       next(e);
     }

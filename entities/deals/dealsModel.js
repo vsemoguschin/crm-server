@@ -22,19 +22,19 @@ const Deal = sequelize.define('deal', modelFields, {
 
 const DealUsers = sequelize.define('dealUsers', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  part: { type: DataTypes.INTEGER, defaultValue: 1, fieldType: 'number', fullName: 'Доля сделки' },
+  part: { type: DataTypes.FLOAT, defaultValue: 1, fieldType: 'number', fullName: 'Доля сделки' },
 });
 
 //источники сделок
 const DealSources = sequelize.define('dealSources', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  title: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Источник сделки' },
+  title: { type: DataTypes.STRING, unique: true, fieldType: 'string', fullName: 'Источник сделки' },
 });
 
 //общая таблица методов закрытия
 const ClothingMethods = sequelize.define('clothingMethod', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  clothingMethod: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Метод закрытия' },
+  title: { type: DataTypes.STRING, unique: true, fieldType: 'string', fullName: 'Метод закрытия' },
 });
 
 module.exports = {
