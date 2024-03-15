@@ -42,7 +42,7 @@ class ClientController {
     try {
       checkReqQueriesIsNumber({ pageSize, current });
       const { limit, offset } = getPagination(current, pageSize);
-      const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
+      const order = queryOrder ? [[key, queryOrder]] : [['createdAt', 'DESC']];
 
       const { searchParams } = req;
       console.log(pageSize, current);
@@ -65,13 +65,11 @@ class ClientController {
   //обновляем данные клиента
   async update(req, res, next) {
     // patch-запрос  в теле запроса(body) передаем строку(raw) в формате JSON
-    const updateFields = ['gender', 'city', 'region', 'type', 'sphere', 'fullName', 'chatLink', 'phone', 'info'];
+    const updateFields = ['gender', 'city', 'region', 'type', 'sphere', 'fullName', 'chatLink', 'phone', 'info', 'inn', 'adLink', 'firstContact'];
     try {
       const { client } = req;
-
       const body = checkRepeatedValues(client, req.body);
       const updates = await modelsService.checkUpdates([Client, clientsModelFields], body, updateFields);
-
       await client.update(updates);
       return res.json(client);
     } catch (e) {
