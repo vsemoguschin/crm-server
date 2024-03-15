@@ -15,7 +15,7 @@ class DealsController {
       newDeal.workSpaceId = client.workSpaceId;
 
       const deal = await client.createDeal(newDeal);
-      await deal.addSellers(req.requester.id);
+      await deal.addDealers(req.requester.id);
 
       return res.json(deal);
     } catch (e) {
@@ -130,7 +130,7 @@ class DealsController {
   async getSources(req, res, next) {
     try {
       const { workSpace } = req;
-      const sources = await DealSources.findAll({ where: { id: workSpace.id } });
+      const sources = await DealSources.findAll({ where: { workSpaceId: workSpace.id } });
       return res.json(sources);
     } catch (e) {
       next(e);

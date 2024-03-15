@@ -33,7 +33,7 @@ class DealsRouterMiddleware {
           id,
         },
         include: [
-          'sellers',
+          'dealers',
           {
             model: Client,
             attributes: ['id', 'fullName', 'chatLink'],
@@ -102,7 +102,7 @@ class DealsRouterMiddleware {
       next(e);
     }
   }
-  async addSallers(req, res, next) {
+  async addDealers(req, res, next) {
     try {
       const { deal, user: newSeller } = req;
       let { part } = req.body;
@@ -110,20 +110,20 @@ class DealsRouterMiddleware {
         throw ApiError.BadRequest('wrong part');
       }
       part = +part;
-      if (deal.sellers.length >= 2 && !deal.sellers.find((user) => user.id === newSeller.id)) {
-        throw ApiError.BadRequest('deal already has 2 sellers');
+      if (deal.dealers.length >= 2 && !deal.dealers.find((user) => user.id === newSeller.id)) {
+        throw ApiError.BadRequest('deal already has 2 dealers');
       }
       const sale = {
         userId: newSeller.id,
         dealId: deal.id,
         part,
       };
-      if (deal.sellers.length === 0) {
+      if (deal.dealers.length === 0) {
         sale.part = 1;
         await DealUsers.create(sale);
         return res.json(200);
       }
-      if (deal.sellers.find((user) => user.id === newSeller.id)) {
+      if (deal.dealers.find((user) => user.id === newSeller.id)) {
         const newSale = await DealUsers.findAll({ where: { dealId: deal.id } });
         await DealUsers.update({ part: part }, { where: { dealId: deal.id, userId: newSeller.id } });
         const oldSale = await DealUsers.findOne({ where: { dealId: deal.id, userId: { [Op.ne]: newSeller.id } } });
@@ -139,7 +139,7 @@ class DealsRouterMiddleware {
       next(e);
     }
   }
-  async deleteSallers(req, res, next) {
+  async deleteDealers(req, res, next) {
     try {
       const { deal, user } = req;
       const seller = await DealUsers.findOne({ where: { dealId: deal.id, userId: user.id } });
@@ -158,11 +158,11 @@ class DealsRouterMiddleware {
       next(e);
     }
   }
-  async getSallers(req, res, next) {
+  async getDealers(req, res, next) {
     try {
       const { deal } = req;
 
-      res.json(deal.sellers);
+      res.json(deal.dealers);
     } catch (e) {
       next(e);
     }

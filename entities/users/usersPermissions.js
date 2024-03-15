@@ -57,7 +57,7 @@ class UsersPermissions {
       }
       if (req.baseUrl.includes('/deals')) {
         //условие получения пользователя для добавления участника к сделки
-        console.log('sallers');
+        console.log('dealers');
       }
 
       return searchParams;

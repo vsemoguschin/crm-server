@@ -28,7 +28,7 @@ Client.belongsTo(User);
 User.hasMany(Deal);
 Deal.belongsTo(User);
 
-Deal.belongsToMany(User, { through: 'dealUsers', as: 'sellers', foreignKey: 'dealId' });
+Deal.belongsToMany(User, { through: 'dealUsers', as: 'dealers', foreignKey: 'dealId' });
 User.belongsToMany(Deal, { through: 'dealUsers', as: 'seles', foreignKey: 'userId' });
 
 WorkSpace.hasMany(Group);

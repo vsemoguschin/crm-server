@@ -26,20 +26,20 @@ router.patch('/:id', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, deals
 router.delete('/:id', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, dealsController.delete);
 
 //получение, добавление, удаление участников сделки
-router.get('/:id/sallers', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, dealsRouterMiddleware.getSallers);
+router.get('/:id/dealers', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, dealsRouterMiddleware.getDealers);
 router.patch(
-  '/:id/sallers/:userId',
+  '/:id/dealers/:userId',
   checkReqParamsIsNumber,
   dealsRouterMiddleware.getOne,
   usersRouterMiddleware.getOne,
-  dealsRouterMiddleware.addSallers,
+  dealsRouterMiddleware.addDealers,
 );
 router.delete(
-  '/:id/sallers/:userId',
+  '/:id/dealers/:userId',
   checkReqParamsIsNumber,
   dealsRouterMiddleware.getOne,
   usersRouterMiddleware.getOne,
-  dealsRouterMiddleware.deleteSallers,
+  dealsRouterMiddleware.deleteDealers,
 );
 
 //создание и получение заказов внутри сделки

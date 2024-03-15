@@ -269,7 +269,7 @@ class Presets {
       };
       const client = await managers[i].createClient(clientBlank);
       const deal = await client.createDeal({ ...dealBlank, workSpaceId: client.workSpaceId });
-      await deal.addSellers(managers[i]);
+      await deal.addDealers(managers[i]);
       const delivery = await deal.createDelivery(deliveryBlank);
       const order = await deal.createOrder({ ...orderBlank, deliveryId: delivery.id });
       await delivery.addOrders(order);
