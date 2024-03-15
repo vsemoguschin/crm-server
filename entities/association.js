@@ -1,5 +1,6 @@
 const TokenSchema = require('./token/tokenModel');
-const { User, Group } = require('./users/usersModel');
+const { User } = require('./users/usersModel');
+const { Group } = require('./groups/groupsModel');
 const { Role } = require('./roles/rolesModel');
 const { Client } = require('./clients/clientsModel');
 const { Deal, DealUsers, DealSources } = require('./deals/dealsModel');

@@ -118,6 +118,15 @@ class UsersRouterMiddleware {
           },
         });
       }
+      if (req.baseUrl.includes('/groups')) {
+        const { group } = req;
+        searchParams.include.push({
+          association: 'groups',
+          where: {
+            id: group.id,
+          },
+        });
+      }
       if (req.baseUrl.includes('/orders')) {
         const { order } = req;
         searchParams.include.push({

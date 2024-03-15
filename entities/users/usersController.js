@@ -115,20 +115,6 @@ class UsersController {
       next(e);
     }
   }
-  async setGroup(req, res, next) {
-    try {
-      const { user } = req;
-      const { groupId } = req.params;
-      const group = await Group.findOne({ where: { id: groupId } });
-      if (!group) {
-        throw ApiError.BadRequest('Group not found');
-      }
-      await group.addGroup_members(user);
-      return res.json(user);
-    } catch (e) {
-      next(e);
-    }
-  }
 }
 
 module.exports = new UsersController();

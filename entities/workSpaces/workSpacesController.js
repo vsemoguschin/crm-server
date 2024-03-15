@@ -180,28 +180,7 @@ class WorkSpaceController {
       next(e);
     }
   }
-  async createGroup(req, res, next) {
-    try {
-      const { workSpace } = req;
-      const { title } = req.body;
-      if (!title) {
-        throw ApiError.BadRequest('забыл title');
-      }
-      const group = await Group.create({ title, workSpaceId: workSpace.id });
-      return res.json(group);
-    } catch (e) {
-      next(e);
-    }
-  }
-  async getGroup(req, res, next) {
-    try {
-      const { workSpace } = req;
-      const groups = await Group.findAll({ where: { workSpaceId: workSpace.id } });
-      return res.jsonw(groups);
-    } catch (e) {
-      next(e);
-    }
-  }
+  
 }
 
 module.exports = new WorkSpaceController();
