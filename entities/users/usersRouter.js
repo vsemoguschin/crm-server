@@ -55,5 +55,6 @@ router.get('/:id/deals', checkReqParamsIsNumber, usersRouterMiddleware.getOne, d
 router.get('/:id/orders', checkReqParamsIsNumber, usersRouterMiddleware.getOne, ordersRouterMiddleware.getList, ordersController.getList);
 router.get('/:id/dops', checkReqParamsIsNumber, usersRouterMiddleware.getOne, dopsRouterMiddleware.getList, dopsController.getList);
 router.get('/:id/work', checkReqParamsIsNumber, usersRouterMiddleware.getOne, ordersRouterMiddleware.getList, ordersController.getList);
+// router.get('/:id/seles', ...);
 
 module.exports = router;

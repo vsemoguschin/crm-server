@@ -36,12 +36,7 @@ router.patch(
   usersRouterMiddleware.getOne,
   ordersRouterMiddleware.setExecutor,
 );
-router.delete(
-  '/:id/executors/:userId',
-  checkReqParamsIsNumber,
-  ordersRouterMiddleware.getOne,
-  ordersRouterMiddleware.removeExecutor,
-);
+router.delete('/:id/executors/:userId', checkReqParamsIsNumber, ordersRouterMiddleware.getOne, ordersRouterMiddleware.removeExecutor);
 
 //перемещение заказа по стадиям
 router.patch(

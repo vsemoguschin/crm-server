@@ -53,7 +53,7 @@ app.use(errorHandling);
 const start = async () => {
   try {
     // await sequelize.drop();
-    await sequelize.authenticate();
+    // await sequelize.authenticate();
     // await sequelize.sync({ alter: true, force: true });
 
     // await presets.createRoles();
@@ -63,6 +63,7 @@ const start = async () => {
     // await presets.createWorkSpaces();
     // await presets.createMarketPlaces();
     // await presets.createDatas();
+    // await presets.createLists();
     app.listen(PORT, () => console.log(`${PORT}`));
   } catch (error) {
     console.log(error);

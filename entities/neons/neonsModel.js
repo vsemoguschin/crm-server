@@ -15,9 +15,10 @@ const colors = [
   'холодный белый',
   'теплый белый',
   'смарт',
+  'rgb',
 ];
 
-const types = ['уличный', 'смарт', 'подсветка', 'обычный'];
+const types = ['уличный', 'смарт', 'rgb', 'подсветка', 'обычный'];
 
 const modelFields = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },

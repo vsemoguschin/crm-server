@@ -11,10 +11,6 @@ const stageList = [
   // { title: 'defective', fullName: 'Брак' },
 ];
 
-const orderPreview = [
-  // {include:}
-];
-
 const availableStages = {
   ['ADMIN']: stageList,
   ['G']: stageList,

@@ -1,10 +1,10 @@
 const ApiError = require('../../error/apiError');
 const modelsService = require('../../services/modelsService');
-const { modelFields: dealsModelFields, Deal } = require('./dealsModel');
+const { modelFields: dealsModelFields, Deal, DealUsers } = require('./dealsModel');
 const { Client } = require('../clients/clientsModel');
 const dealsPermissions = require('./dealsPermissions');
 const { Op } = require('sequelize');
-const { Order, Delivery } = require('../association');
+const { Order, Delivery, User } = require('../association');
 
 const frontOptions = {
   modelFields: modelsService.getModelFields(dealsModelFields),
@@ -33,6 +33,7 @@ class DealsRouterMiddleware {
           id,
         },
         include: [
+          'dealers',
           {
             model: Client,
             attributes: ['id', 'fullName', 'chatLink'],
@@ -97,6 +98,71 @@ class DealsRouterMiddleware {
       }
       req.searchParams = searchParams;
       next();
+    } catch (e) {
+      next(e);
+    }
+  }
+  async addDealers(req, res, next) {
+    try {
+      const { deal, user: newSeller } = req;
+      let { part } = req.body;
+      if (!part || isNaN(part) || part > 1 || part <= 0) {
+        throw ApiError.BadRequest('wrong part');
+      }
+      part = +part;
+      if (deal.dealers.length >= 2 && !deal.dealers.find((user) => user.id === newSeller.id)) {
+        throw ApiError.BadRequest('deal already has 2 dealers');
+      }
+      const sale = {
+        userId: newSeller.id,
+        dealId: deal.id,
+        part,
+      };
+      if (deal.dealers.length === 0) {
+        sale.part = 1;
+        await DealUsers.create(sale);
+        return res.json(200);
+      }
+      if (deal.dealers.find((user) => user.id === newSeller.id)) {
+        const newSale = await DealUsers.findAll({ where: { dealId: deal.id } });
+        await DealUsers.update({ part: part }, { where: { dealId: deal.id, userId: newSeller.id } });
+        const oldSale = await DealUsers.findOne({ where: { dealId: deal.id, userId: { [Op.ne]: newSeller.id } } });
+        await oldSale.update({ part: 1 - part });
+        return res.json(200);
+      }
+      const newSale = await DealUsers.create(sale);
+      const oldSale = await DealUsers.findOne({ where: { dealId: deal.id } });
+      await oldSale.update({ part: 1 - part });
+
+      return res.json(newSale);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async deleteDealers(req, res, next) {
+    try {
+      const { deal, user } = req;
+      const seller = await DealUsers.findOne({ where: { dealId: deal.id, userId: user.id } });
+      if (!seller) {
+        throw ApiError.BadRequest('seller not in deal');
+      }
+      await seller.destroy();
+      const saller = await DealUsers.findOne({
+        where: { dealId: deal.id },
+      });
+      if (saller) {
+        await saller.update({ part: 1 });
+      }
+      await res.json(200);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async getDealers(req, res, next) {
+    try {
+      const { deal } = req;
+
+      res.json(deal.dealers);
     } catch (e) {
       next(e);
     }

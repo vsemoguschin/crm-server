@@ -1,7 +1,7 @@
 const sequelize = require('../db');
 const { DataTypes } = require('sequelize');
 
-const methods = ['Наличные', 'Перевод', 'Договор', 'Наложка', 'Ссылка', 'Долями', 'Рассрочка', 'Счет'];
+const methods = ['Наличные', 'Перевод', 'Договор', 'Наложка', 'Ссылка', 'Долями', 'Рассрочка', 'Счет', 'Бронь'];
 
 const modelFields = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
@@ -10,6 +10,7 @@ const modelFields = {
   date: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Дата отплаты' },
   method: { type: DataTypes.STRING, allowNull: false, validateFields: methods, fieldType: 'string', fullName: 'Способ оплаты' },
   description: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Описание' },
+  reservation: { type: DataTypes.BOOLEAN, defaultValue: false, fieldType: 'boolean', fullName: 'Бронь' },
 };
 
 //добавить отправку по готовности
