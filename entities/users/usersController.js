@@ -1,10 +1,10 @@
 const bcrypt = require('bcrypt');
-const { User, modelFields: usersModelFields } = require('./usersModel');
+const { User, modelFields: usersModelFields, Group } = require('./usersModel');
 const modelsService = require('../../services/modelsService');
 const getPagination = require('../../utils/getPagination');
 const getPaginationData = require('../../utils/getPaginationData');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
-const { Role } = require('../association');
+const ApiError = require('../../error/apiError');
 
 class UsersController {
   //создание пользователя
@@ -25,7 +25,7 @@ class UsersController {
   async getOne(req, res, next) {
     try {
       const { user } = req;
-      return res.json(user);
+            return res.json(user);
     } catch (e) {
       next(e);
     }
@@ -44,7 +44,7 @@ class UsersController {
       const { searchParams } = req;
       checkReqQueriesIsNumber({ pageSize, current });
       const { limit, offset } = getPagination(current, pageSize);
-      const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
+      const order = queryOrder ? [[key, queryOrder]] : [['createdAt', 'DESC']];
 
       const users = await User.findAndCountAll({
         ...searchParams,

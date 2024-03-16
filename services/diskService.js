@@ -4,6 +4,24 @@ const axios = require('axios');
 const uuid = require('uuid');
 const checkFileFormat = require('../checking/checkFileFormat');
 
+async function fetchFileMeta(filePath, callback) {
+  const response = await axios.get('https://cloud-api.yandex.net/v1/disk/resources', {
+    params: {
+      path: filePath,
+    },
+    headers: {
+      Accept: 'application/json',
+      Authorization: 'OAuth ' + YaToken,
+    },
+  });
+
+  if (!response.data.preview) {
+    setTimeout(() => fetchFileMeta(filePath, callback), 500);
+  } else {
+    callback(response);
+  }
+}
+
 class DiskService {
   async uploadFile(file) {
     try {
@@ -12,8 +30,9 @@ class DiskService {
         console.log(false, 'wrong format');
         throw ApiError.BadRequest('wrong format');
       }
-      console.log(directory, format);
+      // console.log(directory, format);
       const uuidName = uuid.v4();
+      let response;
       const filePath = 'EasyCRM/' + directory + '/' + uuidName + '.' + format;
       const { data } = await axios.get('https://cloud-api.yandex.net/v1/disk/resources/upload', {
         params: {
@@ -26,16 +45,12 @@ class DiskService {
           Authorization: 'OAuth ' + YaToken,
         },
       });
-      console.log('1');
 
       await axios.put(data.href, file.data, {
         headers: {
           'Content-Type': 'text/plain',
         },
       });
-
-      let response;
-      let url;
 
       if (directory === 'documents' || directory === 'drafts') {
         response = await axios.get('https://cloud-api.yandex.net/v1/disk/resources', {
@@ -47,33 +62,27 @@ class DiskService {
             Authorization: 'OAuth ' + YaToken,
           },
         });
-        url = response.data.file;
       }
       if (directory === 'imgs') {
-        response = await new Promise((resolve, reject) => {
-          setTimeout(async () => {
-            const resp = await axios.get('https://cloud-api.yandex.net/v1/disk/resources', {
-              params: {
-                path: filePath,
-              },
-              headers: {
-                Accept: 'application/json',
-                Authorization: 'OAuth ' + YaToken,
-              },
-            });
-            console.log(resp.data);
-            resolve(resp);
-          }, 1000);
+        await axios.put('https://cloud-api.yandex.net/v1/disk/resources/publish', undefined, {
+          params: {
+            path: filePath,
+          },
+          headers: {
+            Accept: 'application/json',
+            Authorization: 'OAuth ' + YaToken,
+          },
         });
-        // console.log(response.data);
-        url = response.data.sizes[0].url;
+        response = await new Promise((resolve) => {
+          fetchFileMeta(filePath, resolve);
+        });
       }
       return {
         name: file.name,
         ya_name: uuidName + '.' + format,
         size: response.data.size,
         preview: response.data.preview || null,
-        url,
+        url: response.data.file,
         type: directory,
       };
     } catch (e) {

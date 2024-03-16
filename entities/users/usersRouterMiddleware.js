@@ -20,6 +20,7 @@ const PERMISSIONS = {
     //commercial
     ['DO']: ['ROP', 'MOP', 'ROV', 'MOV'],
     ['ROP']: ['MOP'],
+    ['MOP']: ['MOP'],
     //production
     ['DP']: ['RP', 'FRZ', 'MASTER', 'PACKER'],
     ['RP']: ['FRZ', 'MASTER', 'PACKER'],
@@ -54,7 +55,7 @@ class UsersRouterMiddleware {
       id = userId || id;
       if (id === req.requester.id) {
         req.user = await User.findOne({
-          include: ['role', 'membership', 'avatar'],
+          include: ['role', 'membership', 'avatar', 'groups'],
           where: {
             id: id,
           },
@@ -65,7 +66,7 @@ class UsersRouterMiddleware {
         throw ApiError.Forbidden('Нет доступа');
       }
       const user = await User.findOne({
-        include: ['role', 'membership', 'avatar'],
+        include: ['role', 'membership', 'avatar', 'groups'],
         where: { id: id, '$role.shortName$': rolesFilter },
       });
       if (!user) {
@@ -102,6 +103,7 @@ class UsersRouterMiddleware {
               shortName: rolesFilter,
             },
           },
+          'groups',
         ],
         where: {
           ...searchFilter,
@@ -114,6 +116,15 @@ class UsersRouterMiddleware {
           association: 'membership',
           where: {
             id: workSpace.id,
+          },
+        });
+      }
+      if (req.baseUrl.includes('/groups')) {
+        const { group } = req;
+        searchParams.include.push({
+          association: 'groups',
+          where: {
+            id: group.id,
           },
         });
       }

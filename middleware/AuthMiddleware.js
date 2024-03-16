@@ -29,7 +29,6 @@ module.exports = async function (req, res, next) {
     if (!currentUser) {
       return next(ApiError.BadRequest('Пользователь не найден'));
     }
-    const asdcfc = 1;
     if (!userData) {
       return next(ApiError.UnauthorizedError());
     }

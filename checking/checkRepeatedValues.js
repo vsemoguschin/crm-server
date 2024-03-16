@@ -1,7 +1,8 @@
 const checkRepeatedValues = (exemplar, body) => {
   const filteredFields = {};
   for (const key in body) {
-    if (exemplar[key] && exemplar[key] !== body[key]) {
+    if ((exemplar[key] && exemplar[key] !== body[key]) || exemplar[key] == '') {
+      // console.log(exemplar[key]);
       filteredFields[key] = body[key];
     }
   }

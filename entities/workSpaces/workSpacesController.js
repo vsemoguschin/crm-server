@@ -2,10 +2,10 @@ const { WorkSpace, modelFields: workSpacesModelFields } = require('./workSpacesM
 const modelsService = require('../../services/modelsService');
 const getPagination = require('../../utils/getPagination');
 const getPaginationData = require('../../utils/getPaginationData');
-const { User, Role } = require('../association');
 const { ROLES: rolesList } = require('../roles/rolesList');
 const ApiError = require('../../error/apiError');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
+const { Group } = require('../users/usersModel');
 
 class WorkSpaceController {
   async create(req, res, next) {
@@ -180,6 +180,7 @@ class WorkSpaceController {
       next(e);
     }
   }
+  
 }
 
 module.exports = new WorkSpaceController();

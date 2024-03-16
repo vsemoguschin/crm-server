@@ -91,7 +91,7 @@ class DeliveriesController {
   async ready(req, res, next) {
     try {
       const { delivery } = req;
-      if (delivery.status !== 'Доступна') {
+      if (delivery.status !== 'Создана') {
         throw ApiError.BadRequest('Доставка не доступна');
       }
       await delivery.update({ status: 'Доступна' });

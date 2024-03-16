@@ -1,7 +1,9 @@
-const { User, Client, Deal, WorkSpace, stageList, Stage } = require('../entities/association');
+const { User, Client, Deal, WorkSpace, stageList, Stage, DealUsers } = require('../entities/association');
 const { Role } = require('../entities/roles/rolesModel');
 const { ROLES: rolesList } = require('../entities/roles/rolesList');
 const bcrypt = require('bcrypt');
+const { Spheres } = require('../entities/clients/clientsModel');
+const { ClothingMethods } = require('../entities/deals/dealsModel');
 
 class Presets {
   async createAdmin() {
@@ -46,6 +48,7 @@ class Presets {
         chatLink: 'https://seller.ozon.ru/app/postings/fbs',
         type: 'Marketplace',
         gender: 'IT',
+        firstContact: 'soon',
       },
       {
         fullName: 'Wildberries',
@@ -53,6 +56,7 @@ class Presets {
         chatLink: 'https://seller.wildberries.ru/',
         type: 'Marketplace',
         gender: 'IT',
+        firstContact: 'soon',
       },
     ];
     for (let i = 0; i < marketplaces.length; i++) {
@@ -233,6 +237,7 @@ class Presets {
         type: 'ООО',
         gender: 'M',
         workSpaceId: managers[i].membership[0].id,
+        firstContact: 'soon',
       };
       const dealBlank = {
         title: managers[i].id + 'deal',
@@ -264,10 +269,59 @@ class Presets {
       };
       const client = await managers[i].createClient(clientBlank);
       const deal = await client.createDeal({ ...dealBlank, workSpaceId: client.workSpaceId });
+      await deal.addDealers(managers[i]);
       const delivery = await deal.createDelivery(deliveryBlank);
       const order = await deal.createOrder({ ...orderBlank, deliveryId: delivery.id });
       await delivery.addOrders(order);
       await delivery.update({ workSpaceId: order.workSpaceId });
+    }
+  }
+  async createLists() {
+    const spheres = [
+      'Физ лицо для себя',
+      'Салон красот универсал',
+      'Кофейни',
+      'Кафе',
+      'Шоурум',
+      'Физ лицо в подарок',
+      'Цветочные магазины',
+      'Маникюр',
+      'Магазин одежды',
+      'Вейпшопы/Табачки',
+      'Бары',
+      'Рестораны',
+      'Танцы',
+      'Ремонт телефонов ',
+      'Кальянные ',
+      'Фотостудии',
+      'Компьютерные клубы',
+      'Продуктовый магазин',
+      'Обслуживание автомобилей',
+      'Стритфуд',
+      'Фастфуд',
+      'Пивные',
+      'Парикмахерская',
+      'Фитнес центры',
+      'Кондитерские',
+      'Татту студии',
+      'Ресницы',
+      'Отель',
+      'Парфюмерные ',
+      'Барбершоп',
+      'Турагентство',
+      'YouTube канал',
+      'Йога',
+      'Зоомагазин',
+      'Педикюр',
+      'Окрашивания',
+    ];
+    for (let i = 0; i < spheres.length; i++) {
+      console.log(spheres[i]);
+      await Spheres.create({ title: spheres[i] });
+    }
+    const clothingMethods = ['Звонок', 'Пинг', 'Клиент сам вышел на оплату', 'Акция', 'Отработка', 'Бронь'];
+    for (let i = 0; i < clothingMethods.length; i++) {
+      await ClothingMethods.create({ title: clothingMethods[i] });
     }
   }
 }
