@@ -1,6 +1,6 @@
 const ApiError = require('../../error/apiError');
 const modelsService = require('../../services/modelsService');
-const { modelFields: dealsModelFields, Deal, DealUsers } = require('./dealsModel');
+const { modelFields: dealsModelFields, Deal, DealUsers, DealDates } = require('./dealsModel');
 const { Client } = require('../clients/clientsModel');
 const dealsPermissions = require('./dealsPermissions');
 const { Op } = require('sequelize');
@@ -46,6 +46,7 @@ class DealsRouterMiddleware {
             model: Delivery,
             include: ['orders'],
           },
+          'dealDate',
           'payments',
           'dops',
           'files',
@@ -61,7 +62,7 @@ class DealsRouterMiddleware {
     }
   }
   async getList(req, res, next) {
-    const searchFields = ['title', 'clothingMethod', 'status'];
+    const searchFields = ['title', 'clothingMethod', 'status', 'cardLink', 'city', 'region', 'discont', 'adTag', 'source'];
 
     try {
       const searchFilter = await modelsService.searchFilter(searchFields, req.query);
@@ -72,6 +73,7 @@ class DealsRouterMiddleware {
           id: { [Op.gt]: 0 },
           ...searchFilter,
         },
+        include: ['dealDate'],
         // attributes: ['id', 'title', 'price', 'clothingMethod', 'deadline', 'status', 'createdAt'],
       };
       const { workSpace } = req;

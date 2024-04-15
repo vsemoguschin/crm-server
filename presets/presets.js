@@ -1,8 +1,9 @@
-const { User, Client, Deal, WorkSpace, stageList, Stage, DealUsers } = require('../entities/association');
+const { User, Client, Deal, WorkSpace, stageList, Stage } = require('../entities/association');
+const { ManagersPlan } = require('../entities/association');
 const { Role } = require('../entities/roles/rolesModel');
 const { ROLES: rolesList } = require('../entities/roles/rolesList');
 const bcrypt = require('bcrypt');
-const { Spheres } = require('../entities/clients/clientsModel');
+const { Spheres, DealDates } = require('../entities/deals/dealsModel');
 const { ClothingMethods } = require('../entities/deals/dealsModel');
 
 class Presets {
@@ -199,13 +200,17 @@ class Presets {
       const role = await Role.findOne({
         where: { shortName: users[i].role },
       });
-      await User.findOrCreate({
+      const [user, created] = await User.findOrCreate({
         where: { email: users[i].email },
         defaults: {
           ...users[i],
           roleId: role.id,
         },
       });
+      // console.log(user.id);
+      if (users[i].role == 'MOP') {
+        const plan = await ManagersPlan.create({ userId: user.id, plan: 50000, period: new Date('2024', '4') });
+      }
     }
     return;
   }
@@ -245,6 +250,9 @@ class Presets {
         clothingMethod: 'someting',
         deadline: 'soon',
         userId: managers[i].id,
+        adTag: '12mckcv',
+        discont: 'без',
+        source: 'vk',
       };
       const orderBlank = {
         name: 'someOrder',
@@ -270,6 +278,7 @@ class Presets {
       const client = await managers[i].createClient(clientBlank);
       const deal = await client.createDeal({ ...dealBlank, workSpaceId: client.workSpaceId });
       await deal.addDealers(managers[i]);
+      await DealDates.create({ dealId: deal.id });
       const delivery = await deal.createDelivery(deliveryBlank);
       const order = await deal.createOrder({ ...orderBlank, deliveryId: delivery.id });
       await delivery.addOrders(order);

@@ -14,7 +14,6 @@ const usersController = require('../users/usersController');
 const usersRouterMiddleware = require('../users/usersRouterMiddleware');
 const stagesRouterMiddleware = require('../stages/stagesRouterMiddleware');
 const groupsController = require('../groups/groupsController');
-const groupsRouterMiddleware = require('../groups/groupsRouterMiddleware');
 
 router.post('/', workSpacesRouterMiddleware.create, workSpacesController.create);
 router.get('/', workSpacesRouterMiddleware.getList, workSpacesController.getList);
@@ -72,6 +71,6 @@ router.get(
 
 //создание тегов для пользователей
 router.post('/:id/groups', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, groupsController.create);
-router.get('/:id/groups', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, groupsRouterMiddleware.getList, groupsController.getList);
+router.get('/:id/groups', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, groupsController.getList);
 
 module.exports = router;

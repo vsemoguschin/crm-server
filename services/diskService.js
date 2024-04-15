@@ -46,7 +46,7 @@ class DiskService {
         },
       });
 
-      await axios.put(data.href, file.data, {
+      const dt = await axios.put(data.href, file.data, {
         headers: {
           'Content-Type': 'text/plain',
         },

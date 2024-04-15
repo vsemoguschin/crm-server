@@ -19,6 +19,16 @@ router.get('/methods', dealsController.getMethods);
 router.post('/methods', dealsController.createMethods);
 router.delete('/methods/:methodId', checkReqParamsIsNumber, dealsController.deleteMethods);
 
+//список сфер деятельности
+router.get('/spheres', dealsController.getSpheres);
+router.post('/spheres', dealsController.createSpheres);
+router.delete('/spheres/:sphereId', checkReqParamsIsNumber, dealsController.deleteSpheres);
+
+//список рекламных тегов
+router.get('/tags', dealsController.getAdTags);
+router.post('/tags', dealsController.createAdTags);
+router.delete('/tags/:tagId', checkReqParamsIsNumber, dealsController.deleteAdTags);
+
 // router.get('/workSpace', dealsRouterMiddleware.getList, dealsController.getFullList);
 router.get('/:id', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, dealsController.getOne);
 router.get('/', dealsRouterMiddleware.getList, dealsController.getList);
@@ -41,6 +51,9 @@ router.delete(
   usersRouterMiddleware.getOne,
   dealsRouterMiddleware.deleteDealers,
 );
+
+//смена статуса
+router.patch('/:id/status/:new_status', dealsRouterMiddleware.getOne, dealsController.changeStatus);
 
 //создание и получение заказов внутри сделки
 router.post('/:id/orders', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, ordersRouterMiddleware.create, ordersController.create);
