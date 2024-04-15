@@ -56,7 +56,7 @@ class ClientsRouterMiddleware {
     try {
       const requesterRole = req.requester.role;
       checkPermissions(requesterRole);
-      const searchFields = ['gender', 'city', 'region', 'type', 'sphere', 'fullName', 'chatLink', 'phone'];
+      const searchFields = ['gender', 'type', 'fullName', 'chatLink', 'phone'];
       const searchFilter = await modelsService.searchFilter(searchFields, req.query);
       let searchParams = {
         where: {

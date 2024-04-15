@@ -5,6 +5,7 @@ const AuthMiddleware = require('../middleware/AuthMiddleware');
 
 const authRouter = require('./authRouter');
 const usersRouter = require('../entities/users/usersRouter');
+const managersRouter = require('../entities/managers/managersRouter');
 const workSpacesRouter = require('../entities/workSpaces/workSpacesRouter');
 const groupsRouter = require('../entities/groups/groupsRouter');
 const clientsRouter = require('../entities/clients/clientsRouter');
@@ -24,6 +25,7 @@ router.use(
   AuthMiddleware, //проверка авторизации
 );
 router.use('/users', usersRouter);
+router.use('/managers', managersRouter);
 router.use('/workspaces', workSpacesRouter);
 router.use('/groups', groupsRouter);
 router.use('/clients', clientsRouter);

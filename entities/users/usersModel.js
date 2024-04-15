@@ -9,6 +9,7 @@ const modelFields = {
   email: { type: DataTypes.STRING, allowNull: false, unique: true, fieldType: 'string', fullName: 'Email' },
   password: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Пароль' },
   info: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Информация' },
+  tg: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Ссылка на телеграм' },
   status: { type: DataTypes.STRING, defaultValue: '', validateFields: statuses, fieldType: 'string' },
 };
 

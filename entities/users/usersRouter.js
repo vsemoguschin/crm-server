@@ -44,6 +44,7 @@ const PERMISSIONS = {
   },
 };
 
+router.get('/create', usersRouterMiddleware.createModal);
 router.post('/', PERMISSIONS.create, usersRouterMiddleware.create, usersController.create);
 router.get('/:id', checkReqParamsIsNumber, usersRouterMiddleware.getOne, usersController.getOne);
 router.get('/', usersRouterMiddleware.getList, usersController.getList);

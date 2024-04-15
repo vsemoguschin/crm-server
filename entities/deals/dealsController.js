@@ -1,10 +1,11 @@
-const { Deal, modelFields: dealsModelFields, ClothingMethods, DealSources } = require('./dealsModel');
+const { Deal, modelFields: dealsModelFields, ClothingMethods, DealSources, Spheres, AdTags, DealDates } = require('./dealsModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
 const checkRepeatedValues = require('../../checking/checkRepeatedValues');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
 const ApiError = require('../../error/apiError');
+const { Op } = require('sequelize');
 
 class DealsController {
   async create(req, res, next) {
@@ -16,6 +17,7 @@ class DealsController {
 
       const deal = await client.createDeal(newDeal);
       await deal.addDealers(req.requester.id);
+      await DealDates.create({ dealId: deal.id });
 
       return res.json(deal);
     } catch (e) {
@@ -63,7 +65,7 @@ class DealsController {
   }
 
   async update(req, res, next) {
-    const updateFields = ['title', 'chatLink', 'clothingMethod', 'deadline', 'description', 'price', 'status'];
+    const updateFields = ['title', 'chatLink', 'clothingMethod', 'deadline', 'description', 'price'];
 
     try {
       const { deal } = req;
@@ -75,6 +77,44 @@ class DealsController {
       return res.json(deal);
     } catch (e) {
       console.log(e);
+      next(e);
+    }
+  }
+
+  async changeStatus(req, res, next) {
+    const statuses = ['createdAt', 'process', 'done', 'readyToSend', 'sent', 'delivered'];
+    try {
+      const { deal } = req;
+      const { dealDate } = deal;
+      const { new_status } = req.params;
+      // console.log(new Date('2024', '0', '1').toISOString());
+      const ress = await DealDates.findAll({
+        where: {
+          process: {
+            [Op.and]: [{ [Op.gte]: new Date('2024', '1') }, { [Op.lte]: new Date('2024', '3') }],
+          },
+        },
+      });
+      return res.json(ress);
+
+      // console.log(req.params);
+      if (!statuses.includes(new_status, 1)) {
+        throw ApiError.BadRequest('wrong status');
+      }
+      const prevStatus = statuses[statuses.indexOf(new_status) - 1];
+      const nextStatus = statuses[statuses.indexOf(new_status) + 1];
+      if (dealDate[new_status] !== '') {
+        throw ApiError.BadRequest('Уже назначен');
+      }
+      if (dealDate[prevStatus] == '') {
+        throw ApiError.BadRequest('wrong status');
+      }
+      if (dealDate[nextStatus] !== '' && new_status !== 'delivered') {
+        throw ApiError.BadRequest('wrong status');
+      }
+      await dealDate.update({ [new_status]: new Date() });
+      return res.json(dealDate);
+    } catch (e) {
       next(e);
     }
   }
@@ -159,6 +199,70 @@ class DealsController {
       const source = await DealSources.findOne({ where: { id: sourceId, workSpaceId: workSpace.id } });
       if (source) {
         source.destroy();
+      }
+      return res.json(200);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async getSpheres(req, res, next) {
+    try {
+      const spheres = await Spheres.findAll();
+      return res.json(spheres);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async createSpheres(req, res, next) {
+    try {
+      const { title } = req.body;
+      if (!title) {
+        throw ApiError.BadRequest('title is required');
+      }
+      const [sphere, created] = await Spheres.findOrCreate({ where: { title } });
+      return res.json(sphere);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async deleteSpheres(req, res, next) {
+    try {
+      const { sphereId } = req.params;
+      const sphere = await Spheres.findOne({ where: { id: sphereId } });
+      if (sphere) {
+        sphere.destroy();
+      }
+      return res.json(200);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async getAdTags(req, res, next) {
+    try {
+      const adTags = await AdTags.findAll();
+      return res.json(adTags);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async createAdTags(req, res, next) {
+    try {
+      const { title } = req.body;
+      if (!title) {
+        throw ApiError.BadRequest('title is required');
+      }
+      const [adTag, created] = await AdTags.findOrCreate({ where: { title } });
+      return res.json(adTag);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async deleteAdTags(req, res, next) {
+    try {
+      const { adTagId } = req.params;
+      const adTag = await Spheres.findOne({ where: { id: adTagId } });
+      if (adTag) {
+        adTag.destroy();
       }
       return res.json(200);
     } catch (e) {
