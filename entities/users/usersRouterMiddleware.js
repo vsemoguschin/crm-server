@@ -1,5 +1,5 @@
 const ApiError = require('../../error/apiError');
-const { modelFields: usersModelFields, User } = require('./usersModel');
+const { modelFields: usersModelFields, User, modelFields } = require('./usersModel');
 const modelsService = require('../../services/modelsService');
 const { Role } = require('../association');
 const { ROLES: rolesList } = require('../roles/rolesList');
@@ -28,6 +28,18 @@ const PERMISSIONS = {
 };
 
 class UsersRouterMiddleware {
+  async createModal(req, res, next) {
+    //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
+    try {
+      const frontOptions = {
+        modelFields: modelsService.getModelFields(usersModelFields),
+      };
+      frontOptions.modelFields.push({ field: 'role', name: 'Роль', required: true, type: 'string', validate: 'no' });
+      res.json(frontOptions);
+    } catch (e) {
+      next(e);
+    }
+  }
   async create(req, res, next) {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
     try {
@@ -50,12 +62,13 @@ class UsersRouterMiddleware {
   async getOne(req, res, next) {
     try {
       const requesterRole = req.requester.role;
+      // const requesterRole = req.requester.role;
       const rolesFilter = PERMISSIONS.access[requesterRole];
       let { id, userId } = req.params;
       id = userId || id;
       if (id === req.requester.id) {
         req.user = await User.findOne({
-          include: ['role', 'membership', 'avatar', 'groups'],
+          include: ['role', 'membership', 'avatar', 'group'],
           where: {
             id: id,
           },
@@ -66,7 +79,7 @@ class UsersRouterMiddleware {
         throw ApiError.Forbidden('Нет доступа');
       }
       const user = await User.findOne({
-        include: ['role', 'membership', 'avatar', 'groups'],
+        include: ['role', 'membership', 'avatar', 'group'],
         where: { id: id, '$role.shortName$': rolesFilter },
       });
       if (!user) {
@@ -83,7 +96,8 @@ class UsersRouterMiddleware {
     const searchFields = ['fullName'];
     const { role } = req.query;
     try {
-      const requesterRole = req.requester.role;
+      // const requesterRole = req.requester.role;
+      const requesterRole = 'ADMIN';
       const access = PERMISSIONS.access[requesterRole];
       if (!access) {
         console.log(false, 'no acces');
@@ -103,6 +117,7 @@ class UsersRouterMiddleware {
               shortName: rolesFilter,
             },
           },
+          // 'managersPlans',
         ],
         where: {
           ...searchFilter,
@@ -121,7 +136,7 @@ class UsersRouterMiddleware {
       if (req.baseUrl.includes('/groups')) {
         const { group } = req;
         searchParams.include.push({
-          association: 'groups',
+          association: 'group',
           where: {
             id: group.id,
           },

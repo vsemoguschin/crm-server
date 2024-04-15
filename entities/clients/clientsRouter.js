@@ -6,11 +6,6 @@ const dealsRouterMiddleware = require('../deals/dealsRouterMiddleware');
 const dealsController = require('../deals/dealsController');
 const checkReqParamsIsNumber = require('../../checking/checkReqParamsIsNumber');
 
-//список сфер деятельности
-router.get('/spheres', clientsController.getSpheres);
-router.post('/spheres', clientsController.createSpheres);
-router.delete('/spheres/:sphereId', checkReqParamsIsNumber, clientsController.deleteSpheres);
-
 // router.post('/', clientsRouterMiddleware.create, clientsController.create); //через воркспейс
 router.get('/:id', checkReqParamsIsNumber, clientsRouterMiddleware.getOne, clientsController.getOne);
 router.get('/', clientsRouterMiddleware.getList, clientsController.getList);
