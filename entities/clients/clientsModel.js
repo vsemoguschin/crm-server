@@ -22,7 +22,13 @@ const Client = sequelize.define('client', modelFields, {
   paranoid: true,
 });
 
+const Spheres = sequelize.define('spheres', {
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  title: { type: DataTypes.STRING, unique: true, fieldType: 'string', fullName: 'Сфера деятельности' },
+});
+
 module.exports = {
   Client,
   modelFields,
+  Spheres,
 };

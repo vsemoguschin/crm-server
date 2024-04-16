@@ -4,6 +4,24 @@ const axios = require('axios');
 const uuid = require('uuid');
 const checkFileFormat = require('../checking/checkFileFormat');
 
+async function fetchFileMeta(filePath, callback) {
+  const response = await axios.get('https://cloud-api.yandex.net/v1/disk/resources', {
+    params: {
+      path: filePath,
+    },
+    headers: {
+      Accept: 'application/json',
+      Authorization: 'OAuth ' + YaToken,
+    },
+  });
+
+  if (!response.data.preview) {
+    setTimeout(() => fetchFileMeta(filePath, callback), 500);
+  } else {
+    callback(response);
+  }
+}
+
 class DiskService {
   async uploadFile(file) {
     try {
@@ -14,6 +32,7 @@ class DiskService {
       }
       // console.log(directory, format);
       const uuidName = uuid.v4();
+      let response;
       const filePath = 'EasyCRM/' + directory + '/' + uuidName + '.' + format;
       const { data } = await axios.get('https://cloud-api.yandex.net/v1/disk/resources/upload', {
         params: {
@@ -36,7 +55,7 @@ class DiskService {
       });
       console.log(dt);
 
-      const response = await axios.get('https://cloud-api.yandex.net/v1/disk/resources', {
+       response = await axios.get('https://cloud-api.yandex.net/v1/disk/resources', {
         params: {
           path: filePath,
         },
@@ -53,7 +72,7 @@ class DiskService {
         ya_name: uuidName + '.' + format,
         size: response.data.size,
         preview: response.data.preview || null,
-        url,
+        url: response.data.file,
         type: directory,
       };
     } catch (e) {
