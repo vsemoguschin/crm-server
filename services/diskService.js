@@ -45,38 +45,28 @@ class DiskService {
           Authorization: 'OAuth ' + YaToken,
         },
       });
+      console.log('1');
+      console.log(data);
 
       const dt = await axios.put(data.href, file.data, {
         headers: {
           'Content-Type': 'text/plain',
         },
       });
+      console.log(dt);
 
-      if (directory === 'documents' || directory === 'drafts') {
-        response = await axios.get('https://cloud-api.yandex.net/v1/disk/resources', {
-          params: {
-            path: filePath,
-          },
-          headers: {
-            Accept: 'application/json',
-            Authorization: 'OAuth ' + YaToken,
-          },
-        });
-      }
-      if (directory === 'imgs') {
-        await axios.put('https://cloud-api.yandex.net/v1/disk/resources/publish', undefined, {
-          params: {
-            path: filePath,
-          },
-          headers: {
-            Accept: 'application/json',
-            Authorization: 'OAuth ' + YaToken,
-          },
-        });
-        response = await new Promise((resolve) => {
-          fetchFileMeta(filePath, resolve);
-        });
-      }
+       response = await axios.get('https://cloud-api.yandex.net/v1/disk/resources', {
+        params: {
+          path: filePath,
+        },
+        headers: {
+          Accept: 'application/json',
+          Authorization: 'OAuth ' + YaToken,
+        },
+      });
+      const url = response.data.file;
+      console.log(response.data);
+
       return {
         name: file.name,
         ya_name: uuidName + '.' + format,
