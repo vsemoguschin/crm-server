@@ -123,14 +123,14 @@ class ManagersController {
     try {
       const { manager } = req;
       const { year, month, plan } = req.params;
-      if (!year || !month || !plan) {
+      if (!year || !month || !plan || plan < 0) {
         throw ApiError.BadRequest('Забыл что то');
       }
       checkReqQueriesIsNumber({ year, month, plan });
       if (+month > 12 || +month < 1) {
         throw ApiError.BadRequest('wrong month');
       }
-      const period = new Date(year, month).toDateString();
+      const period = new Date(year, month, '0');
       const [newPlan, created] = await ManagersPlan.findOrCreate({
         where: { period },
         defaults: {
@@ -149,5 +149,4 @@ class ManagersController {
     }
   }
 }
-// console.log(new Date('2024', '0'));
 module.exports = new ManagersController();

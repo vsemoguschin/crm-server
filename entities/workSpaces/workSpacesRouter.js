@@ -6,7 +6,7 @@ const ordersController = require('../orders/ordersController');
 const checkReqParamsIsNumber = require('../../checking/checkReqParamsIsNumber');
 const clientsRouterMiddleware = require('../clients/clientsRouterMiddleware');
 const clientsController = require('../clients/clientsController');
-const dealsRouterMiddleware = require('../deals/dealsRouterMiddleware');
+const { getListOfDeals } = require('../deals/dealsRouterMiddleware');
 const dealsController = require('../deals/dealsController');
 const deliveriesRouterMiddleware = require('../deliveries/deliveriesRouterMiddleware');
 const deliveriesController = require('../deliveries/deliveriesController');
@@ -49,7 +49,7 @@ router.post('/:id/clients/', checkReqParamsIsNumber, workSpacesRouterMiddleware.
 router.get('/:id/clients/', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, clientsRouterMiddleware.getList, clientsController.getList);
 
 //получение сделок воркспейса для коммерческого отдела
-router.get('/:id/deals', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, dealsRouterMiddleware.getList, dealsController.getList);
+router.get('/:id/deals', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, getListOfDeals, dealsController.getList);
 
 //доска заказов для PRODUCTION
 router.get(

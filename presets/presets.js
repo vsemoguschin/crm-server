@@ -3,7 +3,7 @@ const { ManagersPlan } = require('../entities/association');
 const { Role } = require('../entities/roles/rolesModel');
 const { ROLES: rolesList } = require('../entities/roles/rolesList');
 const bcrypt = require('bcrypt');
-const { Spheres, DealDates } = require('../entities/deals/dealsModel');
+const { Spheres, DealDates, Dealers } = require('../entities/deals/dealsModel');
 const { ClothingMethods } = require('../entities/deals/dealsModel');
 
 class Presets {
@@ -21,7 +21,7 @@ class Presets {
       },
       paranoid: false,
     });
-    return await User.findOrCreate({
+    const [admin] = await User.findOrCreate({
       where: { email: 'GGG' },
       defaults: {
         email: 'GGG',
@@ -32,6 +32,11 @@ class Presets {
       },
       paranoid: false,
     });
+    const dateObj = new Date();
+    const month = dateObj.getUTCMonth() + 1;
+    const year = dateObj.getUTCFullYear();
+    const kompanyPlan = await ManagersPlan.create({ userId: admin.id, plan: 500000, period: new Date(year, month, '0') });
+    return;
   }
   async createRoles() {
     for (const role in rolesList) {
@@ -208,9 +213,6 @@ class Presets {
         },
       });
       // console.log(user.id);
-      if (users[i].role == 'MOP') {
-        const plan = await ManagersPlan.create({ userId: user.id, plan: 50000, period: new Date('2024', '4') });
-      }
     }
     return;
   }
@@ -275,14 +277,49 @@ class Presets {
         city: 'MSC',
         readyToSend: true,
       };
+      const paymentsBlank = {
+        title: 'first',
+        price: 3000,
+        date: new Date().toDateString(),
+        method: 'Перевод',
+      };
+      const dopBlank = {
+        title: 'first',
+        price: 3000,
+        type: 'gift',
+      };
+      //create plan
+      const dateObj = new Date();
+      const month = dateObj.getUTCMonth() + 1;
+      const year = dateObj.getUTCFullYear();
+
+      const plan = await ManagersPlan.create({ userId: managers[i].id, plan: 50000, period: new Date(year, month, '0') });
+
       const client = await managers[i].createClient(clientBlank);
       const deal = await client.createDeal({ ...dealBlank, workSpaceId: client.workSpaceId });
-      await deal.addDealers(managers[i]);
+
+      // await deal.addDealers(managers[i]);
+      await Dealers.create({
+        userId: managers[i].id,
+        dealId: deal.id,
+        part: 1,
+        price: deal.price,
+      });
+
       await DealDates.create({ dealId: deal.id });
       const delivery = await deal.createDelivery(deliveryBlank);
+      const payment = await deal.createPayment({ ...paymentsBlank, userId: managers[i].id });
+      const dop = await deal.createDop({ ...dopBlank, userId: managers[i].id });
       const order = await deal.createOrder({ ...orderBlank, deliveryId: delivery.id });
       await delivery.addOrders(order);
       await delivery.update({ workSpaceId: order.workSpaceId });
+
+      plan.dealsSales += deal.price;
+      plan.dealsAmount += 1;
+      plan.dopsSales += dop.price;
+      plan.dopsAmount += 1;
+      plan.receivedPayments += payment.price;
+      await plan.save();
     }
   }
   async createLists() {
@@ -334,5 +371,11 @@ class Presets {
     }
   }
 }
+const dateObj = new Date();
+const month = dateObj.getUTCMonth() + 1;
+const day = dateObj.getUTCDate();
+const year = dateObj.getUTCFullYear();
+console.log(year, month);
+console.log(new Date(year, month).toISOString());
 
 module.exports = new Presets();

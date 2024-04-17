@@ -49,7 +49,7 @@ class ModelsController {
       // console.log(requiredFields[key]);
       if (modelFields[key].fieldType === 'number') {
         const field = +requiredFields[key];
-        if (isNaN(field)) {
+        if (isNaN(field) || field < 0) {
           console.log('wrong type', key);
           throw ApiError.BadRequest('Неверный тип', [key]);
         }
@@ -132,9 +132,11 @@ class ModelsController {
       // console.log(body[modelFieldsKeys[i]]);
       if (body[modelFieldsKeys[i]]) {
         // console.log(modelFieldsKeys[i]);
+        console.log(body[modelFieldsKeys[i]]);
         search[Op.and].push({
           [modelFieldsKeys[i]]: {
-            [Op.iRegexp]: body[modelFieldsKeys[i]],
+            [Op.like]: body[modelFieldsKeys[i]],
+            // [Op.iRegexp]: body[modelFieldsKeys[i]],
           },
         });
       }

@@ -5,7 +5,7 @@ const usersController = require('./usersController');
 const checkReqParamsIsNumber = require('../../checking/checkReqParamsIsNumber');
 const clientsController = require('../clients/clientsController');
 const clientsRouterMiddleware = require('../clients/clientsRouterMiddleware');
-const dealsRouterMiddleware = require('../deals/dealsRouterMiddleware');
+const { getListOfDeals } = require('../deals/dealsRouterMiddleware');
 const dealsController = require('../deals/dealsController');
 const ordersRouterMiddleware = require('../orders/ordersRouterMiddleware');
 const ordersController = require('../orders/ordersController');
@@ -52,7 +52,7 @@ router.patch('/:id', checkReqParamsIsNumber, usersRouterMiddleware.getOne, users
 router.delete('/:id', checkReqParamsIsNumber, usersRouterMiddleware.getOne, usersRouterMiddleware.delete, usersController.delete);
 
 router.get('/:id/clients', checkReqParamsIsNumber, usersRouterMiddleware.getOne, clientsRouterMiddleware.getList, clientsController.getList);
-router.get('/:id/deals', checkReqParamsIsNumber, usersRouterMiddleware.getOne, dealsRouterMiddleware.getList, dealsController.getList);
+router.get('/:id/deals', checkReqParamsIsNumber, usersRouterMiddleware.getOne, getListOfDeals, dealsController.getList);
 router.get('/:id/orders', checkReqParamsIsNumber, usersRouterMiddleware.getOne, ordersRouterMiddleware.getList, ordersController.getList);
 router.get('/:id/dops', checkReqParamsIsNumber, usersRouterMiddleware.getOne, dopsRouterMiddleware.getList, dopsController.getList);
 router.get('/:id/work', checkReqParamsIsNumber, usersRouterMiddleware.getOne, ordersRouterMiddleware.getList, ordersController.getList);

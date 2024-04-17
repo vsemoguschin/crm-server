@@ -2,6 +2,7 @@ const Router = require('express');
 const router = new Router();
 const clientsRouterMiddleware = require('./clientsRouterMiddleware');
 const clientsController = require('./clientsController');
+const { getListOfDeals } = require('../deals/dealsRouterMiddleware');
 const dealsRouterMiddleware = require('../deals/dealsRouterMiddleware');
 const dealsController = require('../deals/dealsController');
 const checkReqParamsIsNumber = require('../../checking/checkReqParamsIsNumber');
@@ -19,6 +20,6 @@ router.delete('/:id', checkReqParamsIsNumber, clientsRouterMiddleware.getOne, cl
 
 //создание и получение заказов внутри сделки
 router.post('/:id/deals', checkReqParamsIsNumber, clientsRouterMiddleware.getOne, dealsRouterMiddleware.create, dealsController.create);
-router.get('/:id/deals', checkReqParamsIsNumber, clientsRouterMiddleware.getOne, dealsRouterMiddleware.getList, dealsController.getList);
+router.get('/:id/deals', checkReqParamsIsNumber, clientsRouterMiddleware.getOne, getListOfDeals, dealsController.getList);
 
 module.exports = router;

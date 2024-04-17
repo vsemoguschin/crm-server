@@ -55,7 +55,7 @@ class DiskService {
       });
       console.log(dt);
 
-       response = await axios.get('https://cloud-api.yandex.net/v1/disk/resources', {
+      response = await axios.get('https://cloud-api.yandex.net/v1/disk/resources', {
         params: {
           path: filePath,
         },

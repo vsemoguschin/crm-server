@@ -1,11 +1,11 @@
-const { Deal, modelFields: dealsModelFields, ClothingMethods, DealSources, Spheres, AdTags, DealDates } = require('./dealsModel');
+const { Deal, modelFields: dealsModelFields, Dealers, ClothingMethods, DealSources, Spheres, AdTags, DealDates } = require('./dealsModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
 const checkRepeatedValues = require('../../checking/checkRepeatedValues');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
 const ApiError = require('../../error/apiError');
-const { Op } = require('sequelize');
+const { ManagersPlan } = require('../association');
 
 class DealsController {
   async create(req, res, next) {
@@ -16,8 +16,33 @@ class DealsController {
       newDeal.workSpaceId = client.workSpaceId;
 
       const deal = await client.createDeal(newDeal);
-      await deal.addDealers(req.requester.id);
+      // await deal.addDealers(req.requester.id);
+      await Dealers.create({
+        userId: newDeal.userId,
+        dealId: deal.id,
+        price: newDeal.price,
+        part: 1,
+      });
       await DealDates.create({ dealId: deal.id });
+      const dateObj = new Date();
+      const month = dateObj.getUTCMonth() + 1;
+      const year = dateObj.getUTCFullYear();
+
+      const [plan] = await ManagersPlan.findOrCreate({
+        where: {
+          period: new Date(year, month, '0'),
+          userId: newDeal.userId,
+        },
+        defaults: {
+          userId: newDeal.userId,
+          plan: 0,
+          period: new Date(year, month, '0'),
+        },
+      });
+
+      plan.dealsSales += deal.price;
+      plan.dealsAmount += 1;
+      await plan.save();
 
       return res.json(deal);
     } catch (e) {
@@ -43,22 +68,114 @@ class DealsController {
       order: queryOrder,
     } = req.query;
     try {
-      checkReqQueriesIsNumber({ pageSize, current });
       const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
-      const { searchParams } = req;
-      console.log(searchParams);
+      const { searchParams, monthPlan } = req;
+      // console.log(searchParams);
 
       const deals = await Deal.findAndCountAll({
+        ...searchParams,
+        distinct: true,
+        order,
+        // limit,
+        // offset,
+      });
+      const deals2 = await Deal.findAndCountAll({
         ...searchParams,
         distinct: true,
         order,
         limit,
         offset,
       });
-      const response = getPaginationData(deals, current, pageSize, 'deals');
-      return res.json(response);
+
+      const dealsList = deals.rows.map((el) => {
+        const { id } = el;
+        const title = el.title; //Название
+        const dealPrice = el.price; //Стоимость сделки
+        const dopsPrice = el.dops.reduce((a, b) => a + b.price, 0); //сумма допов
+        const payments = el.payments.reduce((a, b) => a + b.price, 0); //внесенных платежей
+        const totalPrice = dealPrice + dopsPrice; //Общяя сумма
+        const remainder = totalPrice - payments; //Остаток
+        const managers = el.dealers; //менеджер(ы)
+        const source = el.source; //источник сделки
+        const adTag = el.adTag; //тег рекламный
+        const firstPayment = el.payments[0]?.method || ''; //метод первого платежа
+        const city = el.city;
+        const clothingMethod = el.clothingMethod;
+        const client = el.client; //передаю полность
+        const sphere = el.sphere;
+        const discont = el.discont;
+        const status = el.status;
+        const delivery = el.deliveries; //полностью
+
+        return {
+          id,
+          title,
+          totalPrice,
+          dealPrice,
+          dopsPrice,
+          payments,
+          remainder,
+          managers,
+          source,
+          adTag,
+          firstPayment,
+          city,
+          clothingMethod,
+          client,
+          sphere,
+          discont,
+          status,
+          delivery,
+        };
+      });
+      const totalInfo = {
+        totalPrice: 0,
+        dealPrice: 0,
+        dopsPrice: 0,
+        payments: 0,
+        remainder: 0,
+      };
+
+      dealsList.map((el) => {
+        totalInfo.totalPrice += el.totalPrice;
+        totalInfo.dealPrice += el.dealPrice;
+        totalInfo.dopsPrice += el.dopsPrice;
+        totalInfo.payments += el.payments;
+        totalInfo.remainder += el.remainder;
+      });
+
+      // const totalInfo = dealsList.reduce((a, b) => {
+      //   const dealPrice = a.dealPrice + b.dealPrice; //Стоимость сделки
+      //   const dopsPrice = a.dopsPrice + b.dopsPrice; //сумма допов
+      //   const payments = a.payments + b.payments; //внесенных платежей
+      //   const totalPrice = a.totalPrice + b.totalPrice; //Общяя сумма
+      //   const remainder = a.remainder + b.remainder; //Остаток
+      //   // console.log(a.dealPrice);
+      //   return {
+      //     totalPrice: totalPrice,
+      //     dealPrice: dealPrice,
+      //     dopsPrice: dopsPrice,
+      //     payments: payments,
+      //     remainder: remainder,
+      //   };
+      // });
+      // console.log(offset);
+
+      const resp = {
+        total: dealsList.length,
+        deals: dealsList,
+        totalPages: Math.ceil(dealsList.length / limit),
+        current: current ? +current : 0,
+        totalInfo,
+        totalPlan: monthPlan,
+      };
+
+      const response = getPaginationData(deals2, current, pageSize, 'deals');
+      // response.totalInfo = totalInfo;
+      // response.deals = dealsList;
+      return res.json(resp);
     } catch (e) {
       next(e);
     }
@@ -72,7 +189,30 @@ class DealsController {
 
       const body = checkRepeatedValues(deal, req.body);
       const updates = await modelsService.checkUpdates([Deal, dealsModelFields], body, updateFields);
+      if (updates.price) {
+        const { dealers } = deal;
+        const oldPrice = deal.price;
+        const newPrice = updates.price;
 
+        const dateObj = new Date(deal.createdAt);
+        const month = dateObj.getUTCMonth() + 1;
+        const year = dateObj.getUTCFullYear();
+        if (dealers.length == 2) {
+          throw ApiError.BadRequest('delete one seller first');
+        }
+        if (dealers.length == 1) {
+          const dealer = await Dealers.findOne({ where: { dealId: deal.id } });
+          await dealer.update({ price: newPrice });
+          const plan = await ManagersPlan.findOne({
+            where: {
+              userId: deal.dealers[0].id,
+              period: new Date(year, month, '0'),
+            },
+          });
+          plan.dealsSales += newPrice - oldPrice;
+          await plan.save();
+        }
+      }
       await deal.update(updates);
       return res.json(deal);
     } catch (e) {
@@ -87,15 +227,6 @@ class DealsController {
       const { deal } = req;
       const { dealDate } = deal;
       const { new_status } = req.params;
-      // console.log(new Date('2024', '0', '1').toISOString());
-      const ress = await DealDates.findAll({
-        where: {
-          process: {
-            [Op.and]: [{ [Op.gte]: new Date('2024', '1') }, { [Op.lte]: new Date('2024', '3') }],
-          },
-        },
-      });
-      return res.json(ress);
 
       // console.log(req.params);
       if (!statuses.includes(new_status, 1)) {
@@ -122,6 +253,32 @@ class DealsController {
   async delete(req, res, next) {
     try {
       const { deal } = req;
+      const { dealers } = deal;
+      if (dealers.length == 2) {
+        throw ApiError.BadRequest('delete one seller first');
+      }
+      if (deal.payments.length > 0) {
+        throw ApiError.BadRequest('deal has payments');
+      }
+      if (deal.dops.length > 0) {
+        throw ApiError.BadRequest('deal has dops');
+      }
+
+      const dateObj = new Date(deal.createdAt);
+      const month = dateObj.getUTCMonth() + 1;
+      const year = dateObj.getUTCFullYear();
+      if (dealers.length == 1) {
+        await Dealers.destroy({ where: { dealId: deal.id } });
+        const plan = await ManagersPlan.findOne({
+          where: {
+            userId: dealers[0].id,
+            period: new Date(year, month, '0'),
+          },
+        });
+        plan.dealsSales -= deal.price;
+        plan.dealsAmount -= 1;
+        await plan.save();
+      }
       const deletedDeal = await deal.destroy();
       // console.log(deletedDeal);
       if (deletedDeal === 0) {

@@ -21,6 +21,7 @@ const modelFields = {
   city: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Город' },
   region: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Регион' },
   cardLink: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Ссылка на карточку' },
+  paid: { type: DataTypes.BOOLEAN, defaultValue: false, fieldType: 'boolean', fullName: 'Оплачена?' },
 };
 
 //status заменить на isDone
@@ -29,9 +30,10 @@ const Deal = sequelize.define('deal', modelFields, {
   paranoid: true,
 });
 
-const DealUsers = sequelize.define('dealUsers', {
+const Dealers = sequelize.define('dealUsers', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   part: { type: DataTypes.FLOAT, defaultValue: 1, fieldType: 'number', fullName: 'Доля сделки' },
+  price: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'Сумма' },
 });
 
 //источники сделок
@@ -71,7 +73,7 @@ const DealDates = sequelize.define('dealDates', {
 module.exports = {
   Deal,
   modelFields,
-  DealUsers,
+  Dealers,
   DealSources,
   ClothingMethods,
   AdTags,

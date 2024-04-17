@@ -1,6 +1,7 @@
 const Router = require('express');
 const router = new Router();
 const dealsRouterMiddleware = require('./dealsRouterMiddleware');
+const { getDeal, getListOfDeals } = require('./dealsRouterMiddleware');
 const dealsController = require('./dealsController');
 const filesRouterMiddleware = require('../files/filesRouterMiddleware');
 const filesController = require('../files/filesController');
@@ -29,50 +30,38 @@ router.get('/tags', dealsController.getAdTags);
 router.post('/tags', dealsController.createAdTags);
 router.delete('/tags/:tagId', checkReqParamsIsNumber, dealsController.deleteAdTags);
 
-// router.get('/workSpace', dealsRouterMiddleware.getList, dealsController.getFullList);
-router.get('/:id', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, dealsController.getOne);
-router.get('/', dealsRouterMiddleware.getList, dealsController.getList);
-router.patch('/:id', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, dealsController.update);
-router.delete('/:id', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, dealsController.delete);
+// router.get('/workSpace', getDeal, dealsController.getFullList);
+router.get('/:id', checkReqParamsIsNumber, getDeal, dealsController.getOne);
+router.get('/', getListOfDeals, dealsController.getList);
+router.patch('/:id', checkReqParamsIsNumber, getDeal, dealsController.update);
+router.delete('/:id', checkReqParamsIsNumber, getDeal, dealsController.delete);
 
 //получение, добавление, удаление участников сделки
-router.get('/:id/dealers', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, dealsRouterMiddleware.getDealers);
-router.patch(
-  '/:id/dealers/:userId',
-  checkReqParamsIsNumber,
-  dealsRouterMiddleware.getOne,
-  usersRouterMiddleware.getOne,
-  dealsRouterMiddleware.addDealers,
-);
-router.delete(
-  '/:id/dealers/:userId',
-  checkReqParamsIsNumber,
-  dealsRouterMiddleware.getOne,
-  usersRouterMiddleware.getOne,
-  dealsRouterMiddleware.deleteDealers,
-);
+router.get('/:id/dealers', checkReqParamsIsNumber, getDeal, dealsRouterMiddleware.getDealers);
+router.patch('/:id/dealers/:userId', checkReqParamsIsNumber, getDeal, usersRouterMiddleware.getOne, dealsRouterMiddleware.addDealers);
+router.delete('/:id/dealers/:userId', checkReqParamsIsNumber, getDeal, usersRouterMiddleware.getOne, dealsRouterMiddleware.deleteDealers);
 
 //смена статуса
-router.patch('/:id/status/:new_status', dealsRouterMiddleware.getOne, dealsController.changeStatus);
+router.patch('/:id/status/:new_status', getDeal, dealsController.changeStatus);
 
 //создание и получение заказов внутри сделки
-router.post('/:id/orders', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, ordersRouterMiddleware.create, ordersController.create);
-router.get('/:id/orders', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, ordersRouterMiddleware.getList, ordersController.getList);
+router.post('/:id/orders', checkReqParamsIsNumber, getDeal, ordersRouterMiddleware.create, ordersController.create);
+router.get('/:id/orders', checkReqParamsIsNumber, getDeal, ordersRouterMiddleware.getList, ordersController.getList);
 
 //создание и получение доставок внутри сделки
-router.post('/:id/deliveries', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, deliveriesRouterMiddleware.create, deliveriesController.create);
-router.get('/:id/deliveries', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, deliveriesRouterMiddleware.getList, deliveriesController.getList);
+router.post('/:id/deliveries', checkReqParamsIsNumber, getDeal, deliveriesRouterMiddleware.create, deliveriesController.create);
+router.get('/:id/deliveries', checkReqParamsIsNumber, getDeal, deliveriesRouterMiddleware.getList, deliveriesController.getList);
 
 //создание и получение допов внутри сделки
-router.post('/:id/dops', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, dopsRouterMiddleware.create, dopsController.create);
-router.get('/:id/dops', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, dopsRouterMiddleware.getList, dopsController.getList);
+router.post('/:id/dops', checkReqParamsIsNumber, getDeal, dopsRouterMiddleware.create, dopsController.create);
+router.get('/:id/dops', checkReqParamsIsNumber, getDeal, dopsRouterMiddleware.getList, dopsController.getList);
 
 //создание и получение платежей внутри сделки
-router.post('/:id/payments', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, paymentsRouterMiddleware.create, paymentsController.create);
-router.get('/:id/payments', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, paymentsRouterMiddleware.getList, paymentsController.getList);
+router.post('/:id/payments', checkReqParamsIsNumber, getDeal, paymentsRouterMiddleware.create, paymentsController.create);
+router.get('/:id/payments', checkReqParamsIsNumber, getDeal, paymentsRouterMiddleware.getList, paymentsController.getList);
 
 //создание и получение файлов внутри сделки
-router.post('/:id/files', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, filesRouterMiddleware.dealsFiles, filesController.create);
-router.get('/:id/files', checkReqParamsIsNumber, dealsRouterMiddleware.getOne, filesRouterMiddleware.getList, filesController.getList);
+router.post('/:id/files', checkReqParamsIsNumber, getDeal, filesRouterMiddleware.dealsFiles, filesController.create);
+router.get('/:id/files', checkReqParamsIsNumber, getDeal, filesRouterMiddleware.getList, filesController.getList);
 
 module.exports = router;

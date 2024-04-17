@@ -4,7 +4,7 @@ const { ManagersPlan } = require('./managers/managersModel');
 const { Group } = require('./groups/groupsModel');
 const { Role } = require('./roles/rolesModel');
 const { Client } = require('./clients/clientsModel');
-const { Deal, DealUsers, DealSources, DealDates } = require('./deals/dealsModel');
+const { Deal, Dealers, DealSources, DealDates } = require('./deals/dealsModel');
 const { Payment } = require('./payments/paymentsModel');
 const { Dop } = require('./dops/dopsModel');
 const { Delivery } = require('./deliveries/deliveriesModel');
@@ -141,6 +141,6 @@ module.exports = {
   Delivery,
   WorkSpace,
   File,
-  DealUsers,
+  Dealers,
   ManagersPlan,
 };

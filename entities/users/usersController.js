@@ -5,6 +5,7 @@ const getPagination = require('../../utils/getPagination');
 const getPaginationData = require('../../utils/getPaginationData');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
 const ApiError = require('../../error/apiError');
+const { ManagersPlan } = require('../association');
 
 class UsersController {
   //создание пользователя
@@ -14,6 +15,14 @@ class UsersController {
       // хешируем пароль
       newUser.password = await bcrypt.hash(newUser.password, 3);
       const user = await userRole.createUser(newUser);
+
+      if (['MOP'].includes(userRole.shortName)) {
+        const dateObj = new Date();
+        const month = dateObj.getUTCMonth() + 1;
+        const year = dateObj.getUTCFullYear();
+        await ManagersPlan.create({ userId: user.id, plan: 0, period: new Date(year, month, '0') });
+      }
+
       delete user.dataValues.password;
       return res.status(200).json(user);
     } catch (e) {
@@ -25,7 +34,7 @@ class UsersController {
   async getOne(req, res, next) {
     try {
       const { user } = req;
-            return res.json(user);
+      return res.json(user);
     } catch (e) {
       next(e);
     }
