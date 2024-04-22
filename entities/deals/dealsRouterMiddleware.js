@@ -63,59 +63,48 @@ class DealsRouterMiddleware {
     }
   }
   async getListOfDeals(req, res, next) {
-    const searchFields = ['title', 'price', 'status', 'clothingMethod', 'source', 'adTag', 'discont', 'sphere', 'city', 'region', 'cardLink', 'paid'];
+    const searchFields = [
+      'title',
+      'price',
+      'status',
+      'clothingMethod',
+      'source',
+      'adTag',
+      'discont',
+      'sphere',
+      'city',
+      'region',
+      'cardLink',
+      'paid',
+      'workspace',
+      'managers',
+    ];
 
     try {
-      const {
-        pageSize,
-        current,
-        year,
-        month,
-        day, //?
-      } = req.query;
-      checkReqQueriesIsNumber({ pageSize, current, year, month, day });
-      if (!year || !month) {
-        throw ApiError.BadRequest('необходимо передать период');
-      }
-      if (+month > 12 || +month < 1) {
-        throw ApiError.BadRequest('wrong month');
-      }
-      const searchFilter = await modelsService.searchFilter(searchFields, req.query);
+      const { pageSize, current, start, end } = req.query;
+      checkReqQueriesIsNumber({ pageSize, current });
+      const dateStart = new Date(start || '2024-03-17');
+      const dateEnd = new Date(end || '2500-04-17');
+
+      const searchFilter = await modelsService.dealListFilter(searchFields, req.query);
       const requesterRole = req.requester.role;
       dealsPermissions(requesterRole);
-      const monthDays = new Date(year, month, '0').getDate();
-      let monthPlan = await ManagersPlan.findOne({
-        where: {
-          userId: 2,
-          period: new Date(year, month, '0'),
-        },
-      });
-      monthPlan = monthPlan?.plan || 0;
-      console.log(monthPlan);
-      let periodStart = new Date(year, month - 1, '2');
-      let periodEnd = new Date(year, month);
-
-      if (day && +day < monthDays && +day > 0) {
-        periodStart = new Date(year, month - 1, day);
-        periodEnd = new Date(year, month - 1, +day + 1);
-      }
-      if ((day && +day > monthDays) || +day < 0) {
-        throw ApiError.BadRequest('wrong day');
-      }
-      // return console.log(periodStart, periodEnd);
+      // console.log(monthPlan);
       const dateSearch = {
         createdAt: {
-          [Op.gt]: periodStart,
-          [Op.lt]: periodEnd,
+          [Op.gt]: dateStart == 'Invalid Date' ? '2000-01-01' : dateStart,
+          [Op.lt]: dateEnd == 'Invalid Date' ? '2500-01-01' : dateEnd,
         },
       };
+
+      // return console.log(end);
+
       const searchParams = {
         where: {
           id: { [Op.gt]: 0 },
-          ...searchFilter,
           ...dateSearch,
         },
-        include: ['dops', 'payments', 'dealers', 'client', 'deliveries'],
+        include: ['dops', 'payments', 'dealers', 'client', 'deliveries', 'workSpace'],
         // include: ['dealDate', 'payments', 'deliveries', 'client', 'dealers'],
         // attributes: ['id', 'title', 'price', 'clothingMethod', 'deadline', 'status', 'createdAt'],
       };
@@ -142,7 +131,7 @@ class DealsRouterMiddleware {
         ];
       }
       req.searchParams = searchParams;
-      req.monthPlan = monthPlan;
+      req.searchFilter = searchFilter;
       next();
     } catch (e) {
       next(e);
@@ -283,13 +272,8 @@ class DealsRouterMiddleware {
   }
 }
 
-const year = 2024;
-const month = 3;
-const day = 17;
-
-const periodStart = new Date(year, month - 1, day);
-const periodEnd = new Date(year, month - 1, day + 1);
-console.log(periodStart);
-console.log(periodEnd);
+const periodStart = new Date('2024');
+// console.log(periodStart || false);
+console.log(11111111, periodStart == 'Invalid Date');
 
 module.exports = new DealsRouterMiddleware();

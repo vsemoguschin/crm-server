@@ -122,7 +122,7 @@ class ManagersController {
   async setPlan(req, res, next) {
     try {
       const { manager } = req;
-      const { year, month, plan } = req.params;
+      const { year, month, plan } = req.body;
       if (!year || !month || !plan || plan < 0) {
         throw ApiError.BadRequest('Забыл что то');
       }
@@ -135,6 +135,39 @@ class ManagersController {
         where: { period },
         defaults: {
           userId: manager.id,
+          period,
+          plan: +plan,
+        },
+      });
+      if (!created) {
+        await newPlan.update({ plan });
+      }
+
+      return res.json(newPlan);
+    } catch (e) {
+      next(e);
+    }
+  }
+  //установка плана
+  async setMainPlan(req, res, next) {
+    try {
+      const { requester } = req;
+      if (!['ADMIN', 'G'].includes(requester.role)) {
+        throw ApiError.Forbidden('no access');
+      }
+      const { year, month, plan } = req.body;
+      if (!year || !month || !plan || plan < 0) {
+        throw ApiError.BadRequest('Забыл что то');
+      }
+      checkReqQueriesIsNumber({ year, month, plan });
+      if (+month > 12 || +month < 1) {
+        throw ApiError.BadRequest('wrong month');
+      }
+      const period = new Date(year, month, '0');
+      const [newPlan, created] = await ManagersPlan.findOrCreate({
+        where: { period },
+        defaults: {
+          userId: 2,
           period,
           plan: +plan,
         },

@@ -16,8 +16,8 @@ module.exports = function (queries, fields) {
     }
   }
   for (const key in result) {
-    if (isNaN(+queries[key])) {
-      throw ApiError.BadRequest('wrong query', key);
+    if (isNaN(+queries[key]) || +queries[key] < 0) {
+      throw ApiError.BadRequest('wrong query or negative', key);
     }
   }
   return result;

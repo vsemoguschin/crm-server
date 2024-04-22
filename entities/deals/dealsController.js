@@ -3,7 +3,6 @@ const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
 const checkRepeatedValues = require('../../checking/checkRepeatedValues');
-const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
 const ApiError = require('../../error/apiError');
 const { ManagersPlan } = require('../association');
 
@@ -69,9 +68,9 @@ class DealsController {
     } = req.query;
     try {
       const { limit, offset } = getPagination(current, pageSize);
-      const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
+      const order = queryOrder ? [[key, queryOrder]] : [['createdAt', 'DESC']];
 
-      const { searchParams, monthPlan } = req;
+      const { searchParams, searchFilter } = req;
       // console.log(searchParams);
 
       const deals = await Deal.findAndCountAll({
@@ -81,55 +80,70 @@ class DealsController {
         // limit,
         // offset,
       });
-      const deals2 = await Deal.findAndCountAll({
-        ...searchParams,
-        distinct: true,
-        order,
-        limit,
-        offset,
-      });
+      // const deals2 = await Deal.findAndCountAll({
+      //   ...searchParams,
+      //   attributes: ['id', 'createdAt'],
+      //   distinct: true,
+      //   order,
+      //   limit,
+      //   offset,
+      // });
 
-      const dealsList = deals.rows.map((el) => {
-        const { id } = el;
-        const title = el.title; //Название
-        const dealPrice = el.price; //Стоимость сделки
-        const dopsPrice = el.dops.reduce((a, b) => a + b.price, 0); //сумма допов
-        const payments = el.payments.reduce((a, b) => a + b.price, 0); //внесенных платежей
-        const totalPrice = dealPrice + dopsPrice; //Общяя сумма
-        const remainder = totalPrice - payments; //Остаток
-        const managers = el.dealers; //менеджер(ы)
-        const source = el.source; //источник сделки
-        const adTag = el.adTag; //тег рекламный
-        const firstPayment = el.payments[0]?.method || ''; //метод первого платежа
-        const city = el.city;
-        const clothingMethod = el.clothingMethod;
-        const client = el.client; //передаю полность
-        const sphere = el.sphere;
-        const discont = el.discont;
-        const status = el.status;
-        const delivery = el.deliveries; //полностью
+      const dealsList = deals.rows
+        .map((el) => {
+          const { id } = el;
+          const title = el.title; //Название
+          const dealPrice = el.price; //Стоимость сделки
+          const dopsPrice = el.dops.reduce((a, b) => a + b.price, 0); //сумма допов
+          const payments = el.payments.reduce((a, b) => a + b.price, 0); //внесенных платежей
+          const totalPrice = dealPrice + dopsPrice; //Общяя сумма
+          const remainder = totalPrice - payments; //Остаток
+          const managers = el.dealers; //менеджер(ы)
+          const source = el.source; //источник сделки
+          const adTag = el.adTag; //тег рекламный
+          const firstPayment = el.payments[0]?.method || ''; //метод первого платежа
+          const city = el.city;
+          const clothingMethod = el.clothingMethod;
+          const client = el.client; //передаю полность
+          const sphere = el.sphere;
+          const discont = el.discont;
+          const status = el.status;
+          const paid = el.paid;
+          const delivery = el.deliveries; //полностью
+          const workspace = el.workSpace.title;
+          const workspaceId = el.workSpace.id;
 
-        return {
-          id,
-          title,
-          totalPrice,
-          dealPrice,
-          dopsPrice,
-          payments,
-          remainder,
-          managers,
-          source,
-          adTag,
-          firstPayment,
-          city,
-          clothingMethod,
-          client,
-          sphere,
-          discont,
-          status,
-          delivery,
-        };
-      });
+          return {
+            id,
+            title,
+            totalPrice,
+            dealPrice,
+            dopsPrice,
+            payments,
+            remainder,
+            managers,
+            source,
+            adTag,
+            firstPayment,
+            city,
+            clothingMethod,
+            client,
+            sphere,
+            discont,
+            status,
+            paid,
+            delivery,
+            workspace,
+            workspaceId,
+          };
+        })
+        .filter((deal) => {
+          for (const key in searchFilter) {
+            if (deal[key] === undefined || deal[key] != searchFilter[key]) return false;
+          }
+          return true;
+        });
+
       const totalInfo = {
         totalPrice: 0,
         dealPrice: 0,
@@ -146,35 +160,24 @@ class DealsController {
         totalInfo.remainder += el.remainder;
       });
 
-      // const totalInfo = dealsList.reduce((a, b) => {
-      //   const dealPrice = a.dealPrice + b.dealPrice; //Стоимость сделки
-      //   const dopsPrice = a.dopsPrice + b.dopsPrice; //сумма допов
-      //   const payments = a.payments + b.payments; //внесенных платежей
-      //   const totalPrice = a.totalPrice + b.totalPrice; //Общяя сумма
-      //   const remainder = a.remainder + b.remainder; //Остаток
-      //   // console.log(a.dealPrice);
-      //   return {
-      //     totalPrice: totalPrice,
-      //     dealPrice: dealPrice,
-      //     dopsPrice: dopsPrice,
-      //     payments: payments,
-      //     remainder: remainder,
-      //   };
-      // });
-      // console.log(offset);
+      const arrayOffset = (current || 1) * (pageSize || 10); // сколько пропустить
+      const arrayStart = arrayOffset - limit; //начало
+      const arrayEnd = arrayStart + (pageSize || 10); //end
 
+      // return console.log('start ' + arrayStart, 'end ' + arrayEnd);
+      // console.log(searchFilter);
       const resp = {
         total: dealsList.length,
-        deals: dealsList,
+        deals: dealsList.slice(arrayStart, arrayEnd),
         totalPages: Math.ceil(dealsList.length / limit),
         current: current ? +current : 0,
         totalInfo,
-        totalPlan: monthPlan,
       };
 
-      const response = getPaginationData(deals2, current, pageSize, 'deals');
+      // const response = getPaginationData(deals2, current, pageSize, 'deals');
       // response.totalInfo = totalInfo;
       // response.deals = dealsList;
+      // resp.old = response;
       return res.json(resp);
     } catch (e) {
       next(e);

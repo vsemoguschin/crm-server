@@ -132,16 +132,27 @@ class ModelsController {
       // console.log(body[modelFieldsKeys[i]]);
       if (body[modelFieldsKeys[i]]) {
         // console.log(modelFieldsKeys[i]);
-        console.log(body[modelFieldsKeys[i]]);
         search[Op.and].push({
           [modelFieldsKeys[i]]: {
-            [Op.like]: body[modelFieldsKeys[i]],
-            // [Op.iRegexp]: body[modelFieldsKeys[i]],
+            [Op.iRegexp]: body[modelFieldsKeys[i]],
           },
         });
       }
     }
     // console.log(search);
+    return search;
+  }
+  async dealListFilter(modelFieldsKeys, body) {
+    const search = {};
+    for (let i = 0; i < modelFieldsKeys.length; i++) {
+      if (body[modelFieldsKeys[i]]) {
+        search[modelFieldsKeys[i]] = body[modelFieldsKeys[i]];
+      }
+    }
+    if (search['paid']) {
+      search['paid'] = search['paid'].toLowerCase() === 'false' ? false : true;
+    }
+    console.log(search);
     return search;
   }
 }
