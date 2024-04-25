@@ -1,10 +1,10 @@
 const { Deal, modelFields: dealsModelFields, Dealers, ClothingMethods, DealSources, Spheres, AdTags, DealDates } = require('./dealsModel');
 const modelsService = require('../../services/modelsService');
-const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
 const checkRepeatedValues = require('../../checking/checkRepeatedValues');
 const ApiError = require('../../error/apiError');
-const { ManagersPlan } = require('../association');
+
+const planService = require('../../services/planService');
 
 class DealsController {
   async create(req, res, next) {
@@ -23,25 +23,8 @@ class DealsController {
         part: 1,
       });
       await DealDates.create({ dealId: deal.id });
-      const dateObj = new Date();
-      const month = dateObj.getUTCMonth() + 1;
-      const year = dateObj.getUTCFullYear();
 
-      const [plan] = await ManagersPlan.findOrCreate({
-        where: {
-          period: new Date(year, month, '0'),
-          userId: newDeal.userId,
-        },
-        defaults: {
-          userId: newDeal.userId,
-          plan: 0,
-          period: new Date(year, month, '0'),
-        },
-      });
-
-      plan.dealsSales += deal.price;
-      plan.dealsAmount += 1;
-      await plan.save();
+      await planService.createDeal(deal);
 
       return res.json(deal);
     } catch (e) {
@@ -60,43 +43,38 @@ class DealsController {
   }
 
   async getList(req, res, next) {
-    const {
-      pageSize,
-      current,
-      key, //?
-      order: queryOrder,
-    } = req.query;
     try {
+      const { searchParams, searchFilter, sortFilter, pageSize, current, managerFilter } = req;
       const { limit, offset } = getPagination(current, pageSize);
-      const order = queryOrder ? [[key, queryOrder]] : [['createdAt', 'DESC']];
-
-      const { searchParams, searchFilter } = req;
-      // console.log(searchParams);
 
       const deals = await Deal.findAndCountAll({
         ...searchParams,
         distinct: true,
-        order,
-        // limit,
-        // offset,
+        order: [['createdAt', 'DESC']],
       });
-      // const deals2 = await Deal.findAndCountAll({
-      //   ...searchParams,
-      //   attributes: ['id', 'createdAt'],
-      //   distinct: true,
-      //   order,
-      //   limit,
-      //   offset,
-      // });
+
+      const availableFilters = [
+        { query: 'source', name: 'Источник', items: [] },
+        { query: 'adTag', name: 'Тег', items: [] },
+        { query: 'firstPayment', name: 'Тип платежа', items: [] },
+        { query: 'city', name: 'Город', items: [] },
+        { query: 'clothingMethod', name: 'Метод закрытия', items: [] },
+        { query: 'clientType', name: 'Тип клиента', items: [] },
+        { query: 'sphere', name: 'Сфера', items: [] },
+        { query: 'discont', name: 'Скидка', items: [] },
+        { query: 'status', name: 'Статус', items: [] },
+        { query: 'paid', name: 'Оплачена', items: [] },
+        { query: 'workspace', name: 'Пространство', items: [] },
+      ];
 
       const dealsList = deals.rows
         .map((el) => {
           const { id } = el;
           const title = el.title; //Название
-          const dealPrice = el.price; //Стоимость сделки
+          const price = el.price; //Стоимость сделки
           const dopsPrice = el.dops.reduce((a, b) => a + b.price, 0); //сумма допов
           const payments = el.payments.reduce((a, b) => a + b.price, 0); //внесенных платежей
-          const totalPrice = dealPrice + dopsPrice; //Общяя сумма
+          const totalPrice = price + dopsPrice; //Общяя сумма
           const remainder = totalPrice - payments; //Остаток
           const managers = el.dealers; //менеджер(ы)
           const source = el.source; //источник сделки
@@ -104,20 +82,52 @@ class DealsController {
           const firstPayment = el.payments[0]?.method || ''; //метод первого платежа
           const city = el.city;
           const clothingMethod = el.clothingMethod;
-          const client = el.client; //передаю полность
+          const clientType = el.client.type;
+          const chatLink = el.client.chatLink;
           const sphere = el.sphere;
           const discont = el.discont;
           const status = el.status;
           const paid = el.paid;
           const delivery = el.deliveries; //полностью
           const workspace = el.workSpace.title;
+          const client = el.client; //передаю полность
           const workspaceId = el.workSpace.id;
+
+          function fillSorting(fields) {
+            // console.log(fields);
+            for (const field in fields) {
+              availableFilters.find((el) => {
+                console.log(el.query, field);
+                if (el.query == field && !el.items.includes(fields[field]) && fields[field] !== '') {
+                  el.items.push(fields[field]);
+                }
+              });
+              // if (!availableFilters[field].includes(fields[field])) {
+              //   availableFilters[field].push(fields[field]);
+              // }
+            }
+          }
+
+          fillSorting({
+            source,
+            adTag,
+            firstPayment,
+            city,
+            clothingMethod,
+            clientType,
+            sphere,
+            discont,
+            status,
+            paid,
+            workspace,
+          });
 
           return {
             id,
             title,
             totalPrice,
-            dealPrice,
+            price,
+            clientType,
             dopsPrice,
             payments,
             remainder,
@@ -135,18 +145,37 @@ class DealsController {
             delivery,
             workspace,
             workspaceId,
+            chatLink,
           };
         })
         .filter((deal) => {
+          // console.log(deal.managers);
           for (const key in searchFilter) {
             if (deal[key] === undefined || deal[key] != searchFilter[key]) return false;
           }
+          if (managerFilter) {
+            const { managers } = deal;
+            for (let i = 0; i < managers.length; i++) {
+              if (managers[i] === undefined || managers[i].id !== +managerFilter.managerId) return false;
+            }
+            return true;
+          }
+
           return true;
         });
 
+      if (sortFilter.apply === true && sortFilter.key !== null) {
+        dealsList.sort((a, b) => {
+          if (sortFilter.order == 'ASC') {
+            return b[sortFilter.key] - a[sortFilter.key];
+          }
+          return a[sortFilter.key] - b[sortFilter.key];
+        });
+      }
+
       const totalInfo = {
         totalPrice: 0,
-        dealPrice: 0,
+        price: 0,
         dopsPrice: 0,
         payments: 0,
         remainder: 0,
@@ -154,7 +183,7 @@ class DealsController {
 
       dealsList.map((el) => {
         totalInfo.totalPrice += el.totalPrice;
-        totalInfo.dealPrice += el.dealPrice;
+        totalInfo.price += el.price;
         totalInfo.dopsPrice += el.dopsPrice;
         totalInfo.payments += el.payments;
         totalInfo.remainder += el.remainder;
@@ -162,22 +191,17 @@ class DealsController {
 
       const arrayOffset = (current || 1) * (pageSize || 10); // сколько пропустить
       const arrayStart = arrayOffset - limit; //начало
-      const arrayEnd = arrayStart + (pageSize || 10); //end
+      const arrayEnd = arrayStart + (pageSize || 100); //end
 
-      // return console.log('start ' + arrayStart, 'end ' + arrayEnd);
-      // console.log(searchFilter);
       const resp = {
         total: dealsList.length,
         deals: dealsList.slice(arrayStart, arrayEnd),
         totalPages: Math.ceil(dealsList.length / limit),
         current: current ? +current : 0,
         totalInfo,
+        availableFilters,
       };
 
-      // const response = getPaginationData(deals2, current, pageSize, 'deals');
-      // response.totalInfo = totalInfo;
-      // response.deals = dealsList;
-      // resp.old = response;
       return res.json(resp);
     } catch (e) {
       next(e);
@@ -194,27 +218,12 @@ class DealsController {
       const updates = await modelsService.checkUpdates([Deal, dealsModelFields], body, updateFields);
       if (updates.price) {
         const { dealers } = deal;
-        const oldPrice = deal.price;
         const newPrice = updates.price;
 
-        const dateObj = new Date(deal.createdAt);
-        const month = dateObj.getUTCMonth() + 1;
-        const year = dateObj.getUTCFullYear();
         if (dealers.length == 2) {
           throw ApiError.BadRequest('delete one seller first');
         }
-        if (dealers.length == 1) {
-          const dealer = await Dealers.findOne({ where: { dealId: deal.id } });
-          await dealer.update({ price: newPrice });
-          const plan = await ManagersPlan.findOne({
-            where: {
-              userId: deal.dealers[0].id,
-              period: new Date(year, month, '0'),
-            },
-          });
-          plan.dealsSales += newPrice - oldPrice;
-          await plan.save();
-        }
+        await planService.updateDeal(deal, newPrice, next);
       }
       await deal.update(updates);
       return res.json(deal);
@@ -266,22 +275,7 @@ class DealsController {
       if (deal.dops.length > 0) {
         throw ApiError.BadRequest('deal has dops');
       }
-
-      const dateObj = new Date(deal.createdAt);
-      const month = dateObj.getUTCMonth() + 1;
-      const year = dateObj.getUTCFullYear();
-      if (dealers.length == 1) {
-        await Dealers.destroy({ where: { dealId: deal.id } });
-        const plan = await ManagersPlan.findOne({
-          where: {
-            userId: dealers[0].id,
-            period: new Date(year, month, '0'),
-          },
-        });
-        plan.dealsSales -= deal.price;
-        plan.dealsAmount -= 1;
-        await plan.save();
-      }
+      await planService.deleteDeal(deal);
       const deletedDeal = await deal.destroy();
       // console.log(deletedDeal);
       if (deletedDeal === 0) {
@@ -430,5 +424,6 @@ class DealsController {
     }
   }
 }
-
+console.log(new Date('2024-02'), 11111);
+console.log(new Date('2024', '2'), 22222);
 module.exports = new DealsController();

@@ -1,5 +1,4 @@
-const { User, modelFields: usersModelFields, Group } = require('../users/usersModel');
-const modelsService = require('../../services/modelsService');
+const { User } = require('../users/usersModel');
 const getPagination = require('../../utils/getPagination');
 const getPaginationData = require('../../utils/getPaginationData');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
@@ -122,15 +121,21 @@ class ManagersController {
   async setPlan(req, res, next) {
     try {
       const { manager } = req;
-      const { year, month, plan } = req.body;
-      if (!year || !month || !plan || plan < 0) {
+      let { plan } = req.body;
+      const { period } = req.body;
+      const re = /^(19|20)\d\d-(0[1-9]|1[0-2])$/;
+
+      if (!plan || +plan < 0 || !period) {
         throw ApiError.BadRequest('Забыл что то');
       }
-      checkReqQueriesIsNumber({ year, month, plan });
-      if (+month > 12 || +month < 1) {
-        throw ApiError.BadRequest('wrong month');
+      checkReqQueriesIsNumber({ plan });
+      if (!re.test(period)) {
+        throw ApiError.BadRequest('wrong period');
       }
-      const period = new Date(year, month, '0');
+
+      plan = +plan;
+
+      // const period = new Date([year, month].join('-'), '0');
       const [newPlan, created] = await ManagersPlan.findOrCreate({
         where: { period },
         defaults: {
@@ -155,15 +160,12 @@ class ManagersController {
       if (!['ADMIN', 'G'].includes(requester.role)) {
         throw ApiError.Forbidden('no access');
       }
-      const { year, month, plan } = req.body;
-      if (!year || !month || !plan || plan < 0) {
+      let { period, plan } = req.body;
+      if (!period || !plan || +plan < 0) {
         throw ApiError.BadRequest('Забыл что то');
       }
-      checkReqQueriesIsNumber({ year, month, plan });
-      if (+month > 12 || +month < 1) {
-        throw ApiError.BadRequest('wrong month');
-      }
-      const period = new Date(year, month, '0');
+      checkReqQueriesIsNumber({ plan });
+      plan = +plan;
       const [newPlan, created] = await ManagersPlan.findOrCreate({
         where: { period },
         defaults: {

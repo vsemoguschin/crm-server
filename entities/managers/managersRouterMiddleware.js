@@ -10,16 +10,6 @@ class ManagersRouterMiddleware {
   async getOne(req, res, next) {
     try {
       let { id, userId } = req.params;
-      const { year, month } = req.query;
-      if (!year || !month) {
-        throw ApiError.BadRequest('no period');
-      }
-      checkReqQueriesIsNumber({ year, month });
-      if (+month > 12 || +month < 1) {
-        throw ApiError.BadRequest('wrong month');
-      }
-      const period = new Date(year, month);
-      const periodStart = new Date(year, month - 1);
       id = userId || id;
       const manager = await User.findOne({
         include: [
@@ -40,8 +30,6 @@ class ManagersRouterMiddleware {
         return res.status(404).json('manager not found');
       }
       req.manager = manager;
-      req.period = period.toISOString();
-      req.periodStart = periodStart.toISOString();
       next();
     } catch (e) {
       next(e);

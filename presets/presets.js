@@ -32,10 +32,9 @@ class Presets {
       },
       paranoid: false,
     });
-    const dateObj = new Date();
-    const month = dateObj.getUTCMonth() + 1;
-    const year = dateObj.getUTCFullYear();
-    const kompanyPlan = await ManagersPlan.create({ userId: admin.id, plan: 500000, period: new Date(year, month, '0') });
+    console.log(admin);
+    const period = admin.createdAt.toISOString().slice(0, 7);
+    await ManagersPlan.create({ userId: admin.id, plan: 500000, period });
     return;
   }
   async createRoles() {
@@ -240,7 +239,7 @@ class Presets {
       const clientBlank = {
         fullName: i + 'client',
         phone: 13245 + i,
-        chatLink: 'https://vk.com',
+        chatLink: 'https://vk.com' + i,
         type: 'ООО',
         gender: 'M',
         workSpaceId: managers[i].membership[0].id,
@@ -289,11 +288,9 @@ class Presets {
         type: 'gift',
       };
       //create plan
-      const dateObj = new Date();
-      const month = dateObj.getUTCMonth() + 1;
-      const year = dateObj.getUTCFullYear();
+      const period = managers[i].createdAt.toISOString().slice(0, 7);
 
-      const plan = await ManagersPlan.create({ userId: managers[i].id, plan: 50000, period: new Date(year, month, '0') });
+      const plan = await ManagersPlan.create({ userId: managers[i].id, plan: 50000, period });
 
       const client = await managers[i].createClient(clientBlank);
       const deal = await client.createDeal({ ...dealBlank, workSpaceId: client.workSpaceId });

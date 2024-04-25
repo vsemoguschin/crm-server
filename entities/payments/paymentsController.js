@@ -2,10 +2,9 @@ const { Payment, modelFields: paymentsModelFields } = require('./paymentsModel')
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
-const { Op } = require('sequelize');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
-const ApiError = require('../../error/apiError');
 const checkRepeatedValues = require('../../checking/checkRepeatedValues');
+const planService = require('../../services/planService');
 
 class PaymentsController {
   async create(req, res, next) {
@@ -13,6 +12,7 @@ class PaymentsController {
       const { deal, newPayment } = req;
       newPayment.userId = req.requester.id;
       const payment = await deal.createPayment(newPayment);
+      await planService.createPayment(payment);
       return res.json(payment);
     } catch (e) {
       console.log(e);

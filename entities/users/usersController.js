@@ -17,10 +17,9 @@ class UsersController {
       const user = await userRole.createUser(newUser);
 
       if (['MOP'].includes(userRole.shortName)) {
-        const dateObj = new Date();
-        const month = dateObj.getUTCMonth() + 1;
-        const year = dateObj.getUTCFullYear();
-        await ManagersPlan.create({ userId: user.id, plan: 0, period: new Date(year, month, '0') });
+        console.log(user);
+        const period = user.createdAt.toISOString().slice(0, 7);
+        await ManagersPlan.create({ userId: user.id, plan: 0, period });
       }
 
       delete user.dataValues.password;

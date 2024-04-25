@@ -1,14 +1,14 @@
 const sequelize = require('../db');
 const { DataTypes } = require('sequelize');
 
-const types = ['ООО', 'ИП', 'Физ', 'НКО'];
+const types = ['ООО', 'ИП', 'ФИЗ', 'НКО'];
 const genders = ['M', 'F', 'IT'];
 
 const modelFields = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true, fieldType: 'number' },
   fullName: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Имя клиента' },
-  phone: { type: DataTypes.STRING, unique: true, allowNull: false, fieldType: 'number', fullName: 'Номер телефона' },
-  chatLink: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Ссылка на чат' },
+  phone: { type: DataTypes.STRING, allowNull: false, fieldType: 'number', fullName: 'Номер телефона' },
+  chatLink: { type: DataTypes.STRING, unique: true, allowNull: false, fieldType: 'string', fullName: 'Ссылка на чат' },
   adLink: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Ссылка на объявление' },
   gender: { type: DataTypes.STRING, allowNull: false, validateFields: genders, fieldType: 'string', fullName: 'Пол' },
 

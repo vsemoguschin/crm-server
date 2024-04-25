@@ -2,16 +2,17 @@ const { Dop, modelFields: dopsModelFields } = require('./dopsModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
-const { Op } = require('sequelize');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
 const checkRepeatedValues = require('../../checking/checkRepeatedValues');
-const ApiError = require('../../error/apiError');
+const planService = require('../../services/planService');
+
 class DopsController {
   async create(req, res, next) {
     try {
       const { deal, newDop } = req;
       newDop.userId = req.requester.id;
       const dop = await deal.createDop(newDop);
+      await planService.createDop(dop);
       return res.json(dop);
     } catch (e) {
       console.log(e);
@@ -62,6 +63,10 @@ class DopsController {
       const body = checkRepeatedValues(dop, req.body);
       const updates = await modelsService.checkUpdates([Dop, dopsModelFields], body, updateFields);
 
+      if (updates.price) {
+        await planService.updateDop(dop, updates.price);
+      }
+
       await dop.update(updates);
       return res.json(dop);
     } catch (e) {
@@ -73,6 +78,7 @@ class DopsController {
   async delete(req, res, next) {
     try {
       const { dop } = req;
+      await planService.deleteDop(dop);
       const deletedDop = await dop.destroy();
       // console.log(deletedDop);
       if (deletedDop === 0) {

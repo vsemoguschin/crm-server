@@ -45,8 +45,8 @@ class ClientController {
       const order = queryOrder ? [[key, queryOrder]] : [['createdAt', 'DESC']];
 
       const { searchParams } = req;
-      console.log(pageSize, current);
-      console.log(limit, offset);
+      // console.log(pageSize, current);
+      // console.log(limit, offset);
       const clients = await Client.findAndCountAll({
         ...searchParams,
         distinct: true,

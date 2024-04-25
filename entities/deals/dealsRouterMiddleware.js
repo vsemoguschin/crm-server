@@ -1,10 +1,10 @@
 const ApiError = require('../../error/apiError');
 const modelsService = require('../../services/modelsService');
-const { modelFields: dealsModelFields, Deal, Dealers, DealDates } = require('./dealsModel');
+const { modelFields: dealsModelFields, Deal, Dealers } = require('./dealsModel');
 const { Client } = require('../clients/clientsModel');
 const dealsPermissions = require('./dealsPermissions');
 const { Op } = require('sequelize');
-const { Order, Delivery, User, ManagersPlan } = require('../association');
+const { Order, Delivery, ManagersPlan } = require('../association');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
 
 const frontOptions = {
@@ -17,6 +17,7 @@ class DealsRouterMiddleware {
     try {
       const requesterRole = req.requester.role;
       dealsPermissions(requesterRole);
+      console.log(req.body);
       const newDeal = await modelsService.checkFields([Deal, dealsModelFields], req.body);
       req.newDeal = newDeal;
       next();
@@ -65,7 +66,6 @@ class DealsRouterMiddleware {
   async getListOfDeals(req, res, next) {
     const searchFields = [
       'title',
-      'price',
       'status',
       'clothingMethod',
       'source',
@@ -76,38 +76,46 @@ class DealsRouterMiddleware {
       'region',
       'cardLink',
       'paid',
+      'clientType',
+      'chatLink',
       'workspace',
-      'managers',
+      'workspaceId',
     ];
 
     try {
-      const { pageSize, current, start, end } = req.query;
-      checkReqQueriesIsNumber({ pageSize, current });
+      const requesterRole = req.requester.role;
+      dealsPermissions(requesterRole);
+
+      const { pageSize, current, start, end, key, order, managerId } = req.query;
+      checkReqQueriesIsNumber({ pageSize, current, managerId });
+
       const dateStart = new Date(start || '2024-03-17');
       const dateEnd = new Date(end || '2500-04-17');
 
-      const searchFilter = await modelsService.dealListFilter(searchFields, req.query);
-      const requesterRole = req.requester.role;
-      dealsPermissions(requesterRole);
-      // console.log(monthPlan);
-      const dateSearch = {
-        createdAt: {
-          [Op.gt]: dateStart == 'Invalid Date' ? '2000-01-01' : dateStart,
-          [Op.lt]: dateEnd == 'Invalid Date' ? '2500-01-01' : dateEnd,
-        },
+      const keys = ['price', 'dopsPrice', 'payments', 'totalPrice', 'remainder'];
+
+      const sortFilter = {
+        apply: key && order ? true : false,
+        key: keys.includes(key) ? key : null,
+        order: ['DESC', 'ASC'].includes(order) ? order : 'DESC',
       };
 
-      // return console.log(end);
+      const managerFilter = managerId ? { managerId } : false;
+
+      const searchFilter = await modelsService.dealListFilter(searchFields, req.query);
 
       const searchParams = {
         where: {
           id: { [Op.gt]: 0 },
-          ...dateSearch,
+          createdAt: {
+            [Op.gt]: dateStart == 'Invalid Date' ? '2000-01-01' : dateStart,
+            [Op.lt]: dateEnd == 'Invalid Date' ? '2500-01-01' : dateEnd,
+          },
         },
         include: ['dops', 'payments', 'dealers', 'client', 'deliveries', 'workSpace'],
-        // include: ['dealDate', 'payments', 'deliveries', 'client', 'dealers'],
-        // attributes: ['id', 'title', 'price', 'clothingMethod', 'deadline', 'status', 'createdAt'],
       };
+
+      //other paths
       const { workSpace } = req;
       if (req.baseUrl.includes('/workspaces') && workSpace.department !== 'COMMERCIAL') {
         console.log(false, 'wrong workspace department');
@@ -132,6 +140,10 @@ class DealsRouterMiddleware {
       }
       req.searchParams = searchParams;
       req.searchFilter = searchFilter;
+      req.managerFilter = managerFilter;
+      req.sortFilter = sortFilter;
+      req.pageSize = pageSize;
+      req.current = current;
       next();
     } catch (e) {
       next(e);
@@ -271,9 +283,5 @@ class DealsRouterMiddleware {
     }
   }
 }
-
-const periodStart = new Date('2024');
-// console.log(periodStart || false);
-console.log(11111111, periodStart == 'Invalid Date');
 
 module.exports = new DealsRouterMiddleware();

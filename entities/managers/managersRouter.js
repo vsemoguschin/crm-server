@@ -8,6 +8,6 @@ router.get('/', managersRouterMiddleware.getList, managersController.getList);
 router.get('/:id', checkReqParamsIsNumber, managersRouterMiddleware.getOne, managersController.getOne);
 
 router.post('/:id/plan', checkReqParamsIsNumber, managersRouterMiddleware.getOne, managersController.setPlan);
-router.post('/plan', checkReqParamsIsNumber, managersController.setMainPlan);
+router.post('/plan', managersController.setMainPlan);
 
 module.exports = router;
