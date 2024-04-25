@@ -22,7 +22,7 @@ const createLog = (req, res, next) => {
 app.use(
   cors({
     credentials: true,
-    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://95.163.231.166:8080'],
+    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://95.163.231.166:80'],
   }),
 );
 
