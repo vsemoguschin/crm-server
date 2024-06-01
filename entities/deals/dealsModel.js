@@ -2,15 +2,15 @@ const sequelize = require('../db');
 const { DataTypes } = require('sequelize');
 
 // const statusesOld = ['created', 'process', 'done'];
-const statuses = ['created', 'process', 'done', 'readyToSend', 'sent', 'delivered'];
-// const statuses = ['создан', 'изготовление', 'готов', 'готов к отправке', 'отправлен', 'доставлен'];
+// const statuses = ['created', 'process', 'done', 'readyToSend', 'sent', 'delivered'];
+const statuses = ['Создана', 'Изготовление', 'Готов', 'Готов к отправке', 'Отправлен', 'Доставлен'];
 const disconts = ['Без скидки', 'Желтая', 'ОПТ', 'Рассылка'];
 
 const modelFields = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   title: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Название сделки' },
   price: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'Стоимость без допов' }, // стоимость вывески без допа, но выводить еще вместе с допами общую
-  status: { type: DataTypes.STRING, defaultValue: 'created', fieldType: 'string', validateFields: statuses, fullName: 'Статус' },
+  status: { type: DataTypes.STRING, defaultValue: 'Создана', fieldType: 'string', validateFields: statuses, fullName: 'Статус' },
   deadline: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Дедлайн' },
   clothingMethod: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Метод закрытия' },
   description: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Описание' },
@@ -34,12 +34,13 @@ const Dealers = sequelize.define('dealUsers', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   part: { type: DataTypes.FLOAT, defaultValue: 1, fieldType: 'number', fullName: 'Доля сделки' },
   price: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'Сумма' },
+  payments: { type: DataTypes.INTEGER, fieldType: 'number', fullName: 'Выручка' },
 });
 
 //источники сделок
 const DealSources = sequelize.define('dealSources', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  title: { type: DataTypes.STRING, unique: true, fieldType: 'string', fullName: 'Источник сделки' },
+  title: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Источник сделки' },
 });
 
 //общая таблица методов закрытия

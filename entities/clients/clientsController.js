@@ -9,9 +9,12 @@ const ApiError = require('../../error/apiError');
 class ClientController {
   async create(req, res, next) {
     try {
-      const { newClient, workSpace } = req;
+      const { newClient } = req;
+      // console.log(newClient, req.requester);
       newClient.userId = req.requester.id;
-      const client = await workSpace.createClient(newClient);
+      newClient.workSpaceId = req.requester.workSpaceId;
+      newClient.groupId = req.requester.groupId;
+      const client = await Client.create(newClient);
 
       return res.json(client);
     } catch (e) {
@@ -65,7 +68,7 @@ class ClientController {
   //обновляем данные клиента
   async update(req, res, next) {
     // patch-запрос  в теле запроса(body) передаем строку(raw) в формате JSON
-    const updateFields = ['gender', 'city', 'region', 'type', 'sphere', 'fullName', 'chatLink', 'phone', 'info', 'inn', 'adLink', 'firstContact'];
+    const updateFields = ['gender', 'type', 'fullName', 'chatLink', 'phone', 'info', 'inn', 'adLink', 'firstContact'];
     try {
       const { client } = req;
       const body = checkRepeatedValues(client, req.body);

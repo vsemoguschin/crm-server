@@ -12,24 +12,16 @@ class ManagersRouterMiddleware {
       let { id, userId } = req.params;
       id = userId || id;
       const manager = await User.findOne({
-        include: [
-          'role',
-          {
-            model: Deal,
-            include: 'payments',
-          },
-          'dops',
-          'membership',
-          'avatar',
-          'group',
-          'managersPlans',
-        ],
+        include: ['role'],
         where: { id: id, '$role.shortName$': 'MOP' },
       });
       if (!manager) {
         return res.status(404).json('manager not found');
       }
+      console.log(req.query);
       req.manager = manager;
+      req.period = req.query.period;
+      // return res.json(manager)
       next();
     } catch (e) {
       next(e);
@@ -57,7 +49,7 @@ class ManagersRouterMiddleware {
           },
           'managersPlans',
           'dops',
-          'membership',
+          // 'membership',
           'group',
         ],
         where: {
@@ -65,6 +57,11 @@ class ManagersRouterMiddleware {
         },
         distinct: true,
       };
+
+      if (req.baseUrl.includes('/workspaces')) {
+        const { workSpace } = req;
+        searchParams.where.workSpaceId = workSpace.id;
+      }
 
       if (workspaceId) {
         searchParams.include.push({

@@ -1,4 +1,4 @@
-const { User, Client, Deal, WorkSpace, stageList, Stage } = require('../entities/association');
+const { User, Client, Deal, WorkSpace, stageList, Stage, Group } = require('../entities/association');
 const { ManagersPlan } = require('../entities/association');
 const { Role } = require('../entities/roles/rolesModel');
 const { ROLES: rolesList } = require('../entities/roles/rolesList');
@@ -127,7 +127,18 @@ class Presets {
     ];
     for (let i = 0; i < workSpacesList.length; i++) {
       const workSpace = await WorkSpace.create(workSpacesList[i]);
-      await workSpace.addMembers(workSpacesList[i].creatorId);
+      await workSpace.addUser(workSpacesList[i].creatorId);
+    }
+    return;
+  }
+  async createGroups() {
+    const groupsList = [
+      { id: 1, title: 'РОП1', workSpaceId: 4 },
+      { id: 2, title: 'РОП2', workSpaceId: 5 },
+    ];
+    for (let i = 0; i < groupsList.length; i++) {
+      const group = await Group.create(groupsList[i]);
+      await group.addUser(groupsList[i].creatorId);
     }
     return;
   }
@@ -224,15 +235,15 @@ class Presets {
     const avitoManagers = [5, 8, 10];
     const moscowWorkers = [11, 12, 13];
 
-    await workSpaceVK.addMembers(vkManagers);
-    await workSpaceAvito.addMembers(avitoManagers);
-    await workSpaceMoscow.addMembers(moscowWorkers);
+    await workSpaceVK.addUser(vkManagers);
+    await workSpaceAvito.addUser(avitoManagers);
+    await workSpaceMoscow.addUser(moscowWorkers);
 
     const managers = await User.findAll({
       where: {
         id: [...vkManagers, ...avitoManagers],
       },
-      include: 'membership',
+      include: 'workSpace',
     });
     for (let i = 0; i < managers.length; i++) {
       // console.log(managers[i].membership[0].id);
@@ -242,7 +253,7 @@ class Presets {
         chatLink: 'https://vk.com' + i,
         type: 'ООО',
         gender: 'M',
-        workSpaceId: managers[i].membership[0].id,
+        workSpaceId: managers[i].workSpace.id,
         firstContact: 'soon',
       };
       const dealBlank = {
@@ -307,9 +318,9 @@ class Presets {
       const delivery = await deal.createDelivery(deliveryBlank);
       const payment = await deal.createPayment({ ...paymentsBlank, userId: managers[i].id });
       const dop = await deal.createDop({ ...dopBlank, userId: managers[i].id });
-      const order = await deal.createOrder({ ...orderBlank, deliveryId: delivery.id });
-      await delivery.addOrders(order);
-      await delivery.update({ workSpaceId: order.workSpaceId });
+      // const order = await deal.createOrder({ ...orderBlank, deliveryId: delivery.id });
+      // await delivery.addOrders(order);
+      // await delivery.update({ workSpaceId: order.workSpaceId });
 
       plan.dealsSales += deal.price;
       plan.dealsAmount += 1;
@@ -367,12 +378,49 @@ class Presets {
       await ClothingMethods.create({ title: clothingMethods[i] });
     }
   }
+  async createStartDatas() {
+    try {
+      const workspace = await WorkSpace.create({
+        title: 'Admin',
+        department: 'COMMERCIAL',
+      });
+      const group = await Group.create({
+        title: 'Admin G',
+        workSpaceId: workspace.id,
+      });
+      //Создаем админов
+      const hashPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 3); //хешируем пароль
+      await User.findOrCreate({
+        where: { email: process.env.ADMIN_EMAIL },
+        defaults: {
+          email: process.env.ADMIN_EMAIL,
+          fullName: process.env.ADMIN_NAME,
+          roleName: 'MOP',
+          password: hashPassword,
+          avatar: '1.jpg',
+          roleId: 6,
+          workSpaceId: workspace.id,
+          groupId: group.id,
+        },
+        paranoid: false,
+      });
+      const [admin] = await User.findOrCreate({
+        where: { email: 'GGG' },
+        defaults: {
+          email: 'GGG',
+          fullName: 'MAX',
+          roleName: 'MOP',
+          password: await bcrypt.hash('root', 3),
+          roleId: 6,
+          workSpaceId: workspace.id,
+          groupId: group.id,
+        },
+        paranoid: false,
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  }
 }
-const dateObj = new Date();
-const month = dateObj.getUTCMonth() + 1;
-const day = dateObj.getUTCDate();
-const year = dateObj.getUTCFullYear();
-console.log(year, month);
-console.log(new Date(year, month).toISOString());
 
 module.exports = new Presets();

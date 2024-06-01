@@ -4,48 +4,38 @@ const getPaginationData = require('../../utils/getPaginationData');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
 const ApiError = require('../../error/apiError');
 const { ManagersPlan } = require('./managersModel');
-const { Payment } = require('../association');
 
 class ManagersController {
   async getOne(req, res, next) {
     try {
-      const { manager, period, periodStart } = req;
-      const plan = await ManagersPlan.findOne({ where: { period: period } });
-      console.log(period.toISOString());
+      const { manager, period } = req;
+      const plan = await ManagersPlan.findOne({ where: { period: period, userId: manager.id } });
+      // return console.log(plan);
       if (!plan) {
         throw ApiError.BadRequest('period no found');
       }
-      const { fullName, deals, group, membership, managersPlans, dops, tg } = manager;
-      const dealsSales = deals.reduce(function (acc, obj) {
-        return acc + obj.price;
-      }, 0);
-      const dopsSales = dops.reduce(function (acc, obj) {
-        return acc + obj.price;
-      }, 0);
-      const dealsIds = deals.map((deal) => deal.id);
-      const paymen = await Payment.findAll({ where: { dealId: dealsIds } });
-      const dealsPayments = paymen.reduce(function (acc, obj) {
-        return acc + obj.price;
-      }, 0);
-      const sales = dealsSales + dopsSales;
-      console.log(dealsSales, dopsSales, dealsPayments, managersPlans[0].plan);
-      const results = {
-        fullName: fullName, //ФИО
-        group: group, //группа
-        workspace: membership[0].title,
-        plan: managersPlans[0].plan, //план на месяц
-        dealsSales, //сумма сделок
-        sales: sales, //сумма всех продаж
-        salesToPlan: ((sales / managersPlans[0].plan) * 100).toFixed() + '%', // процент продаж от плана
-        proceeds: dealsPayments, //выручка(сумма оплат по продажам)
-        remainder: managersPlans[0].plan - sales, // остаток до плана
-        dops: dopsSales, //сумма допов
-        dopsToSales: ((dopsSales / sales) * 100).toFixed() + '%', //процент допов от продаж
-        tg, //telega
-        averageBill: (dealsSales / deals.length).toFixed(), //средний чек(продано/колличество заказов)
-        deals: deals.length, //колличество сделок
+
+      const totalSales = plan.dealsSales + plan.dopsSales;
+      const salesToPlan = ((totalSales / plan.plan) * 100).toFixed();
+      const remainder = plan.plan - totalSales;
+      const dopsToSales = ((plan.dopsSales / totalSales) * 100).toFixed(); //процент допов от продаж
+
+      const result = {
+        plan: plan.plan, // план на месяц
+        totalSales, // общая сумма продаж
+        salesToPlan, // процент продаж от плана(%)
+        remainder, // остаток до плана
+
+        recievedPayments: plan.recievedPayments, // выручка(сумма оплат по продажам)
+        dopsToSales, //процент допов от продаж
+        averageBill: (plan.dealsSales / plan.dealsAmount).toFixed(), //средний чек(продано/колличество заказов)
+        dealsAmount: plan.dealsAmount, //колличество сделок
+
+        dealsSales: plan.dealsSales, // сумма сделок
+        dopsSales: plan.dopsSales, // сумма допов
       };
-      return res.json(results);
+
+      return res.json(result);
     } catch (e) {
       next(e);
     }
@@ -68,47 +58,47 @@ class ManagersController {
 
       const managers = await User.findAll({
         ...searchParams,
-        order,
-        limit,
-        offset,
+        order: [['fullName', 'DESC']],
+        // limit,
+        // offset,
       });
       // return console.log(managers);
       const datas = [];
-      for (let i = 0; i < managers.length; i++) {
-        // console.log(managers[i]);
-        const { fullName, deals, group, managersPlans, membership, dops } = managers[i];
-        // return console.log(deals);
-        const payments = deals.map((el) => el.payments);
-        const dealsSales = deals.reduce(function (acc, obj) {
-          return acc + obj.price;
-        }, 0);
-        console.log(group);
-        const proceeds =
-          payments.reduce(function (acc, obj) {
-            return acc + obj.price;
-          }, 0) || 0;
-        const dopsSales =
-          payments.reduce(function (acc, obj) {
-            return acc + obj.price;
-          }, 0) || 0;
-        const sales = dealsSales + dopsSales;
-        const managerData = {
-          fullName: fullName, //ФИО
-          group: group?.title || '', //группа
-          workspace: membership[0]?.title || '',
-          plan: managersPlans[0].plan, //план на месяц
-          sales: sales, //сумма всех продаж
-          salesToPlan: ((sales / managersPlans[0].plan) * 100).toFixed() + '%', // процент продаж от плана
-          proceeds: proceeds, //выручка(сумма оплат по продажам)
-          remainder: managersPlans[0].plan - sales, // остаток до плана
-          dops: dopsSales, //сумма допов
-          dopsToSales: (dopsSales / sales) * 100 + '%', //процент допов от продаж
-          tg: '', //telega
-          averageBill: dealsSales / deals.length, //средний чек(продано/колличество заказов)
-          deals: deals.length, //колличество сделок
-        };
-        console.log(managerData);
-      }
+      // for (let i = 0; i < managers.length; i++) {
+      //   // console.log(managers[i]);
+      //   const { fullName, deals, group, managersPlans, membership, dops } = managers[i];
+      //   // return console.log(deals);
+      //   const payments = deals.map((el) => el.payments);
+      //   const dealsSales = deals.reduce(function (acc, obj) {
+      //     return acc + obj.price;
+      //   }, 0);
+      //   console.log(group);
+      //   const proceeds =
+      //     payments.reduce(function (acc, obj) {
+      //       return acc + obj.price;
+      //     }, 0) || 0;
+      //   const dopsSales =
+      //     payments.reduce(function (acc, obj) {
+      //       return acc + obj.price;
+      //     }, 0) || 0;
+      //   const sales = dealsSales + dopsSales;
+      //   const managerData = {
+      //     fullName: fullName, //ФИО
+      //     group: group?.title || '', //группа
+      //     workspace: membership[0]?.title || '',
+      //     plan: managersPlans[0].plan, //план на месяц
+      //     sales: sales, //сумма всех продаж
+      //     salesToPlan: ((sales / managersPlans[0].plan) * 100).toFixed() + '%', // процент продаж от плана
+      //     proceeds: proceeds, //выручка(сумма оплат по продажам)
+      //     remainder: managersPlans[0].plan - sales, // остаток до плана
+      //     dops: dopsSales, //сумма допов
+      //     dopsToSales: (dopsSales / sales) * 100 + '%', //процент допов от продаж
+      //     tg: '', //telega
+      //     averageBill: dealsSales / deals.length, //средний чек(продано/колличество заказов)
+      //     deals: deals.length, //колличество сделок
+      //   };
+      //   console.log(managerData);
+      // }
 
       const response = getPaginationData(managers, current, pageSize, 'managers');
       return res.json(managers);
@@ -137,7 +127,7 @@ class ManagersController {
 
       // const period = new Date([year, month].join('-'), '0');
       const [newPlan, created] = await ManagersPlan.findOrCreate({
-        where: { period },
+        where: { period, userId: manager.id },
         defaults: {
           userId: manager.id,
           period,
@@ -147,7 +137,7 @@ class ManagersController {
       if (!created) {
         await newPlan.update({ plan });
       }
-
+      console.log(newPlan, 232424);
       return res.json(newPlan);
     } catch (e) {
       next(e);
@@ -184,4 +174,6 @@ class ManagersController {
     }
   }
 }
+
+
 module.exports = new ManagersController();

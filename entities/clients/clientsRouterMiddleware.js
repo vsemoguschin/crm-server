@@ -14,12 +14,13 @@ class ClientsRouterMiddleware {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
     try {
       const requesterRole = req.requester.role;
+      console.log(requesterRole);
       checkPermissions(requesterRole);
-      const { workSpace } = req;
-      if (workSpace.department !== 'COMMERCIAL') {
-        console.log(false, 'No access');
-        throw ApiError.BadRequest('No access');
-      }
+      // const { workSpace } = req;
+      // if (workSpace.department !== 'COMMERCIAL') {
+      //   console.log(false, 'No access');
+      //   throw ApiError.BadRequest('No access');
+      // }
       req.newClient = await modelsService.checkFields([Client, clientsModelFields], req.body);
 
       next();

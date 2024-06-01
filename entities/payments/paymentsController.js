@@ -12,7 +12,7 @@ class PaymentsController {
       const { deal, newPayment } = req;
       newPayment.userId = req.requester.id;
       const payment = await deal.createPayment(newPayment);
-      await planService.createPayment(payment);
+      await planService.createPayment(payment, deal.createdAt);
       return res.json(payment);
     } catch (e) {
       console.log(e);

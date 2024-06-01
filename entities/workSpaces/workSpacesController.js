@@ -12,8 +12,8 @@ class WorkSpaceController {
     try {
       const { newWorkSpace } = req;
       const workSpace = await WorkSpace.create(newWorkSpace);
-      await workSpace.addMember(req.requester.id);
-      await workSpace.setCreator(req.requester.id);
+      // await workSpace.addMember(req.requester.id);
+      // await workSpace.setCreator(req.requester.id);
       return res.json(workSpace);
     } catch (e) {
       next(e);
@@ -25,8 +25,8 @@ class WorkSpaceController {
     // get-запрос, получаем данные из param
     try {
       const { workSpace } = req;
-      const { id, title, department, creator } = workSpace;
-      return res.json({ id, title, department, creator });
+      const { id, title, department, creator, users, groups } = workSpace;
+      return res.json({ id, title, department, creator, users, groups });
     } catch (e) {
       next(e);
     }
@@ -47,37 +47,22 @@ class WorkSpaceController {
 
       const { searchFields } = req;
       const filter = await modelsService.searchFilter(searchFields, req.query);
-      let workSpaces;
-      console.log(requesterRole);
-      if (rolesList[requesterRole].department == 'administration') {
-        workSpaces = await WorkSpace.findAndCountAll({
+      // console.log(filter);
+      const workSpaces = await WorkSpace.findAll({
+        where: {
           ...filter,
-          distinct: true,
-          limit,
-          offset,
-          order,
-        });
-      } else {
-        workSpaces = await WorkSpace.findAndCountAll({
-          ...filter,
-          include: [
-            {
-              association: 'members',
-              where: {
-                id: req.requester.id,
-              },
-              attributes: [],
-            },
-          ],
-          distinct: true,
-          limit,
-          offset,
-          order,
-        });
-      }
-      const response = getPaginationData(workSpaces, current, pageSize, 'workSpaces');
+          department: 'COMMERCIAL',
+        },
+        include: ['users', 'groups'],
+        distinct: true,
+        // limit,
+        // offset,
+        order,
+      });
+      // console.log(21212131323232);
+      // const response = getPaginationData(workSpaces, current, pageSize, 'workSpaces');
       // response.createdFields = modelsService.getModelFields(workSpacesModelFields);
-      return res.json(response);
+      return res.json(workSpaces);
     } catch (e) {
       next(e);
     }
@@ -180,7 +165,6 @@ class WorkSpaceController {
       next(e);
     }
   }
-  
 }
 
 module.exports = new WorkSpaceController();

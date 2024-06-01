@@ -10,7 +10,6 @@ class GroupsRouterMiddleware {
         where: {
           id,
         },
-        include: ['group_members'],
       });
       if (!group) {
         return res.status(404).json('group not found');

@@ -4,7 +4,7 @@ const { modelFields: dealsModelFields, Deal, Dealers } = require('./dealsModel')
 const { Client } = require('../clients/clientsModel');
 const dealsPermissions = require('./dealsPermissions');
 const { Op } = require('sequelize');
-const { Order, Delivery, ManagersPlan } = require('../association');
+const { Delivery, ManagersPlan } = require('../association');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
 
 const frontOptions = {
@@ -35,28 +35,37 @@ class DealsRouterMiddleware {
           id,
         },
         include: [
-          'dealers',
+          // 'dealers',
           {
-            model: Client,
-            attributes: ['id', 'fullName', 'chatLink'],
+            association: 'dealers',
+            include: ['role'],
+            // attributes: ['id', 'fullName', 'chatLink'],
           },
           {
-            model: Order,
-            include: ['neons', 'executors', 'files', 'stage'],
+            model: Client,
+            // attributes: ['id', 'fullName', 'chatLink'],
           },
           {
             model: Delivery,
-            include: ['orders'],
+            // include: ['orders'],
           },
           'dealDate',
           'payments',
           'dops',
-          'files',
         ],
       });
       if (!deal) {
         throw ApiError.NotFound('Deal not found');
       }
+      // console.log(deal.dops);
+      const dopsPrice = deal.dops.length > 0 ? deal.dops.reduce((a, b) => a + b.price, 0) : 0;
+      const recievedPay = deal.payments.length > 0 ? deal.payments.reduce((a, b) => a + b.price, 0) : 0;
+      const totalPrice = deal.price + dopsPrice;
+      const remainder = totalPrice - recievedPay;
+      deal.dataValues.dopsPrice = dopsPrice;
+      deal.dataValues.recievedPay = recievedPay;
+      deal.dataValues.totalPrice = totalPrice;
+      deal.dataValues.remainder = remainder;
       req.deal = deal;
       next();
     } catch (e) {
@@ -64,33 +73,16 @@ class DealsRouterMiddleware {
     }
   }
   async getListOfDeals(req, res, next) {
-    const searchFields = [
-      'title',
-      'status',
-      'clothingMethod',
-      'source',
-      'adTag',
-      'discont',
-      'sphere',
-      'city',
-      'region',
-      'cardLink',
-      'paid',
-      'clientType',
-      'chatLink',
-      'workspace',
-      'workspaceId',
-    ];
+    const searchFields = ['title', 'status', 'clothingMethod', 'source', 'adTag', 'discont', 'sphere', 'city', 'region', 'cardLink', 'paid'];
 
     try {
       const requesterRole = req.requester.role;
       dealsPermissions(requesterRole);
 
-      const { pageSize, current, start, end, key, order, managerId } = req.query;
-      checkReqQueriesIsNumber({ pageSize, current, managerId });
-
-      const dateStart = new Date(start || '2024-03-17');
-      const dateEnd = new Date(end || '2500-04-17');
+      const { pageSize, current, start, end, key, order, chatLink } = req.query;
+      checkReqQueriesIsNumber({ pageSize, current });
+      const dateStart = new Date(start || '2000-03-17');
+      const dateEnd = new Date(end || '2500-04-26');
 
       const keys = ['price', 'dopsPrice', 'payments', 'totalPrice', 'remainder'];
 
@@ -100,23 +92,47 @@ class DealsRouterMiddleware {
         order: ['DESC', 'ASC'].includes(order) ? order : 'DESC',
       };
 
-      const managerFilter = managerId ? { managerId } : false;
-
       const searchFilter = await modelsService.dealListFilter(searchFields, req.query);
-
-      const searchParams = {
+      // console.log(searchFilter, 3232092049);
+      let searchParams = {
         where: {
           id: { [Op.gt]: 0 },
           createdAt: {
             [Op.gt]: dateStart == 'Invalid Date' ? '2000-01-01' : dateStart,
             [Op.lt]: dateEnd == 'Invalid Date' ? '2500-01-01' : dateEnd,
           },
+          ...searchFilter,
         },
         include: ['dops', 'payments', 'dealers', 'client', 'deliveries', 'workSpace'],
       };
 
+      if (chatLink) {
+        searchParams = {
+          where: {
+            id: { [Op.gt]: 0 },
+            createdAt: {
+              [Op.gt]: dateStart == 'Invalid Date' ? '2000-01-01' : dateStart,
+              [Op.lt]: dateEnd == 'Invalid Date' ? '2500-01-01' : dateEnd,
+            },
+          },
+          include: [
+            'dops',
+            'payments',
+            'dealers',
+            'deliveries',
+            'workSpace',
+            {
+              model: Client,
+              where: {
+                chatLink: { [Op.regexp]: chatLink },
+              },
+            },
+          ],
+        };
+      }
+
       //other paths
-      const { workSpace } = req;
+      const { workSpace, manager, group } = req;
       if (req.baseUrl.includes('/workspaces') && workSpace.department !== 'COMMERCIAL') {
         console.log(false, 'wrong workspace department');
         throw ApiError.BadRequest('wrong workspace department');
@@ -124,23 +140,17 @@ class DealsRouterMiddleware {
       if (req.baseUrl.includes('/clients')) {
         searchParams.where.clientId = req.params.id;
       }
-      if (req.baseUrl.includes('/users')) {
-        searchParams.where.userId = req.params.id;
+      if (req.baseUrl.includes('/groups')) {
+        searchParams.where.groupId = group.id;
+      }
+      if (req.baseUrl.includes('/managers')) {
+        searchParams.where.userId = manager.id;
       }
       if (req.baseUrl.includes('/workspaces')) {
         searchParams.where.workSpaceId = workSpace.id;
-        searchParams.include = [
-          'client',
-          {
-            model: Order,
-            include: ['stage', 'files'],
-          },
-          'files',
-        ];
       }
       req.searchParams = searchParams;
       req.searchFilter = searchFilter;
-      req.managerFilter = managerFilter;
       req.sortFilter = sortFilter;
       req.pageSize = pageSize;
       req.current = current;
@@ -151,83 +161,86 @@ class DealsRouterMiddleware {
   }
   async addDealers(req, res, next) {
     try {
-      const { deal, user: newSeller } = req;
+      const { deal, user: newDealer } = req;
       let { part } = req.body;
-      if (deal.dealers.length >= 2 && !deal.dealers.find((user) => user.id === newSeller.id)) {
+      if (deal.dealers.length >= 2 && !deal.dealers.find((user) => user.id === newDealer.id)) {
         throw ApiError.BadRequest('deal already has 2 dealers');
       }
-      if (deal.dealers.length == 1 && deal.dealers[0].id == newSeller.id) {
+      if (deal.dealers.length == 1 && deal.dealers[0].id == newDealer.id) {
         throw ApiError.BadRequest('only one dealer');
       }
       if (!part || isNaN(part) || part >= 1 || part <= 0) {
         throw ApiError.BadRequest('wrong part');
       }
       part = +part;
-      console.log(+part.toFixed(1));
-      const newSellerPart = +part.toFixed(1);
-      const newSellerPrice = +(deal.price * newSellerPart).toFixed();
 
-      const sale = {
-        userId: newSeller.id,
+      const dealPayments = deal.payments.reduce((a, b) => a + b.price, 0);
+
+      // console.log(+part.toFixed(1));
+      const newDealerPart = +part.toFixed(1); //часть нового диллера
+      const newDealerPrice = +(deal.price * newDealerPart).toFixed(); //сумма части
+      const newDealerPayments = +(dealPayments * newDealerPart).toFixed();
+
+      //продажа нового диллера
+      const newDealerSale = {
+        userId: newDealer.id,
         dealId: deal.id,
-        part: newSellerPart,
-        price: newSellerPrice,
+        part: newDealerPart,
+        price: newDealerPrice,
+        payments: newDealerPayments,
       };
+      //продажа первого диллера
+      const dealDealer = deal.dealers[0].dealUsers;
 
-      const dateObj = new Date(deal.createdAt);
-      const month = dateObj.getUTCMonth() + 1;
-      const year = dateObj.getUTCFullYear();
+      //период
+      const period = deal.createdAt.toISOString().slice(0, 7);
 
-      // меняем у участника сделки данные
-      if (deal.dealers.find((user) => user.id === newSeller.id)) {
-        const updatedDealer = await Dealers.findOne({ where: { dealId: deal.id, userId: newSeller.id } });
-        const secondDealer = await Dealers.findOne({ where: { dealId: deal.id, userId: { [Op.ne]: newSeller.id } } });
+      //добавление нового диллера в сделку
+      await Dealers.findOrCreate({ where: newDealerSale });
+      //обновление данных первого диллера
+      const dealDealerNewPart = +(1 - newDealerSale.part).toFixed(1);
+      const dealDealerNewPayments = dealPayments - newDealerPayments;
+      // console.log(dealDealerNewPart, 21321);
+      await dealDealer.update({
+        part: dealDealerNewPart,
+        price: deal.price - newDealerSale.price,
+        payments: dealDealerNewPayments,
+      });
 
-        const updatedDealerPlan = await ManagersPlan.findOne({
-          where: {
-            userId: newSeller.id,
-            period: new Date(year, month, '0'),
-          },
-        });
-        updatedDealerPlan.dealsSales += newSellerPrice - updatedDealer.price;
-        await updatedDealerPlan.save();
-
-        const secondDealerPlan = await ManagersPlan.findOne({
-          where: {
-            userId: secondDealer.userId,
-            period: new Date(year, month, '0'),
-          },
-        });
-        secondDealerPlan.dealsSales += deal.price - newSellerPrice - secondDealer.price;
-        await secondDealerPlan.save();
-
-        await updatedDealer.update({ part: newSellerPart, price: newSellerPrice });
-        await secondDealer.update({ part: (1 - part).toFixed(1), price: deal.price - newSellerPrice });
-        return res.json(200);
-      }
-      const newDealer = await Dealers.create(sale);
-      const newDealerPlan = await ManagersPlan.findOne({
+      //ОБНОВЛЕНИЕ ПЛАНОВ ДИЛЛЕРОВ
+      //поиск плана нового диллера
+      const [newDealerPlan] = await ManagersPlan.findOrCreate({
         where: {
-          userId: newSeller.id,
-          period: new Date(year, month, '0'),
+          userId: newDealer.id,
+          period,
+        },
+        defaults: {
+          userId: newDealer.id,
+          period,
         },
       });
-      newDealerPlan.dealsSales += newSellerPrice;
-      newDealerPlan.dealsAmount += 1;
+      //обновление плана нового диллера
+      newDealerPlan.dealsSales += newDealerPrice; //добавляем сумму сделки
+      newDealerPlan.dealsAmount += 1; // +1 сделка
+      newDealerPlan.receivedPayments += newDealerPayments; //прибавляем платежи
       await newDealerPlan.save();
 
-      const secondDealer = await Dealers.findOne({ where: { dealId: deal.id } });
-      await secondDealer.update({ part: (1 - part).toFixed(1), price: deal.price - newSellerPrice });
-      const secondDealerPlan = await ManagersPlan.findOne({
+      //поиск плана первого диллера
+      const dealDealerPlan = await ManagersPlan.findOne({
         where: {
-          userId: secondDealer.userId,
-          period: new Date(year, month, '0'),
+          userId: deal.dealers[0].id,
+          period,
         },
       });
-      secondDealerPlan.dealsSales -= newSellerPrice;
-      await secondDealerPlan.save();
+      //обновление плана первого диллера
+      dealDealerPlan.dealsSales -= newDealerPrice;
+      dealDealerPlan.receivedPayments -= newDealerPayments; //отнимаем платежи
+      console.log(newDealerPlan.receivedPayments, newDealerPayments);
+      await dealDealerPlan.save();
 
-      return res.json(newDealer);
+      // console.log(dealDealerPlan, 3242);
+
+      return res.json(200);
     } catch (e) {
       next(e);
     }
@@ -238,36 +251,51 @@ class DealsRouterMiddleware {
       if (deal.dealers.length == 1) {
         throw ApiError.BadRequest('Что бы удалить, надо сначала добавить нового');
       }
-      const seller = await Dealers.findOne({ where: { dealId: deal.id, userId: user.id } });
-      if (!seller) {
-        throw ApiError.BadRequest('seller not in deal');
-      }
-      const dateObj = new Date(deal.createdAt);
-      const month = dateObj.getUTCMonth() + 1;
-      const year = dateObj.getUTCFullYear();
 
-      const sellerPlan = await ManagersPlan.findOne({
+      const dealPayments = deal.payments.reduce((a, b) => a + b.price, 0);
+
+      const removedSeller = deal.dealers.find((d) => d.id === user.id);
+      const dealSeller = deal.dealers.find((d) => d.id !== user.id);
+      // console.log(removedSeller.dealUsers, dealSeller.fullName);
+
+      //Обновление части оставшегося диллера
+      await dealSeller.dealUsers.update({
+        part: 1,
+        price: deal.price,
+        payments: dealPayments,
+      });
+
+      //ОБНОВЛЕНИЕ ПЛАНОВ ДИЛЛЕРОВ
+      //период
+      const period = deal.createdAt.toISOString().slice(0, 7);
+      //поиск и обновление плана удаленного диллера
+      const removedSellerPlan = await ManagersPlan.findOne({
         where: {
-          userId: seller.userId,
-          period: new Date(year, month, '0'),
+          userId: removedSeller.id,
+          period,
         },
       });
-      sellerPlan.dealsSales -= seller.price;
-      sellerPlan.dealsAmount -= 1;
-      await sellerPlan.save();
+      //обновление плана
+      removedSellerPlan.dealsSales -= removedSeller.dealUsers.price; //вычитаем сумму части
+      removedSellerPlan.dealsAmount -= 1; // -1 сделка
+      removedSellerPlan.receivedPayments -= removedSeller.dealUsers.payments; //вычитаем платежи
+      await removedSellerPlan.save();
 
-      const secondDealer = await Dealers.findOne({ where: { dealId: deal.id } });
-      await secondDealer.update({ part: 1, price: deal.price });
-      const secondDealerPlan = await ManagersPlan.findOne({
+      //поиск и обновление оставшегося диллера
+      const dealSellerPlan = await ManagersPlan.findOne({
         where: {
-          userId: secondDealer.userId,
-          period: new Date(year, month, '0'),
+          userId: dealSeller.id,
+          period,
         },
       });
-      secondDealerPlan.dealsSales += seller.price;
-      await secondDealerPlan.save();
-      // console.log(seller);
-      await seller.destroy();
+      //обновление плана
+      dealSellerPlan.dealsSales += removedSeller.dealUsers.price; //добавляем сумму части
+      dealSellerPlan.receivedPayments += removedSeller.dealUsers.payments; //прибавляем платежи
+      await dealSellerPlan.save();
+
+      //Удаление дилера из сделки
+      await removedSeller.dealUsers.destroy();
+
       await res.json(200);
     } catch (e) {
       next(e);

@@ -14,11 +14,16 @@ const usersController = require('../users/usersController');
 const usersRouterMiddleware = require('../users/usersRouterMiddleware');
 const stagesRouterMiddleware = require('../stages/stagesRouterMiddleware');
 const groupsController = require('../groups/groupsController');
+const groupsRouterMiddleware = require('../groups/groupsRouterMiddleware');
+const managersRouterMiddleware = require('../managers/managersRouterMiddleware');
+const managersController = require('../managers/managersController');
+const dealsRouterMiddleware = require('../deals/dealsRouterMiddleware');
 
 router.post('/', workSpacesRouterMiddleware.create, workSpacesController.create);
 router.get('/', workSpacesRouterMiddleware.getList, workSpacesController.getList);
 router.get('/prod', workSpacesController.prod);
 router.get('/:id', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, workSpacesController.getOne);
+router.get('/:id/deals', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, dealsRouterMiddleware.getListOfDeals, dealsController.getList);
 router.patch('/:id', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, workSpacesController.update);
 router.delete('/:id', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, workSpacesController.delete);
 
@@ -44,8 +49,7 @@ router.delete(
 );
 router.get('/:id/users', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, usersRouterMiddleware.getList, usersController.getList);
 
-//создание и получение клиентов в воркспейсе
-router.post('/:id/clients/', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, clientsRouterMiddleware.create, clientsController.create);
+//получение клиентов в воркспейсе
 router.get('/:id/clients/', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, clientsRouterMiddleware.getList, clientsController.getList);
 
 //получение сделок воркспейса для коммерческого отдела
@@ -71,6 +75,8 @@ router.get(
 
 //создание тегов для пользователей
 router.post('/:id/groups', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, groupsController.create);
-router.get('/:id/groups', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, groupsController.getList);
+router.get('/:id/groups', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, groupsRouterMiddleware.getList, groupsController.getList);
+
+router.get('/:id/managers', checkReqParamsIsNumber, workSpacesRouterMiddleware.getOne, managersRouterMiddleware.getList, managersController.getList);
 
 module.exports = router;

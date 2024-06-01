@@ -9,25 +9,6 @@ class PlanService {
       const period = createdAt.toISOString().slice(0, 7);
       // console.log(1111, period);
 
-      const [monthPlan, created] = await ManagersPlan.findOrCreate({
-        where: {
-          userId: 2,
-          period,
-        },
-        defaults: {
-          plan: 0,
-          dealsSales: price,
-          dealsAmount: 1,
-          userId: 2,
-        },
-      });
-
-      if (!created) {
-        monthPlan.dealsSales += deal.price;
-        monthPlan.dealsAmount += 1;
-        await monthPlan.save();
-      }
-
       const [managerPlan, newPlan] = await ManagersPlan.findOrCreate({
         where: {
           userId,
@@ -119,24 +100,6 @@ class PlanService {
       const period = createdAt.toISOString().slice(0, 7);
       // console.log(1111, period);
 
-      const [monthPlan, created] = await ManagersPlan.findOrCreate({
-        where: {
-          userId: 2,
-          period,
-        },
-        defaults: {
-          dopsSales: price,
-          dopsAmount: 1,
-          userId: 2,
-        },
-      });
-
-      if (!created) {
-        monthPlan.dopsSales += dop.price;
-        monthPlan.dopsAmount += 1;
-        await monthPlan.save();
-      }
-
       const [managerPlan, newPlan] = await ManagersPlan.findOrCreate({
         where: {
           userId,
@@ -215,45 +178,38 @@ class PlanService {
       throw ApiError.BadRequest(e);
     }
   }
-  async createPayment(payment) {
+  async createPayment(payment, dealCreatedAt) {
     try {
-      const { price, createdAt, userId, dealId } = payment;
+      const { price, userId, dealId } = payment;
 
-      const period = createdAt.toISOString().slice(0, 7);
-      // console.log(1111, period);
+      const period = dealCreatedAt.toISOString().slice(0, 7);
 
-      const [monthPlan, created] = await ManagersPlan.findOrCreate({
+      const dealers = await Dealers.findAll({
         where: {
-          userId: 2,
-          period,
-        },
-        defaults: {
-          receivedPayments: price,
-          userId: 2,
-          // main: true,
+          dealId,
         },
       });
+      const firstDealerPart = dealers[0].part;
+      const firstDealerPrice = +(firstDealerPart * price).toFixed();
+      dealers.forEach(async (dealer, i) => {
+        //часть диллера(сумма)
+        const dealerPrice = i == 0 ? firstDealerPrice : price - firstDealerPrice;
 
-      if (!created) {
-        monthPlan.receivedPayments += payment.price;
-        await monthPlan.save();
-      }
+        //план диллера
+        const dealerPlan = await ManagersPlan.findOne({
+          where: {
+            userId: dealer.userId,
+            period,
+          },
+        });
+        dealerPlan.receivedPayments += dealerPrice;
+        await dealerPlan.save();
 
-      const [managerPlan, newPlan] = await ManagersPlan.findOrCreate({
-        where: {
-          userId,
-          period,
-        },
-        defaults: {
-          receivedPayments: price,
-          userId,
-        },
+        dealer.payments += dealerPrice;
+        await dealer.save();
       });
-
-      if (!newPlan) {
-        managerPlan.receivedPayments += payment.price;
-        await managerPlan.save();
-      }
+      // return console.log(dealers);
+      return;
     } catch (e) {
       throw ApiError.BadRequest(e);
     }

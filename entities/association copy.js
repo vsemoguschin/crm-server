@@ -1,5 +1,4 @@
 const TokenSchema = require('./token/tokenModel');
-const { WorkSpace } = require('./workSpaces/workSpacesModel');
 const { User } = require('./users/usersModel');
 const { ManagersPlan } = require('./managers/managersModel');
 const { Group } = require('./groups/groupsModel');
@@ -9,11 +8,18 @@ const { Deal, Dealers, DealSources, DealDates } = require('./deals/dealsModel');
 const { Payment } = require('./payments/paymentsModel');
 const { Dop } = require('./dops/dopsModel');
 const { Delivery } = require('./deliveries/deliveriesModel');
+const { File } = require('./files/filesModel');
+const { Order } = require('./orders/ordersModel');
+// const { Gift } = require('./gifts/giftsModel');
+const { Neon } = require('./neons/neonsModel');
+const { WorkSpace } = require('./workSpaces/workSpacesModel');
+const { Stage, stageList } = require('./stages/stagesModel');
 
 //Пользователи
 User.hasOne(TokenSchema);
 TokenSchema.belongsTo(User);
 
+// User.hasOne(Role);
 Role.hasMany(User);
 User.belongsTo(Role);
 
@@ -42,24 +48,39 @@ Group.belongsTo(WorkSpace);
 Group.hasMany(User);
 User.belongsTo(Group);
 
-WorkSpace.hasMany(User);
-User.belongsTo(WorkSpace);
-
 User.hasMany(Payment);
 Payment.belongsTo(User);
 
 User.hasMany(Dop);
 Dop.belongsTo(User);
 
+User.hasMany(Neon);
+Neon.belongsTo(User);
+
+User.hasMany(Order);
+Order.belongsToMany(User, { through: 'ordersExecutors', as: 'executors', foreignKey: 'orderId' });
+User.belongsToMany(Order, { through: 'ordersExecutors', as: 'work', foreignKey: 'userId' });
+
+User.hasMany(File);
+File.belongsTo(User);
+User.belongsTo(File, { as: 'avatar' });
+
 //Клиенты
 Client.hasMany(Deal);
 Deal.belongsTo(Client);
+
+//Сделки
+Deal.hasMany(Order);
+Order.belongsTo(Deal);
 
 Deal.hasOne(DealDates);
 DealDates.belongsTo(Deal);
 
 WorkSpace.hasMany(DealSources);
 DealSources.belongsTo(WorkSpace);
+
+// Deal.hasMany(Gift);
+// Gift.belongsTo(Deal);
 
 Deal.hasMany(Dop);
 Dop.belongsTo(Deal);
@@ -70,12 +91,34 @@ Payment.belongsTo(Deal);
 Deal.hasMany(Delivery);
 Delivery.belongsTo(Deal);
 
+Deal.hasMany(File);
+File.belongsTo(Deal);
+
+//Доставки
+Delivery.hasMany(Order);
+Order.belongsTo(Delivery);
+
 Delivery.belongsTo(User, { as: 'sender' });
 
+//Заказы
+Order.hasMany(Neon);
+Neon.belongsTo(Order);
+
+Order.hasMany(File);
+File.belongsTo(Order);
+
+//Стадии
+Stage.hasMany(Order);
+Order.belongsTo(Stage);
+
 //Рабочие пространства
-// WorkSpace.belongsToMany(User, { through: 'WorkSpaceMembers', as: 'members', foreignKey: 'workSpaceId' });
-// User.belongsToMany(WorkSpace, { through: 'WorkSpaceMembers', as: 'membership', foreignKey: 'userId' });
-// WorkSpace.belongsTo(User, { as: 'creator' });
+// User.hasMany(WorkSpace);
+WorkSpace.belongsToMany(User, { through: 'WorkSpaceMembers', as: 'members', foreignKey: 'workSpaceId' });
+User.belongsToMany(WorkSpace, { through: 'WorkSpaceMembers', as: 'membership', foreignKey: 'userId' });
+WorkSpace.belongsTo(User, { as: 'creator' });
+
+WorkSpace.hasMany(Order); //для производства
+Order.belongsTo(WorkSpace);
 
 WorkSpace.hasMany(Delivery); //для производства
 Delivery.belongsTo(WorkSpace);
@@ -83,14 +126,8 @@ Delivery.belongsTo(WorkSpace);
 WorkSpace.hasMany(Client); //для отдела комерции
 Client.belongsTo(WorkSpace);
 
-Group.hasMany(Client); //для отдела комерции
-Client.belongsTo(Group);
-
 WorkSpace.hasMany(Deal); //для отдела комерции
 Deal.belongsTo(WorkSpace);
-
-Group.hasMany(Deal); //для отдела комерции
-Deal.belongsTo(Group);
 
 module.exports = {
   WorkSpace,
@@ -99,9 +136,15 @@ module.exports = {
   Role,
   Client,
   Deal,
+  Order,
+  // Gift,
+  Neon,
   Dop,
   Payment,
+  stageList,
+  Stage,
   Delivery,
+  File,
   Dealers,
   ManagersPlan,
 };

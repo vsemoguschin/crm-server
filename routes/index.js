@@ -4,6 +4,7 @@ const router = new Router();
 const AuthMiddleware = require('../middleware/AuthMiddleware');
 
 const authRouter = require('./authRouter');
+const dashboardsRouter = require('./dashboardsRouter');
 const usersRouter = require('../entities/users/usersRouter');
 const managersRouter = require('../entities/managers/managersRouter');
 const workSpacesRouter = require('../entities/workSpaces/workSpacesRouter');
@@ -24,6 +25,7 @@ router.use(
   authRouter, //роутер авторизации
   AuthMiddleware, //проверка авторизации
 );
+router.use('/dashboards', dashboardsRouter);
 router.use('/users', usersRouter);
 router.use('/managers', managersRouter);
 router.use('/workspaces', workSpacesRouter);

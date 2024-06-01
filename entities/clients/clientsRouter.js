@@ -6,6 +6,7 @@ const { getListOfDeals } = require('../deals/dealsRouterMiddleware');
 const dealsRouterMiddleware = require('../deals/dealsRouterMiddleware');
 const dealsController = require('../deals/dealsController');
 const checkReqParamsIsNumber = require('../../checking/checkReqParamsIsNumber');
+const workSpacesRouterMiddleware = require('../workSpaces/workSpacesRouterMiddleware');
 
 //список сфер деятельности
 router.get('/spheres', clientsController.getSpheres);
@@ -13,6 +14,7 @@ router.post('/spheres', clientsController.createSpheres);
 router.delete('/spheres/:sphereId', checkReqParamsIsNumber, clientsController.deleteSpheres);
 
 // router.post('/', clientsRouterMiddleware.create, clientsController.create); //через воркспейс
+router.post('/', checkReqParamsIsNumber, clientsRouterMiddleware.create, clientsController.create);
 router.get('/:id', checkReqParamsIsNumber, clientsRouterMiddleware.getOne, clientsController.getOne);
 router.get('/', clientsRouterMiddleware.getList, clientsController.getList);
 router.patch('/:id', checkReqParamsIsNumber, clientsRouterMiddleware.getOne, clientsController.update);

@@ -14,6 +14,7 @@ class GroupsController {
         throw ApiError.BadRequest('забыл title');
       }
       const group = await Group.create({ title, workSpaceId: workSpace.id });
+
       return res.json(group);
     } catch (e) {
       next(e);
@@ -37,20 +38,21 @@ class GroupsController {
       order: queryOrder,
     } = req.query;
     try {
-      const { searchParams } = req;
+      const { searchParams, workSpace } = req;
       checkReqQueriesIsNumber({ pageSize, current });
       const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
 
-      const groups = await Group.findAndCountAll({
+      const groups = await Group.findAll({
         ...searchParams,
+        distinct: true,
         order,
-        limit,
-        offset,
+        // limit,
+        // offset,
       });
 
       const response = getPaginationData(groups, current, pageSize, 'groups');
-      return res.json(response);
+      return res.json(groups);
     } catch (e) {
       next(e);
     }

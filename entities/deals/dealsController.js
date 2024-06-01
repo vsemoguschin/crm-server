@@ -7,13 +7,41 @@ const ApiError = require('../../error/apiError');
 const planService = require('../../services/planService');
 
 class DealsController {
+  async getDatas(req, res, next) {
+    try {
+      let methods = await ClothingMethods.findAll({ attributes: ['title'] });
+      let sources = await DealSources.findAll({ attributes: ['title'] });
+      let adTags = await AdTags.findAll({ attributes: ['title'] });
+      let spheres = await Spheres.findAll({ attributes: ['title'] });
+
+      methods = methods.map((el) => {
+        return el.title;
+      });
+      sources = sources.map((el) => {
+        return el.title;
+      });
+      adTags = adTags.map((el) => {
+        return el.title;
+      });
+      spheres = spheres.map((el) => {
+        return el.title;
+      });
+
+      return res.json({ methods, sources, adTags, spheres });
+    } catch (e) {
+      console.log(e);
+      next(e);
+    }
+  }
   async create(req, res, next) {
     try {
       const { client, newDeal } = req;
 
       newDeal.userId = req.requester.id;
-      newDeal.workSpaceId = client.workSpaceId;
-
+      newDeal.workSpaceId = req.requester.workSpaceId;
+      newDeal.groupId = req.requester.groupId;
+      // console.log();
+      const { clothingMethod, source, adTag } = newDeal;
       const deal = await client.createDeal(newDeal);
       // await deal.addDealers(req.requester.id);
       await Dealers.create({
@@ -23,6 +51,21 @@ class DealsController {
         part: 1,
       });
       await DealDates.create({ dealId: deal.id });
+
+      await ClothingMethods.findOrCreate({
+        where: { title: clothingMethod },
+        defaults: { title: clothingMethod },
+      });
+
+      const [a, created] = await DealSources.findOrCreate({
+        where: { title: source },
+        defaults: { title: source, workSpaceId: newDeal.workSpaceId },
+      });
+      console.log(121232213, a, created);
+      await AdTags.findOrCreate({
+        where: { title: adTag },
+        defaults: { title: adTag },
+      });
 
       await planService.createDeal(deal);
 
@@ -44,125 +87,107 @@ class DealsController {
 
   async getList(req, res, next) {
     try {
-      const { searchParams, searchFilter, sortFilter, pageSize, current, managerFilter } = req;
-      const { limit, offset } = getPagination(current, pageSize);
+      const { searchParams, sortFilter, pageSize, current, chatLink } = req;
+      const { limit } = getPagination(current, pageSize);
 
       const deals = await Deal.findAndCountAll({
         ...searchParams,
         distinct: true,
         order: [['createdAt', 'DESC']],
       });
+      // return res.json(deals)
 
       const availableFilters = [
         { query: 'source', name: 'Источник', items: [] },
         { query: 'adTag', name: 'Тег', items: [] },
-        { query: 'firstPayment', name: 'Тип платежа', items: [] },
+        // { query: 'firstPayment', name: 'Тип платежа', items: [] },
         { query: 'city', name: 'Город', items: [] },
         { query: 'clothingMethod', name: 'Метод закрытия', items: [] },
-        { query: 'clientType', name: 'Тип клиента', items: [] },
+        // { query: 'clientType', name: 'Тип клиента', items: [] },
         { query: 'sphere', name: 'Сфера', items: [] },
         { query: 'discont', name: 'Скидка', items: [] },
-        { query: 'status', name: 'Статус', items: [] },
+        // { query: 'status', name: 'Статус', items: [] },
         { query: 'paid', name: 'Оплачена', items: [] },
-        { query: 'workspace', name: 'Пространство', items: [] },
+        // { query: 'workspace', name: 'Пространство', items: [] },
       ];
 
-      const dealsList = deals.rows
-        .map((el) => {
-          const { id } = el;
-          const title = el.title; //Название
-          const price = el.price; //Стоимость сделки
-          const dopsPrice = el.dops.reduce((a, b) => a + b.price, 0); //сумма допов
-          const payments = el.payments.reduce((a, b) => a + b.price, 0); //внесенных платежей
-          const totalPrice = price + dopsPrice; //Общяя сумма
-          const remainder = totalPrice - payments; //Остаток
-          const managers = el.dealers; //менеджер(ы)
-          const source = el.source; //источник сделки
-          const adTag = el.adTag; //тег рекламный
-          const firstPayment = el.payments[0]?.method || ''; //метод первого платежа
-          const city = el.city;
-          const clothingMethod = el.clothingMethod;
-          const clientType = el.client.type;
-          const chatLink = el.client.chatLink;
-          const sphere = el.sphere;
-          const discont = el.discont;
-          const status = el.status;
-          const paid = el.paid;
-          const delivery = el.deliveries; //полностью
-          const workspace = el.workSpace.title;
-          const client = el.client; //передаю полность
-          const workspaceId = el.workSpace.id;
+      const dealsList = deals.rows.map((el) => {
+        const { id } = el;
+        const title = el.title; //Название
+        const price = el.price; //Стоимость сделки
+        const dopsPrice = el.dops.reduce((a, b) => a + b.price, 0); //сумма допов
+        const recievedPayments = el.payments.reduce((a, b) => a + b.price, 0); //внесенных платежей
+        const totalPrice = price + dopsPrice; //Общяя сумма
+        const remainder = totalPrice - recievedPayments; //Остаток
+        const managers = el.dealers; //менеджер(ы)
+        const source = el.source; //источник сделки
+        const adTag = el.adTag; //тег рекламный
+        const firstPayment = el.payments[0]?.method || ''; //метод первого платежа
+        const city = el.city;
+        const clothingMethod = el.clothingMethod;
+        const clientType = el.client.type;
+        const chatLink = el.client.chatLink;
+        const sphere = el.sphere;
+        const discont = el.discont;
+        const status = el.status;
+        const paid = el.paid;
+        const delivery = el.deliveries; //полностью
+        const workspace = el.workSpace.title;
+        const client = el.client; //передаю полность
+        const workspaceId = el.workSpace.id;
 
-          function fillSorting(fields) {
-            // console.log(fields);
-            for (const field in fields) {
-              availableFilters.find((el) => {
-                console.log(el.query, field);
-                if (el.query == field && !el.items.includes(fields[field]) && fields[field] !== '') {
-                  el.items.push(fields[field]);
-                }
-              });
-              // if (!availableFilters[field].includes(fields[field])) {
-              //   availableFilters[field].push(fields[field]);
-              // }
-            }
+        function fillSorting(fields) {
+          // console.log(fields);
+          for (const field in fields) {
+            availableFilters.find((el) => {
+              // console.log(el.query, field);
+              if (el.query == field && !el.items.includes(fields[field]) && fields[field] !== '') {
+                el.items.push(fields[field]);
+              }
+            });
           }
+        }
 
-          fillSorting({
-            source,
-            adTag,
-            firstPayment,
-            city,
-            clothingMethod,
-            clientType,
-            sphere,
-            discont,
-            status,
-            paid,
-            workspace,
-          });
-
-          return {
-            id,
-            title,
-            totalPrice,
-            price,
-            clientType,
-            dopsPrice,
-            payments,
-            remainder,
-            managers,
-            source,
-            adTag,
-            firstPayment,
-            city,
-            clothingMethod,
-            client,
-            sphere,
-            discont,
-            status,
-            paid,
-            delivery,
-            workspace,
-            workspaceId,
-            chatLink,
-          };
-        })
-        .filter((deal) => {
-          // console.log(deal.managers);
-          for (const key in searchFilter) {
-            if (deal[key] === undefined || deal[key] != searchFilter[key]) return false;
-          }
-          if (managerFilter) {
-            const { managers } = deal;
-            for (let i = 0; i < managers.length; i++) {
-              if (managers[i] === undefined || managers[i].id !== +managerFilter.managerId) return false;
-            }
-            return true;
-          }
-
-          return true;
+        fillSorting({
+          source,
+          adTag,
+          firstPayment,
+          city,
+          clothingMethod,
+          clientType,
+          sphere,
+          discont,
+          status,
+          paid,
+          workspace,
         });
+
+        return {
+          id,
+          title,
+          totalPrice,
+          price,
+          clientType,
+          dopsPrice,
+          recievedPayments,
+          remainder,
+          managers,
+          source,
+          adTag,
+          firstPayment,
+          city,
+          clothingMethod,
+          client,
+          sphere,
+          discont,
+          status,
+          paid,
+          delivery,
+          workspace,
+          workspaceId,
+          chatLink,
+        };
+      });
 
       if (sortFilter.apply === true && sortFilter.key !== null) {
         dealsList.sort((a, b) => {
@@ -177,7 +202,7 @@ class DealsController {
         totalPrice: 0,
         price: 0,
         dopsPrice: 0,
-        payments: 0,
+        recievedPayments: 0,
         remainder: 0,
       };
 
@@ -185,7 +210,7 @@ class DealsController {
         totalInfo.totalPrice += el.totalPrice;
         totalInfo.price += el.price;
         totalInfo.dopsPrice += el.dopsPrice;
-        totalInfo.payments += el.payments;
+        totalInfo.recievedPayments += el.recievedPayments;
         totalInfo.remainder += el.remainder;
       });
 
@@ -201,6 +226,7 @@ class DealsController {
         totalInfo,
         availableFilters,
       };
+      // console.log(availableFilters);
 
       return res.json(resp);
     } catch (e) {
@@ -209,13 +235,26 @@ class DealsController {
   }
 
   async update(req, res, next) {
-    const updateFields = ['title', 'chatLink', 'clothingMethod', 'deadline', 'description', 'price'];
+    const updateFields = [
+      'title',
+      'chatLink',
+      'clothingMethod',
+      'deadline',
+      'description',
+      'price',
+      'source',
+      'adTag',
+      'discont',
+      'sphere',
+      'city',
+      'region',
+    ];
 
     try {
       const { deal } = req;
-
       const body = checkRepeatedValues(deal, req.body);
       const updates = await modelsService.checkUpdates([Deal, dealsModelFields], body, updateFields);
+
       if (updates.price) {
         const { dealers } = deal;
         const newPrice = updates.price;
@@ -225,10 +264,35 @@ class DealsController {
         }
         await planService.updateDeal(deal, newPrice, next);
       }
+      if (updates.clothingMethod) {
+        await ClothingMethods.findOrCreate({
+          where: { title: updates.clothingMethod },
+          defaults: { title: updates.clothingMethod },
+        });
+      }
+      if (updates.adTag) {
+        // console.log(updates.adTag, 5555555);
+        await AdTags.findOrCreate({
+          where: { title: updates.adTag },
+          defaults: { title: updates.adTag },
+        });
+      }
+      if (updates.source) {
+        await DealSources.findOrCreate({
+          where: { title: updates.source },
+          defaults: { title: updates.source, workSpaceId: deal.workSpaceId },
+        });
+      }
+      if (updates.sphere) {
+        await Spheres.findOrCreate({
+          where: { title: updates.sphere },
+          defaults: { title: updates.sphere },
+        });
+      }
+
       await deal.update(updates);
       return res.json(deal);
     } catch (e) {
-      console.log(e);
       next(e);
     }
   }
@@ -424,6 +488,5 @@ class DealsController {
     }
   }
 }
-console.log(new Date('2024-02'), 11111);
-console.log(new Date('2024', '2'), 22222);
+
 module.exports = new DealsController();

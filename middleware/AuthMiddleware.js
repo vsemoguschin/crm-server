@@ -7,12 +7,8 @@ const { Op } = require('sequelize');
 module.exports = async function (req, res, next) {
   // console.log(req);
   try {
-    const authorizationHeader = req.headers.authorization;
-    if (!authorizationHeader) {
-      return next(ApiError.UnauthorizedError());
-    }
-
-    const accessToken = authorizationHeader.split(' ')[1];
+    const { accessToken } = req.cookies;
+    // console.log(accessToken, 1212121);
     if (!accessToken) {
       return next(ApiError.UnauthorizedError());
     }
@@ -24,15 +20,16 @@ module.exports = async function (req, res, next) {
         id: userData.id,
         [Op.and]: { deletedAt: null },
       },
-      include: ['membership'],
     });
+    // console.log(currentUser);
     if (!currentUser) {
       return next(ApiError.BadRequest('Пользователь не найден'));
     }
     if (!userData) {
       return next(ApiError.UnauthorizedError());
     }
-
+    userData.workSpaceId = currentUser.workSpaceId || 0;
+    userData.groupId = currentUser.groupId || 0;
     req.requester = userData;
     next();
   } catch (e) {

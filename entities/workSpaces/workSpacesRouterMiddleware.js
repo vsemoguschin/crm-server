@@ -1,9 +1,9 @@
 const ApiError = require('../../error/apiError');
 const { modelFields: workSpacesModelFields, WorkSpace } = require('./workSpacesModel');
 const modelsService = require('../../services/modelsService');
-const { Order, Deal } = require('../association');
+const { Order, Deal, User, Role } = require('../association');
 const { ROLES: rolesList } = require('../roles/rolesList');
-const { Op } = require('sequelize');
+const { Op, where } = require('sequelize');
 
 const PERMISSIONS = {
   ['PRODUCTION']: {
@@ -26,6 +26,7 @@ class WorkSpacesRouterMiddleware {
       if (requesterRole !== 'ADMIN' && requesterRole !== 'G') {
         req.body.department = rolesList[requesterRole].department;
       }
+      req.body.department = 'COMMERCIAL';
       req.newWorkSpace = await modelsService.checkFields([WorkSpace, workSpacesModelFields], req.body);
       const { department } = req.body;
       if (!PERMISSIONS[department].create.includes(requesterRole)) {
@@ -48,21 +49,18 @@ class WorkSpacesRouterMiddleware {
           id: id,
         },
         include: [
+          'groups',
           {
-            association: 'members',
+            model: User,
+            include: {
+              model: Role,
+              where: {
+                shortName: 'MOP',
+              },
+            },
           },
-          'creator',
         ],
       };
-      if (requesterRole !== 'ADMIN' && requesterRole !== 'G') {
-        searchParams.where.department = rolesList[requesterRole].department;
-        searchParams.include = [
-          {
-            association: 'members',
-            where: { id: req.requester.id },
-          },
-        ];
-      }
       const workSpace = await WorkSpace.findOne(searchParams);
       if (!workSpace) {
         console.log(false, 'no acces');

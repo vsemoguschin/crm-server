@@ -18,15 +18,16 @@ const createLog = (req, res, next) => {
   console.log(req.method, decodeURI(req.url));
   next();
 };
+app.use(cookieParser());
+
 // app.use(createLog);
 app.use(
   cors({
     credentials: true,
-    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://95.163.231.166:80'],
+    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://95.163.231.166:80', 'http://176.57.214.58'],
   }),
 );
 
-app.use(cookieParser());
 app.use(
   express.json({
     limit: '5MB',
@@ -52,18 +53,19 @@ app.use(errorHandling);
 
 const start = async () => {
   try {
-    // await sequelize.drop();
-    // await sequelize.authenticate();
-    // await sequelize.sync({ alter: true, force: true });
+    await sequelize.drop();
+    await sequelize.authenticate();
+    await sequelize.sync({ alter: true, force: true });
 
-    // await presets.createRoles();
+    await presets.createRoles();
+    await presets.createStartDatas()
     // await presets.createAdmin();
     // await presets.createUsers();
-    // await presets.createStages();
     // await presets.createWorkSpaces();
+    // await presets.createGroups();
     // await presets.createMarketPlaces();
     // await presets.createDatas();
-    // await presets.createLists();
+    await presets.createLists();
     app.listen(PORT, () => console.log(`${PORT}`));
   } catch (error) {
     console.log(error);

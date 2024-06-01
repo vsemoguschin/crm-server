@@ -5,9 +5,29 @@ const getPagination = require('../../utils/getPagination');
 const getPaginationData = require('../../utils/getPaginationData');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
 const ApiError = require('../../error/apiError');
-const { ManagersPlan } = require('../association');
+const { ManagersPlan, WorkSpace } = require('../association');
 
 class UsersController {
+  //создание менеджера
+  async createManager(req, res, next) {
+    const { newUser, userRole, group } = req;
+    try {
+      // хешируем пароль
+      newUser.password = await bcrypt.hash(newUser.password, 3);
+      const user = await userRole.createUser({ ...newUser, groupId: group.id, workSpaceId: group.workSpaceId });
+
+      if (['MOP'].includes(userRole.shortName)) {
+        console.log(user);
+        const period = user.createdAt.toISOString().slice(0, 7);
+        await ManagersPlan.create({ userId: user.id, plan: 0, period });
+      }
+
+      delete user.dataValues.password;
+      return res.status(200).json(user);
+    } catch (e) {
+      next(e);
+    }
+  }
   //создание пользователя
   async create(req, res, next) {
     const { newUser, userRole } = req;
