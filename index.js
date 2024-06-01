@@ -18,7 +18,7 @@ const createLog = (req, res, next) => {
   console.log(req.method, decodeURI(req.url));
   next();
 };
-app.use(cookieParser());
+app.use(cookieParser()); 
 
 // app.use(createLog);
 // app.use(
