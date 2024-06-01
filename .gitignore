@@ -85,8 +85,4 @@ typings/
 # MacOs files
 .DS_Store
 
-test.js
-test copy.js
 public
-bot.js
-vg.js
