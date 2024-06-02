@@ -15,8 +15,22 @@ class AuthController {
 
       const userData = await authService.login(email, password);
       // console.log(userData);
-      res.cookie('accessToken', userData.accessToken, { maxAge: 1 * 24 * 60 * 60 * 1000, httpOnly: true, path: '/', secure: false });
-      res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, path: '/', secure: false });
+      res.cookie('accessToken', userData.accessToken, {
+        maxAge: 1 * 24 * 60 * 60 * 1000,
+        httpOnly: true,
+        path: '/',
+        sameSite: 'None',
+        secure: false,
+        domain: '83.222.9.27',
+      });
+      res.cookie('refreshToken', userData.refreshToken, {
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+        httpOnly: true,
+        path: '/',
+        sameSite: 'None',
+        secure: false,
+        domain: '83.222.9.27',
+      });
       return res.json(userData);
     } catch (e) {
       next(e);
