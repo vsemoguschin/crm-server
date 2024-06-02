@@ -18,13 +18,13 @@ const createLog = (req, res, next) => {
   console.log(req.method, decodeURI(req.url));
   next();
 };
-app.use(cookieParser()); 
+app.use(cookieParser());
 
 // app.use(createLog);
 app.use(
   cors({
     credentials: true,
-    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://95.163.231.166:80', 'http://176.57.214.58:3000'],
+    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://95.163.231.166:80', 'http://176.57.214.58:3000', 'http://83.222.9.27:3000'],
   }),
 );
 // app.use(cors());
