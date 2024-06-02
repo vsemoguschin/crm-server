@@ -22,7 +22,7 @@ app.use(cookieParser());
 
 // app.use(createLog);
 const corsOptions = {
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://95.163.231.166:80', 'http://83.222.9.27:3000/'],
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://95.163.231.166:80', 'http://83.222.9.27:3000'],
   credentials: true,
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   allowedHeaders: 'Content-Type, Authorization',
