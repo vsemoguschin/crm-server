@@ -33,10 +33,10 @@ class ClientsRouterMiddleware {
     try {
       const requesterRole = req.requester.role;
       checkPermissions(requesterRole);
-      if (requesterRole !== 'ADMIN' && req.params.id < 3) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
+      // if (requesterRole !== 'ADMIN' && req.params.id < 3) {
+      //   console.log(false, 'no acces');
+      //   throw ApiError.Forbidden('Нет доступа');
+      // }
       const { id } = req.params;
       const client = await Client.findOne({
         where: {
@@ -59,9 +59,10 @@ class ClientsRouterMiddleware {
       checkPermissions(requesterRole);
       const searchFields = ['gender', 'type', 'fullName', 'chatLink', 'phone'];
       const searchFilter = await modelsService.searchFilter(searchFields, req.query);
+      console.log(searchFilter, 767);
       let searchParams = {
         where: {
-          id: { [Op.gt]: 2 },
+          id: { [Op.gt]: 0 },
           ...searchFilter,
         },
       };
@@ -69,7 +70,7 @@ class ClientsRouterMiddleware {
         const { workSpace } = req;
         searchParams = {
           where: {
-            id: { [Op.gt]: 2 },
+            id: { [Op.gt]: 0 },
             workSpaceId: workSpace.id,
             ...searchFilter,
           },
@@ -80,7 +81,7 @@ class ClientsRouterMiddleware {
         checkReqQueriesIsNumber({ workSpaceId });
         searchParams = {
           where: {
-            id: { [Op.gt]: 2 },
+            id: { [Op.gt]: 0 },
             userId: req.params.id,
             workSpaceId: workSpaceId || { [Op.gt]: 0 },
             ...searchFilter,

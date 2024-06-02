@@ -10,7 +10,7 @@ const PERMISSIONS = {
     create: ['ADMIN', 'G', 'DP'],
   },
   ['COMMERCIAL']: {
-    create: ['ADMIN', 'G', 'KD'],
+    create: ['ADMIN', 'G', 'KD', 'MOP'],
   },
 };
 
@@ -19,7 +19,7 @@ class WorkSpacesRouterMiddleware {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
     try {
       const requesterRole = req.requester.role;
-      if (!['ADMIN', 'G', 'KD', 'DP'].includes(requesterRole)) {
+      if (!['ADMIN', 'G', 'KD', 'DP', 'MOP'].includes(requesterRole)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
@@ -30,7 +30,7 @@ class WorkSpacesRouterMiddleware {
       req.newWorkSpace = await modelsService.checkFields([WorkSpace, workSpacesModelFields], req.body);
       const { department } = req.body;
       if (!PERMISSIONS[department].create.includes(requesterRole)) {
-        console.log(false, 'no acces');
+        console.log(false, 'no acces', 1222121);
         throw ApiError.Forbidden('Нет доступа');
       }
       next();
