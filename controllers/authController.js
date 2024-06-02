@@ -15,8 +15,18 @@ class AuthController {
 
       const userData = await authService.login(email, password);
       // console.log(userData);
-      res.cookie('accessToken', userData.accessToken, { maxAge: 1 * 24 * 60 * 60 * 1000, httpOnly: true });
-      res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true });
+      res.cookie('accessToken', userData.accessToken, {
+        maxAge: 1 * 24 * 60 * 60 * 1000,
+        httpOnly: true,
+
+        sameSite: 'None',
+      });
+      res.cookie('refreshToken', userData.refreshToken, {
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+        httpOnly: true,
+
+        sameSite: 'None',
+      });
       return res.json(userData);
     } catch (e) {
       next(e);
