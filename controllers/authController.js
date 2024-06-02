@@ -21,7 +21,7 @@ class AuthController {
         path: '/',
         sameSite: 'None',
         secure: false,
-        domain: '83.222.9.27',
+        domain: '176.57.214.58',
       });
       res.cookie('refreshToken', userData.refreshToken, {
         maxAge: 30 * 24 * 60 * 60 * 1000,
@@ -29,7 +29,7 @@ class AuthController {
         path: '/',
         sameSite: 'None',
         secure: false,
-        domain: '83.222.9.27',
+        domain: '176.57.214.58',
       });
       return res.json(userData);
     } catch (e) {
