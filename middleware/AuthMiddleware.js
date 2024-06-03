@@ -7,8 +7,13 @@ const { Op } = require('sequelize');
 module.exports = async function (req, res, next) {
   // console.log(req);
   try {
-    const { accessToken } = req.cookies;
-    // console.log(accessToken, 1212121);
+    const authorizationHeader = req.headers.authorization;
+    console.log(req.headers);
+    if (!authorizationHeader) {
+      return next(ApiError.UnauthorizedError());
+    }
+
+    const accessToken = authorizationHeader.split(' ')[1];
     if (!accessToken) {
       return next(ApiError.UnauthorizedError());
     }

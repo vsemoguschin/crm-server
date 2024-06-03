@@ -25,7 +25,7 @@ const profileRouter = require('./profileRouter');
 router.use(
   '/',
   cors({
-    credentials: true,
+    // credentials: true,
     origin: ['http://localhost:3000', 'http://46.19.64.10:3000'],
   }),
   authRouter, //роутер авторизации
