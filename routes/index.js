@@ -2,6 +2,8 @@ const ApiError = require('../error/apiError');
 const Router = require('express');
 const router = new Router();
 const AuthMiddleware = require('../middleware/AuthMiddleware');
+const cors = require('cors');
+
 
 const authRouter = require('./authRouter');
 const dashboardsRouter = require('./dashboardsRouter');
@@ -22,6 +24,10 @@ const profileRouter = require('./profileRouter');
 
 router.use(
   '/',
+  cors({
+    credentials: true,
+    origin: ['http://localhost:3000', 'http://46.19.64.10:3000'],
+  }),
   authRouter, //роутер авторизации
   AuthMiddleware, //проверка авторизации
 );

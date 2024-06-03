@@ -21,26 +21,28 @@ const createLog = (req, res, next) => {
 app.use(cookieParser());
 
 // app.use(createLog);
-app.use(
-  cors({
-    credentials: true,
-    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://95.163.231.166:80', 'http://176.57.214.58'],
-  }),
-);
+// app.use(
+//   cors({
+//     credentials: true,
+//     origin: ['http://localhost:3000'],
+//   }),
+// );
 
 app.use(
   express.json({
     limit: '5MB',
   }),
 );
+
 app.use('/public', express.static(path.join(__dirname, '/public')));
+
 app.use(
   fileUpload({
     defCharset: 'utf8',
     defParamCharset: 'utf8',
   }),
 );
-app.use('/api', router);
+
 app.use(
   '/api',
   // async (req, res, next) => {
@@ -49,17 +51,18 @@ app.use(
   // },
   router,
 );
+
 app.use(errorHandling);
 
 const start = async () => {
   try {
-    await sequelize.drop();
-    await sequelize.authenticate();
-    await sequelize.sync({ alter: true, force: true });
+    // await sequelize.drop();
+    // await sequelize.authenticate();
+    // await sequelize.sync({ alter: true, force: true });
 
-    await presets.createRoles();
-    await presets.createStartDatas();
-    await presets.createLists();
+    // await presets.createRoles();
+    // await presets.createStartDatas();
+    // await presets.createLists();
     app.listen(PORT, () => console.log(`${PORT}`));
   } catch (error) {
     console.log(error);
