@@ -4,7 +4,8 @@ const { DataTypes } = require('sequelize');
 // const statusesOld = ['created', 'process', 'done'];
 // const statuses = ['created', 'process', 'done', 'readyToSend', 'sent', 'delivered'];
 const statuses = ['Создана', 'Изготовление', 'Готов', 'Готов к отправке', 'Отправлен', 'Доставлен'];
-const disconts = ['Без скидки', 'Желтая', 'ОПТ', 'Рассылка'];
+const disconts = ['Без скидки', 'Желтая', 'ОПТ', 'Рассылка', 'Красная'];
+const maketTypes = ['Дизайнерский', 'заготовка из базы', 'рекламный', 'визуализатор', 'из рассылки'];
 
 const modelFields = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
@@ -22,6 +23,7 @@ const modelFields = {
   region: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Регион' },
   cardLink: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Ссылка на карточку' },
   paid: { type: DataTypes.BOOLEAN, defaultValue: false, fieldType: 'boolean', fullName: 'Оплачена?' },
+  maketType: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', validateFields: maketTypes, fullName: 'Ссылка на карточку' },
 };
 
 //status заменить на isDone

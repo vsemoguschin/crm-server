@@ -13,12 +13,18 @@ class DopsRouterMiddleware {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
     try {
       const requesterRole = req.requester.role;
+      const { userId } = req.body;
+
       //проверка на доступ к созданию
       if (!permissions.includes(requesterRole)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
       const newDop = await modelsService.checkFields([Dop, dopsModelFields], req.body);
+      newDop.userId = req.requester.id;
+      if (userId) {
+        newDop.userId = +userId;
+      }
       req.newDop = newDop;
       next();
     } catch (e) {
@@ -48,7 +54,7 @@ class DopsRouterMiddleware {
     }
   }
   async getList(req, res, next) {
-    const searchFields = ['title', 'type'];
+    const searchFields = ['type'];
     try {
       const requesterRole = req.requester.role;
       if (!permissions.includes(requesterRole)) {

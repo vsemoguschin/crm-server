@@ -7,7 +7,7 @@ const { Role } = require('./roles/rolesModel');
 const { Client } = require('./clients/clientsModel');
 const { Deal, Dealers, DealSources, DealDates } = require('./deals/dealsModel');
 const { Payment } = require('./payments/paymentsModel');
-const { Dop } = require('./dops/dopsModel');
+const { Dop, DopsTypes } = require('./dops/dopsModel');
 const { Delivery } = require('./deliveries/deliveriesModel');
 
 //Пользователи
@@ -104,4 +104,5 @@ module.exports = {
   Delivery,
   Dealers,
   ManagersPlan,
+  DopsTypes,
 };

@@ -19,7 +19,7 @@ class WorkSpacesRouterMiddleware {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
     try {
       const requesterRole = req.requester.role;
-      if (!['ADMIN', 'G', 'KD', 'DP', 'MOP'].includes(requesterRole)) {
+      if (!['ADMIN', 'G', 'KD', 'DP'].includes(requesterRole)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }

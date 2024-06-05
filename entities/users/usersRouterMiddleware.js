@@ -43,6 +43,11 @@ class UsersRouterMiddleware {
   async create(req, res, next) {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
     try {
+      const requesterRole = req.requester.role;
+      if (!['ADMIN', 'G', 'KD', 'DO', 'ROP'].includes(requesterRole)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
       const req_role = req.body.role; //переданная роль
       const userRole = await Role.findOne({
         where: { shortName: req_role },

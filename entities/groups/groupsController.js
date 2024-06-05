@@ -8,6 +8,11 @@ const ApiError = require('../../error/apiError');
 class GroupsController {
   async create(req, res, next) {
     try {
+      const requesterRole = req.requester.role;
+      if (!['ADMIN', 'G', 'KD', 'DO'].includes(requesterRole)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
       const { workSpace } = req;
       const { title } = req.body;
       if (!title) {

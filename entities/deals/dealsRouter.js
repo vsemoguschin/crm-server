@@ -18,7 +18,6 @@ const usersRouterMiddleware = require('../users/usersRouterMiddleware');
 
 router.get('/datas', dealsController.getDatas);
 
-
 router.get('/methods', dealsController.getMethods);
 router.post('/methods', dealsController.createMethods);
 router.delete('/methods/:methodId', checkReqParamsIsNumber, dealsController.deleteMethods);

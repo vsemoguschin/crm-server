@@ -82,6 +82,7 @@ class PaymentsController {
         console.log('Платеж не удален');
         return res.json('Платеж не удален');
       }
+      await planService.deletePayment(payment);
       console.log('Платеж удален');
       return res.json('Платеж удален');
     } catch (e) {

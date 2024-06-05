@@ -1,4 +1,4 @@
-const { Dop, modelFields: dopsModelFields } = require('./dopsModel');
+const { Dop, modelFields: dopsModelFields, DopsTypes } = require('./dopsModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
@@ -10,9 +10,16 @@ class DopsController {
   async create(req, res, next) {
     try {
       const { deal, newDop } = req;
-      newDop.userId = req.requester.id;
       const dop = await deal.createDop(newDop);
       await planService.createDop(dop);
+      await DopsTypes.findOrCreate({
+        where: {
+          title: newDop.type,
+        },
+        defaults: {
+          title: newDop.type,
+        },
+      });
       return res.json(dop);
     } catch (e) {
       console.log(e);
@@ -78,15 +85,24 @@ class DopsController {
   async delete(req, res, next) {
     try {
       const { dop } = req;
-      await planService.deleteDop(dop);
       const deletedDop = await dop.destroy();
       // console.log(deletedDop);
       if (deletedDop === 0) {
         console.log('Доп не удалена');
         return res.json('Доп не удалена');
       }
+      await planService.deleteDop(dop);
       console.log('Доп удалена');
       return res.json('Доп удалена');
+    } catch (e) {
+      next(e);
+    }
+  }
+  async getDopTypes(req, res, next) {
+    try {
+      const dopsTypes = await DopsTypes.findAll();
+      console.log(dopsTypes);
+      return res.json(dopsTypes.map((t) => t.title));
     } catch (e) {
       next(e);
     }

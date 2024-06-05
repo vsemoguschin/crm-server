@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const checkReqQueriesIsNumber = require('../checking/checkReqQueriesIsNumber');
 const { WorkSpace, Group, User, Role, ManagersPlan } = require('../entities/association');
 const ApiError = require('../error/apiError');
@@ -24,84 +25,63 @@ class dashboardsMiddleware {
 
     try {
       const requesterRole = req.requester.role;
+      const { requester } = req;
       //сделать разрешения
 
+      const workspacesSearch = {
+        id: {
+          [Op.gt]: 0,
+        },
+      };
+      const groupsSearch = {
+        workSpaceId: {
+          [Op.gt]: 0,
+        },
+      };
+      if (['MOP', 'ROP'].includes(requesterRole)) {
+        workspacesSearch.id = requester.workSpaceId;
+        groupsSearch.workSpaceId = requester.workSpaceId;
+      }
+
       const workspaces = await WorkSpace.findAll({
-        where: { department: 'COMMERCIAL' },
+        where: workspacesSearch,
+        include: ['groups', 'users'],
       });
 
-      const groups = await Group.findAll();
+      const groups = await Group.findAll({
+        where: groupsSearch,
+      });
+      console.log(groups, groupsSearch, 32454);
 
       const managers = await User.findAll({
-        include: {
-          model: Role,
-          where: {
-            shortName: ['MOP'],
+        include: [
+          {
+            model: WorkSpace,
+            where: workspacesSearch,
           },
-        },
+        ],
       });
       console.log(21213424);
       return res.json({ workspaces, groups, managers });
-      const { pageSize, current, start, end, key, order, managerId } = req.query;
-      checkReqQueriesIsNumber({ pageSize, current, managerId });
-
-      const dateStart = new Date(start || '2024-03-17');
-      const dateEnd = new Date(end || '2024-04-26');
-
-      const keys = ['price', 'dopsPrice', 'payments', 'totalPrice', 'remainder'];
-
-      const sortFilter = {
-        apply: key && order ? true : false,
-        key: keys.includes(key) ? key : null,
-        order: ['DESC', 'ASC'].includes(order) ? order : 'DESC',
-      };
-
-      const managerFilter = managerId ? { managerId } : false;
-
-      const searchFilter = await modelsService.dealListFilter(searchFields, req.query);
-
-      const searchParams = {
-        where: {
-          id: { [Op.gt]: 0 },
-          createdAt: {
-            [Op.gt]: dateStart == 'Invalid Date' ? '2000-01-01' : dateStart,
-            [Op.lt]: dateEnd == 'Invalid Date' ? '2500-01-01' : dateEnd,
-          },
-        },
-        include: ['dops', 'payments', 'dealers', 'client', 'deliveries', 'workSpace'],
-      };
-
-      //other paths
-      const { workSpace } = req;
-      if (req.baseUrl.includes('/workspaces') && workSpace.department !== 'COMMERCIAL') {
-        console.log(false, 'wrong workspace department');
-        throw ApiError.BadRequest('wrong workspace department');
-      }
-      if (req.baseUrl.includes('/clients')) {
-        searchParams.where.clientId = req.params.id;
-      }
-      if (req.baseUrl.includes('/users')) {
-        searchParams.where.userId = req.params.id;
-      }
-      if (req.baseUrl.includes('/workspaces')) {
-        searchParams.where.workSpaceId = workSpace.id;
-      }
-      req.searchParams = searchParams;
-      req.searchFilter = searchFilter;
-      req.managerFilter = managerFilter;
-      req.sortFilter = sortFilter;
-      req.pageSize = pageSize;
-      req.current = current;
-      next();
     } catch (e) {
       next(e);
     }
   }
   async workspaces(req, res, next) {
     try {
+      const { requester } = req;
+      const workspacesSearch = {
+        id: {
+          [Op.gt]: 0,
+        },
+      };
+      if (['MOP', 'ROP'].includes(requester.role)) {
+        workspacesSearch.id = requester.workSpaceId;
+      }
       const workspaces = await WorkSpace.findAll({
         where: {
           department: 'COMMERCIAL',
+          ...workspacesSearch,
         },
         include: [
           {
@@ -139,27 +119,41 @@ class dashboardsMiddleware {
       if (!req_period) {
         throw ApiError.BadRequest('Invalid Date');
       }
+      const requesterRole = req.requester.role;
+      const { requester } = req;
+      //сделать разрешения
+
+      const workspacesSearch = {
+        id: {
+          [Op.gt]: 0,
+        },
+      };
+      const groupsSearch = {
+        workSpaceId: {
+          [Op.gt]: 0,
+        },
+      };
+      if (['MOP', 'ROP'].includes(requesterRole)) {
+        workspacesSearch.id = requester.workSpaceId;
+        groupsSearch.workSpaceId = requester.workSpaceId;
+      }
+
       let workspaces = await WorkSpace.findAll({
-        where: { department: 'COMMERCIAL' },
-        attributes: ['id', 'title'],
+        where: workspacesSearch,
+        include: ['groups', 'users'],
       });
 
-      let groups = await Group.findAll();
+      let groups = await Group.findAll({
+        where: groupsSearch,
+      });
+      console.log(groups, groupsSearch, 32454);
 
       const managers = await User.findAll({
         include: [
           {
-            model: Role,
-            where: {
-              shortName: ['MOP'],
-            },
+            model: WorkSpace,
+            where: workspacesSearch,
           },
-          // {
-          //   model: ManagersPlan,
-          //   where: {
-          //     req_period,
-          //   },
-          // },
         ],
       });
 

@@ -390,15 +390,16 @@ class Presets {
       });
       //Создаем админов
       const hashPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 3); //хешируем пароль
+      const managers = [];
       await User.findOrCreate({
         where: { email: process.env.ADMIN_EMAIL },
         defaults: {
           email: process.env.ADMIN_EMAIL,
           fullName: process.env.ADMIN_NAME,
-          roleName: 'MOP',
+          roleName: 'ADMIN',
           password: hashPassword,
           avatar: '1.jpg',
-          roleId: 6,
+          roleId: 1,
           workSpaceId: workspace.id,
           groupId: group.id,
         },
@@ -408,15 +409,82 @@ class Presets {
         where: { email: 'GGG' },
         defaults: {
           email: 'GGG',
-          fullName: 'MAX',
-          roleName: 'MOP',
+          fullName: 'Максим Мазунин',
+          roleName: 'G',
           password: await bcrypt.hash('root', 3),
-          roleId: 6,
+          roleId: 2,
           workSpaceId: workspace.id,
           groupId: group.id,
         },
         paranoid: false,
       });
+      await User.findOrCreate({
+        where: { email: 'easKD' },
+        defaults: {
+          email: 'easKD',
+          fullName: 'Марк Вансовский',
+          roleName: 'KD',
+          password: await bcrypt.hash('easKD7', 3),
+          roleId: 3,
+          workSpaceId: workspace.id,
+          groupId: group.id,
+        },
+        paranoid: false,
+      });
+
+      const avito = await WorkSpace.create({
+        title: 'B2B',
+        department: 'COMMERCIAL',
+      });
+      const avitoGroups = [{ title: 'Опт отдел' }, { title: 'Москва Неон' }, { title: 'Авито Питер' }];
+      await Promise.all(
+        avitoGroups.map(async (g) => {
+          const group = await Group.create({
+            title: g.title,
+            workSpaceId: avito.id,
+          });
+        }),
+      );
+      await User.findOrCreate({
+        where: { email: 'easKD' },
+        defaults: {
+          email: 'easKD',
+          fullName: 'Сергей Иванов',
+          roleName: 'DO',
+          password: await bcrypt.hash('easKD7', 3),
+          roleId: 4,
+          workSpaceId: avito.id,
+          // groupId: group.id,
+        },
+        paranoid: false,
+      });
+
+      const vk = await WorkSpace.create({
+        title: 'ВК',
+        department: 'COMMERCIAL',
+      });
+      await User.findOrCreate({
+        where: { email: 'easKD' },
+        defaults: {
+          email: 'easKD',
+          fullName: 'Юлия Куштанова',
+          roleName: 'DO',
+          password: await bcrypt.hash('easKD7', 3),
+          roleId: 4,
+          workSpaceId: vk.id,
+          // groupId: group.id,
+        },
+        paranoid: false,
+      });
+      const vkGroups = [{ title: 'РОП 1' }, { title: 'РОП 2' }, { title: 'РОП 3' }];
+      await Promise.all(
+        vkGroups.map(async (g) => {
+          const group = await Group.create({
+            title: g.title,
+            workSpaceId: vk.id,
+          });
+        }),
+      );
     } catch (e) {
       console.log(e);
     }
@@ -424,3 +492,37 @@ class Presets {
 }
 
 module.exports = new Presets();
+
+const vkUsersR1 = [
+  {
+    email: 'ZARINA111',
+    fullName: 'Зарина Кузнецова',
+    password: 'ZARINA111',
+    tg: '@ZarinaSl',
+  },
+  {
+    email: 'MAXIMPISK',
+    fullName: 'Максим Пискунов',
+    password: 'MAXIMPISK',
+    tg: '@strutstrut',
+  },
+  { email: 'USTYA', fullName: 'Устинья Якушева', password: 'USTYA', tg: '@swipeforcheese' },
+  { email: 'DIMASVE', fullName: 'Дмитрий Свечников', password: 'DIMASVE', tg: '@wwwsamuraycom' },
+  { email: 'DARYAKOV', fullName: 'Дарья Яковлева', password: 'DARYAKOV', tg: '@dashayakovlevady' },
+  { email: 'VADIMSAMO', fullName: 'Вадим Самойлов', password: 'VADIMSAMO', tg: '@Haertunderblade' },
+  { email: 'MAXANDRO', fullName: 'Максим Андронов', password: 'MAXANDRO', tg: '@kenzikenzi1' },
+  { email: 'NASTYAMAY', fullName: 'Анастасия Майорова', password: 'NASTYAMAY', tg: '@nlr_21' },
+];
+
+const vkUsersR2 = [
+  { email: 'TANYAGUL', fullName: 'Татьяна Гуляева', password: 'TANYAGUL', tg: '@pysht9999' },
+  { email: 'YULYAGAS', fullName: 'Юлия Гасымова', password: 'YULYAGAS', tg: '@juliya0307' },
+  { email: 'VALSKOR', fullName: 'Валентина Скорикова', password: 'VALSKOR', tg: '@skorikovav' },
+  { email: 'SOFAK', fullName: 'София Карасева', password: 'SOFAK', tg: '@betrothed_wind_1' },
+  { email: 'DIANABAR', fullName: 'Диана Баранчук', password: 'DIANABAR', tg: '@mirzakulovadi' },
+  { email: 'OLYAKOR', fullName: 'Ольга Короваева', password: 'OLYAKOR', tg: '@olmakar' },
+  { email: 'ARILAS', fullName: 'Ариша Ласькова', password: 'ARILAS', tg: '@Arishalaskova' },
+  { email: 'ANYANOV', fullName: 'Анна Новикова', password: 'ANYANOV', tg: '@etojeanyaaaaa' },
+  { email: 'KATYATOL', fullName: 'Екатерина Толмачева', password: 'KATYATOL', tg: '@Tolmacheva_Ek' },
+  { email: 'MAXSOLO', fullName: 'Максим Солодухин', password: 'MAXSOLO', tg: '@Sma_011' },
+];

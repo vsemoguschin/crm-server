@@ -61,7 +61,7 @@ class DealsController {
         where: { title: source },
         defaults: { title: source, workSpaceId: newDeal.workSpaceId },
       });
-      console.log(121232213, a, created);
+      // console.log(121232213, a, created);
       await AdTags.findOrCreate({
         where: { title: adTag },
         defaults: { title: adTag },
@@ -329,23 +329,18 @@ class DealsController {
   async delete(req, res, next) {
     try {
       const { deal } = req;
-      const { dealers } = deal;
-      if (dealers.length == 2) {
-        throw ApiError.BadRequest('delete one seller first');
+      const requesterRole = req.requester.role;
+      if (!['ADMIN', 'G', 'KD', 'DO'].includes(requesterRole)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
       }
-      if (deal.payments.length > 0) {
-        throw ApiError.BadRequest('deal has payments');
-      }
-      if (deal.dops.length > 0) {
-        throw ApiError.BadRequest('deal has dops');
-      }
-      await planService.deleteDeal(deal);
       const deletedDeal = await deal.destroy();
       // console.log(deletedDeal);
       if (deletedDeal === 0) {
         console.log('Сделка не удалена');
         return res.json('Сделка не удалена');
       }
+      await planService.deleteDeal(deal);
       console.log('Сделка удалена');
       return res.json('Сделка удалена');
     } catch (e) {

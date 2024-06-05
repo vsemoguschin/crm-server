@@ -4,7 +4,6 @@ const router = new Router();
 const AuthMiddleware = require('../middleware/AuthMiddleware');
 const cors = require('cors');
 
-
 const authRouter = require('./authRouter');
 const dashboardsRouter = require('./dashboardsRouter');
 const usersRouter = require('../entities/users/usersRouter');

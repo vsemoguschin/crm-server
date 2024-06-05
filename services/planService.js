@@ -1,4 +1,4 @@
-const { ManagersPlan, Dealers } = require('../entities/association');
+const { ManagersPlan, Dealers, Deal } = require('../entities/association');
 const ApiError = require('../error/apiError');
 
 class PlanService {
@@ -63,32 +63,69 @@ class PlanService {
   }
   async deleteDeal(deal) {
     try {
-      const { createdAt } = deal;
+      const { createdAt, price, payments, dops } = deal;
 
       const period = createdAt.toISOString().slice(0, 7);
 
-      const monthPlan = await ManagersPlan.findOne({
-        where: {
-          userId: 2,
-          period,
-        },
-      });
-      monthPlan.dealsSales -= deal.price;
-      monthPlan.dealsAmount -= 1;
-      await monthPlan.save();
+      const dealers = deal.dealers.map((d) => d.dealUsers);
+      const dealPayments = payments.reduce((a, b) => a + b.price, 0);
 
-      const dealer = await Dealers.findOne({ where: { dealId: deal.id } });
+      const firstDealerPart = dealers[0].part;
+      const firstDealerDealPrice = +(firstDealerPart * price).toFixed();
+      const firstDealerPaymentPrice = +(firstDealerPart * dealPayments).toFixed();
+      console.log(112121, dealPayments, firstDealerPart, firstDealerDealPrice, firstDealerPaymentPrice);
+      dealers.forEach(async (dealer, i) => {
+        //часть диллера(сумма)
+        const dealerDealPrice = i == 0 ? firstDealerDealPrice : price - firstDealerDealPrice;
+        const dealerPaymentsPrice = i == 0 ? firstDealerPaymentPrice : dealPayments - firstDealerPaymentPrice;
 
-      const dealerPlan = await ManagersPlan.findOne({
-        where: {
-          userId: dealer.userId,
-          period,
-        },
+        console.log(dealerDealPrice, dealerPaymentsPrice, 3232342);
+
+        //план диллера
+        const dealerPlan = await ManagersPlan.findOne({
+          where: {
+            userId: dealer.userId,
+            period,
+          },
+        });
+        dealerPlan.dealsSales -= dealerDealPrice;
+        dealerPlan.receivedPayments -= dealerPaymentsPrice;
+        dealerPlan.dealsAmount -= 1;
+        await dealerPlan.save();
+        await dealer.destroy();
       });
-      dealerPlan.dealsSales -= deal.price;
-      dealerPlan.dealsAmount -= 1;
-      await dealerPlan.save();
-      await dealer.destroy();
+      console.log('plans updated', 324242);
+
+      //Удаление платежей сделки
+      await Promise.all(
+        payments.map(async (payment) => {
+          await payment.destroy();
+        }),
+      );
+      console.log('payments deleted', 324242);
+
+      //Удаление допов сделки
+      await Promise.all(
+        dops.map(async (dop) => {
+          const { price, createdAt } = dop;
+          const period = createdAt.toISOString().slice(0, 7);
+
+          const dealerPlan = await ManagersPlan.findOne({
+            where: {
+              userId: dop.userId,
+              period,
+            },
+          });
+          dealerPlan.dopsSales -= price;
+          dealerPlan.dopsAmount -= 1;
+          await dealerPlan.save();
+          await dop.destroy();
+        }),
+      );
+      console.log('dops deleted', 324242);
+
+      // return console.log(dealers);
+      return;
     } catch (e) {
       throw ApiError.BadRequest(e);
     }
@@ -155,16 +192,6 @@ class PlanService {
 
       const period = createdAt.toISOString().slice(0, 7);
 
-      const monthPlan = await ManagersPlan.findOne({
-        where: {
-          userId: 2,
-          period,
-        },
-      });
-      monthPlan.dopsSales -= dop.price;
-      monthPlan.dopsAmount -= 1;
-      await monthPlan.save();
-
       const dealerPlan = await ManagersPlan.findOne({
         where: {
           userId: dop.userId,
@@ -174,6 +201,7 @@ class PlanService {
       dealerPlan.dopsSales -= dop.price;
       dealerPlan.dopsAmount -= 1;
       await dealerPlan.save();
+      return;
     } catch (e) {
       throw ApiError.BadRequest(e);
     }
@@ -206,6 +234,47 @@ class PlanService {
         await dealerPlan.save();
 
         dealer.payments += dealerPrice;
+        await dealer.save();
+      });
+      // return console.log(dealers);
+      return;
+    } catch (e) {
+      throw ApiError.BadRequest(e);
+    }
+  }
+  async deletePayment(payment) {
+    try {
+      const { price, dealId } = payment;
+
+      const deal = await Deal.findOne({
+        where: {
+          id: dealId,
+        },
+        include: ['dealers'],
+      });
+
+      const period = deal.createdAt.toISOString().slice(0, 7);
+
+      const dealers = deal.dealers.map((d) => d.dealUsers);
+
+      //часть сделки
+      const firstDealerPart = dealers[0].part;
+      const firstDealerPaymentPrice = +(firstDealerPart * price).toFixed();
+      dealers.forEach(async (dealer, i) => {
+        //часть диллера(сумма)
+        const dealerPrice = i == 0 ? firstDealerPaymentPrice : price - firstDealerPaymentPrice;
+
+        //план диллера
+        const dealerPlan = await ManagersPlan.findOne({
+          where: {
+            userId: dealer.userId,
+            period,
+          },
+        });
+        dealerPlan.receivedPayments -= dealerPrice;
+        await dealerPlan.save();
+
+        dealer.payments -= dealerPrice;
         await dealer.save();
       });
       // return console.log(dealers);

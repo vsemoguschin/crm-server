@@ -4,7 +4,7 @@ const { modelFields: dealsModelFields, Deal, Dealers } = require('./dealsModel')
 const { Client } = require('../clients/clientsModel');
 const dealsPermissions = require('./dealsPermissions');
 const { Op } = require('sequelize');
-const { Delivery, ManagersPlan } = require('../association');
+const { Delivery, ManagersPlan, Dop } = require('../association');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
 
 const frontOptions = {
@@ -51,7 +51,11 @@ class DealsRouterMiddleware {
           },
           'dealDate',
           'payments',
-          'dops',
+          // 'dops',
+          {
+            model: Dop,
+            include: ['user'],
+          },
         ],
       });
       if (!deal) {

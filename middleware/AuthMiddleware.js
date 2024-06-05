@@ -8,7 +8,7 @@ module.exports = async function (req, res, next) {
   // console.log(req);
   try {
     const authorizationHeader = req.headers.authorization;
-    console.log(req.headers);
+    // console.log(req.headers);
     if (!authorizationHeader) {
       return next(ApiError.UnauthorizedError());
     }
