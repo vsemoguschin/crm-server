@@ -436,47 +436,37 @@ class Presets {
         title: 'B2B',
         department: 'COMMERCIAL',
       });
-      const avitoGroups = [{ title: 'Опт отдел' }, { title: 'Москва Неон' }, { title: 'Авито Питер' }];
+      const avitoGroups = [{ title: 'Авито Питер' }, { title: 'Опт отдел' }, { title: 'Москва Неон' }];
       await Promise.all(
-        avitoGroups.map(async (g) => {
+        avitoGroups.map(async (g, i) => {
           const group = await Group.create({
             title: g.title,
             workSpaceId: avito.id,
           });
+          if (i === 0) {
+            await User.findOrCreate({
+              where: { email: 'jayz' },
+              defaults: {
+                email: 'jayz',
+                fullName: 'Сергей Иванов',
+                roleName: 'DO',
+                password: await bcrypt.hash('beyonce', 3),
+                roleId: 4,
+                tg: '@floype',
+                workSpaceId: avito.id,
+                groupId: group.id,
+              },
+              paranoid: false,
+            });
+          }
         }),
       );
-      await User.findOrCreate({
-        where: { email: 'jayz' },
-        defaults: {
-          email: 'jayz',
-          fullName: 'Сергей Иванов',
-          roleName: 'DO',
-          password: await bcrypt.hash('beyonce', 3),
-          roleId: 4,
-          workSpaceId: avito.id,
-          // groupId: group.id,
-        },
-        paranoid: false,
-      });
 
       const vk = await WorkSpace.create({
         title: 'ВК',
         department: 'COMMERCIAL',
       });
-      await User.findOrCreate({
-        where: { email: 'easKD' },
-        defaults: {
-          email: 'nablatnom',
-          fullName: 'Юлия Куштанова',
-          roleName: 'DO',
-          password: await bcrypt.hash('nablatnom', 3),
-          roleId: 4,
-          tg: '@JuliaKush',
-          workSpaceId: vk.id,
-          // groupId: group.id,
-        },
-        paranoid: false,
-      });
+
       const vkGroups = [{ title: 'РОП 1' }, { title: 'РОП 2' }, { title: 'РОП 3' }];
       for (let i = 0; i < vkGroups.length; i++) {
         const group = await Group.create({
@@ -486,6 +476,20 @@ class Presets {
         let users = [];
         let rop = {};
         if (i === 0) {
+          await User.findOrCreate({
+            where: { email: 'easKD' },
+            defaults: {
+              email: 'nablatnom',
+              fullName: 'Юлия Куштанова',
+              roleName: 'DO',
+              password: await bcrypt.hash('nablatnom', 3),
+              roleId: 4,
+              tg: '@JuliaKush',
+              workSpaceId: vk.id,
+              groupId: group.id,
+            },
+            paranoid: false,
+          });
           rop = { email: 'AlinaROP1', fullName: 'Алина Малышева РОП 1', password: 'AlinaROP1', tg: '@AlinaMuiii' };
 
           users = [

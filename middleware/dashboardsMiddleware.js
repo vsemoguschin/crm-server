@@ -103,7 +103,7 @@ class dashboardsMiddleware {
         ],
         attributes: ['id', 'title'],
         distinct: true,
-        order: [['title', 'DESC']],
+        order: [['createdAt', 'DESC']],
       });
 
       return res.json(workspaces);

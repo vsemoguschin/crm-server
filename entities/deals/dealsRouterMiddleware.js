@@ -6,6 +6,7 @@ const dealsPermissions = require('./dealsPermissions');
 const { Op } = require('sequelize');
 const { Delivery, ManagersPlan, Dop } = require('../association');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
+const { group } = require('console');
 
 const frontOptions = {
   modelFields: modelsService.getModelFields(dealsModelFields),
@@ -243,6 +244,7 @@ class DealsRouterMiddleware {
       await dealDealerPlan.save();
 
       // console.log(dealDealerPlan, 3242);
+      await deal.update({ groupId: newDealer.groupId });
 
       return res.json(200);
     } catch (e) {
@@ -299,7 +301,7 @@ class DealsRouterMiddleware {
 
       //Удаление дилера из сделки
       await removedSeller.dealUsers.destroy();
-
+      await deal.update({ groupId: dealSeller.groupId });
       await res.json(200);
     } catch (e) {
       next(e);
