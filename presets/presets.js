@@ -419,12 +419,12 @@ class Presets {
         paranoid: false,
       });
       await User.findOrCreate({
-        where: { email: 'easKD' },
+        where: { email: 'qwertymark337@gmail.com' },
         defaults: {
-          email: 'easKD',
+          email: 'qwertymark337@gmail.com',
           fullName: 'Марк Вансовский',
           roleName: 'KD',
-          password: await bcrypt.hash('easKD7', 3),
+          password: await bcrypt.hash('easyneondir', 3),
           roleId: 3,
           workSpaceId: workspace.id,
           groupId: group.id,
@@ -446,12 +446,12 @@ class Presets {
         }),
       );
       await User.findOrCreate({
-        where: { email: 'easKD' },
+        where: { email: 'чушпан333' },
         defaults: {
-          email: 'easKD',
+          email: 'чушпан333',
           fullName: 'Сергей Иванов',
           roleName: 'DO',
-          password: await bcrypt.hash('easKD7', 3),
+          password: await bcrypt.hash('лохпидр', 3),
           roleId: 4,
           workSpaceId: avito.id,
           // groupId: group.id,
