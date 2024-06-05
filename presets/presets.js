@@ -446,12 +446,12 @@ class Presets {
         }),
       );
       await User.findOrCreate({
-        where: { email: 'чушпан333' },
+        where: { email: 'jayz' },
         defaults: {
-          email: 'чушпан333',
+          email: 'jayz',
           fullName: 'Сергей Иванов',
           roleName: 'DO',
-          password: await bcrypt.hash('лохпидр', 3),
+          password: await bcrypt.hash('beyonce', 3),
           roleId: 4,
           workSpaceId: avito.id,
           // groupId: group.id,
