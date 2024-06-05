@@ -100,7 +100,7 @@ class ManagersController {
       //   console.log(managerData);
       // }
 
-      const response = getPaginationData(managers, current, pageSize, 'managers');
+      // const response = getPaginationData(managers, current, pageSize, 'managers');
       return res.json(managers);
     } catch (e) {
       next(e);
@@ -110,6 +110,11 @@ class ManagersController {
   //установка плана
   async setPlan(req, res, next) {
     try {
+      const requesterRole = req.requester.role;
+      if (!['ADMIN', 'G', 'KD', 'DO', 'ROP'].includes(requesterRole)) {
+        console.log(false, 'no acces');
+        throw ApiError.Forbidden('Нет доступа');
+      }
       const { manager } = req;
       let { plan } = req.body;
       const { period } = req.body;
@@ -174,6 +179,5 @@ class ManagersController {
     }
   }
 }
-
 
 module.exports = new ManagersController();

@@ -75,7 +75,7 @@ class dashboardsMiddleware {
           [Op.gt]: 0,
         },
       };
-      if (['MOP', 'ROP'].includes(requester.role)) {
+      if (['MOP', 'ROP', 'DO'].includes(requester.role)) {
         workspacesSearch.id = requester.workSpaceId;
       }
       const workspaces = await WorkSpace.findAll({
@@ -105,7 +105,6 @@ class dashboardsMiddleware {
         distinct: true,
         order: [['title', 'DESC']],
       });
-      // const
 
       return res.json(workspaces);
     } catch (e) {
@@ -129,18 +128,18 @@ class dashboardsMiddleware {
         },
       };
       const groupsSearch = {
-        workSpaceId: {
+        id: {
           [Op.gt]: 0,
         },
       };
       if (['MOP', 'ROP'].includes(requesterRole)) {
         workspacesSearch.id = requester.workSpaceId;
-        groupsSearch.workSpaceId = requester.workSpaceId;
+        groupsSearch.id = requester.groupId;
       }
 
       let workspaces = await WorkSpace.findAll({
         where: workspacesSearch,
-        include: ['groups', 'users'],
+        // include: ['groups', 'users'],
       });
 
       let groups = await Group.findAll({
@@ -156,6 +155,7 @@ class dashboardsMiddleware {
           },
         ],
       });
+      console.log(managers);
 
       const managersPlans = await Promise.all(
         managers.map(async (m) => {

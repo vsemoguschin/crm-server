@@ -408,10 +408,10 @@ class Presets {
       const [admin] = await User.findOrCreate({
         where: { email: 'GGG' },
         defaults: {
-          email: 'GGG',
+          email: 'Maxmazunin',
           fullName: 'Максим Мазунин',
           roleName: 'G',
-          password: await bcrypt.hash('root', 3),
+          password: await bcrypt.hash('Maxkud59', 3),
           roleId: 2,
           workSpaceId: workspace.id,
           groupId: group.id,
@@ -466,25 +466,81 @@ class Presets {
       await User.findOrCreate({
         where: { email: 'easKD' },
         defaults: {
-          email: 'easKD',
+          email: 'nablatnom',
           fullName: 'Юлия Куштанова',
           roleName: 'DO',
-          password: await bcrypt.hash('easKD7', 3),
+          password: await bcrypt.hash('nablatnom', 3),
           roleId: 4,
+          tg: '@JuliaKush',
           workSpaceId: vk.id,
           // groupId: group.id,
         },
         paranoid: false,
       });
       const vkGroups = [{ title: 'РОП 1' }, { title: 'РОП 2' }, { title: 'РОП 3' }];
-      await Promise.all(
-        vkGroups.map(async (g) => {
-          const group = await Group.create({
-            title: g.title,
-            workSpaceId: vk.id,
-          });
-        }),
-      );
+      for (let i = 0; i < vkGroups.length; i++) {
+        const group = await Group.create({
+          title: vkGroups[i].title,
+          workSpaceId: vk.id,
+        });
+        let users = [];
+        let rop = {};
+        if (i === 0) {
+          rop = { email: 'AlinaROP1', fullName: 'Алина Малышева РОП 1', password: 'AlinaROP1', tg: '@AlinaMuiii' };
+
+          users = [
+            //РОП1
+            { email: 'MAXIMPISK', fullName: 'Максим Пискунов', password: 'MAXIMPISK', tg: '@strutstrut' },
+            { email: 'USTYA', fullName: 'Устинья Якушева', password: 'USTYA', tg: '@swipeforcheese' },
+            { email: 'DIMASVE', fullName: 'Дмитрий Свечников', password: 'DIMASVE', tg: '@wwwsamuraycom' },
+            { email: 'DARYAKOV', fullName: 'Дарья Яковлева', password: 'DARYAKOV', tg: '@dashayakovlevady' },
+            { email: 'VADIMSAMO', fullName: 'Вадим Самойлов', password: 'VADIMSAMO', tg: '@Haertunderblade' },
+            { email: 'MAXANDRO', fullName: 'Максим Андронов', password: 'MAXANDRO', tg: '@kenzikenzi1' },
+            { email: 'NASTYAMAY', fullName: 'Анастасия Майорова', password: 'NASTYAMAY', tg: '@nlr_21' },
+            { email: 'ZARINA111', fullName: 'Зарина Кузнецова', password: 'ZARINA111', tg: '@ZarinaSl' },
+          ];
+        }
+        if (i === 1) {
+          rop = { email: 'VladimirPERM', fullName: 'Владимир Добротин РОП 2', password: 'VladimirPERM', tg: '@vs_exe' };
+
+          users = [
+            //РОП2
+            { email: 'TANYAGUL', fullName: 'Татьяна Гуляева', password: 'TANYAGUL', tg: '@pysht9999' },
+            { email: 'YULYAGAS', fullName: 'Юлия Гасымова', password: 'YULYAGAS', tg: '@juliya0307' },
+            { email: 'VALSKOR', fullName: 'Валентина Скорикова', password: 'VALSKOR', tg: '@skorikovav' },
+            { email: 'SOFAK', fullName: 'София Карасева', password: 'SOFAK', tg: '@betrothed_wind_1' },
+            { email: 'DIANABAR', fullName: 'Диана Баранчук', password: 'DIANABAR', tg: '@mirzakulovadi' },
+            { email: 'OLYAKOR', fullName: 'Ольга Короваева', password: 'OLYAKOR', tg: '@olmakar' },
+            { email: 'ARILAS', fullName: 'Ариша Ласькова', password: 'ARILAS', tg: '@Arishalaskova' },
+            { email: 'ANYANOV', fullName: 'Анна Новикова', password: 'ANYANOV', tg: '@etojeanyaaaaa' },
+            { email: 'KATYATOL', fullName: 'Екатерина Толмачева', password: 'KATYATOL', tg: '@Tolmacheva_Ek' },
+            { email: 'MAXSOLO', fullName: 'Максим Солодухин', password: 'MAXSOLO', tg: '@Sma_011' },
+          ];
+        }
+        if (i === 2) {
+          rop = { email: 'GlebROP3', fullName: 'Глеб Буданов РОП 3', password: 'GlebROP3', tg: 'GlebROP3' };
+
+          users = [
+            //РОП3
+            { email: 'DANYAKA', fullName: 'Даниил Карпенко', password: 'DANYAKA', tg: '@VZGLSSS' },
+            { email: 'POLINARA', fullName: 'Полина Рагозина', password: 'POLINARA', tg: '@lonDeck' },
+            { email: 'ELENAKY', fullName: 'Елена Курлова', password: 'ELENAKY', group: 'РОП 3', tg: '@Helllena_k' },
+            { email: 'NASTYAZAI', fullName: 'Анастасия Зайцева', password: 'NASTYAZAI', group: 'РОП 3', tg: '@Zaviana' },
+          ];
+        }
+        for (let i = 0; i < users.length; i++) {
+          users[i].roleId = 6;
+          users[i].workSpaceId = vk.id;
+          users[i].groupId = group.id;
+          users[i].password = await bcrypt.hash(users[i].password, 3);
+          await User.create(users[i]);
+        }
+        rop.groupId = group.id;
+        rop.password = await bcrypt.hash(rop.password, 3);
+        rop.workSpaceId = vk.id;
+        rop.roleId = 5;
+        await User.create(rop);
+      }
     } catch (e) {
       console.log(e);
     }
@@ -492,37 +548,3 @@ class Presets {
 }
 
 module.exports = new Presets();
-
-const vkUsersR1 = [
-  {
-    email: 'ZARINA111',
-    fullName: 'Зарина Кузнецова',
-    password: 'ZARINA111',
-    tg: '@ZarinaSl',
-  },
-  {
-    email: 'MAXIMPISK',
-    fullName: 'Максим Пискунов',
-    password: 'MAXIMPISK',
-    tg: '@strutstrut',
-  },
-  { email: 'USTYA', fullName: 'Устинья Якушева', password: 'USTYA', tg: '@swipeforcheese' },
-  { email: 'DIMASVE', fullName: 'Дмитрий Свечников', password: 'DIMASVE', tg: '@wwwsamuraycom' },
-  { email: 'DARYAKOV', fullName: 'Дарья Яковлева', password: 'DARYAKOV', tg: '@dashayakovlevady' },
-  { email: 'VADIMSAMO', fullName: 'Вадим Самойлов', password: 'VADIMSAMO', tg: '@Haertunderblade' },
-  { email: 'MAXANDRO', fullName: 'Максим Андронов', password: 'MAXANDRO', tg: '@kenzikenzi1' },
-  { email: 'NASTYAMAY', fullName: 'Анастасия Майорова', password: 'NASTYAMAY', tg: '@nlr_21' },
-];
-
-const vkUsersR2 = [
-  { email: 'TANYAGUL', fullName: 'Татьяна Гуляева', password: 'TANYAGUL', tg: '@pysht9999' },
-  { email: 'YULYAGAS', fullName: 'Юлия Гасымова', password: 'YULYAGAS', tg: '@juliya0307' },
-  { email: 'VALSKOR', fullName: 'Валентина Скорикова', password: 'VALSKOR', tg: '@skorikovav' },
-  { email: 'SOFAK', fullName: 'София Карасева', password: 'SOFAK', tg: '@betrothed_wind_1' },
-  { email: 'DIANABAR', fullName: 'Диана Баранчук', password: 'DIANABAR', tg: '@mirzakulovadi' },
-  { email: 'OLYAKOR', fullName: 'Ольга Короваева', password: 'OLYAKOR', tg: '@olmakar' },
-  { email: 'ARILAS', fullName: 'Ариша Ласькова', password: 'ARILAS', tg: '@Arishalaskova' },
-  { email: 'ANYANOV', fullName: 'Анна Новикова', password: 'ANYANOV', tg: '@etojeanyaaaaa' },
-  { email: 'KATYATOL', fullName: 'Екатерина Толмачева', password: 'KATYATOL', tg: '@Tolmacheva_Ek' },
-  { email: 'MAXSOLO', fullName: 'Максим Солодухин', password: 'MAXSOLO', tg: '@Sma_011' },
-];

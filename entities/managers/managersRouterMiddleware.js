@@ -40,7 +40,7 @@ class ManagersRouterMiddleware {
           {
             model: Role,
             where: {
-              shortName: 'MOP',
+              // shortName: 'MOP',
             },
           },
           {
