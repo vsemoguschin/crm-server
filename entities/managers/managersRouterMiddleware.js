@@ -13,7 +13,10 @@ class ManagersRouterMiddleware {
       id = userId || id;
       const manager = await User.findOne({
         include: ['role'],
-        where: { id: id, '$role.shortName$': 'MOP' },
+        where: {
+          id: id,
+          // '$role.shortName$': 'MOP'
+        },
       });
       if (!manager) {
         return res.status(404).json('manager not found');

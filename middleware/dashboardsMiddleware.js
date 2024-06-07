@@ -153,6 +153,10 @@ class dashboardsMiddleware {
             model: WorkSpace,
             where: workspacesSearch,
           },
+          {
+            model: Group,
+            where: groupsSearch,
+          },
         ],
       });
       console.log(managers);

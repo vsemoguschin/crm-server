@@ -135,6 +135,8 @@ class DealsController {
         const workspace = el.workSpace.title;
         const client = el.client; //передаю полность
         const workspaceId = el.workSpace.id;
+        const createdAt = el.createdAt.toISOString().slice(0, 10);
+        // console.log(createdAt.toISOString().slice(0, 10), 234356);
 
         function fillSorting(fields) {
           // console.log(fields);
@@ -186,6 +188,7 @@ class DealsController {
           workspace,
           workspaceId,
           chatLink,
+          createdAt,
         };
       });
 
