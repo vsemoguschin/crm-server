@@ -25,7 +25,7 @@ router.use(
   '/',
   cors({
     // credentials: true,
-    origin: ['http://localhost:3000', 'http://46.19.64.10:3000'],
+    origin: ['http://localhost:3000', 'http://46.19.64.10:80'],
   }),
   authRouter, //роутер авторизации
   AuthMiddleware, //проверка авторизации

@@ -51,6 +51,10 @@ app.use(
   // },
   router,
 );
+// app.use('/profile', (req, res, next) => {
+//   console.log(111111111111);
+//   return res.status(401);
+// });
 
 app.use(errorHandling);
 

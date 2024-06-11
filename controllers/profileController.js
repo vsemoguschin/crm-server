@@ -6,10 +6,11 @@ const bcrypt = require('bcrypt');
 class ProfileController {
   async getProfile(req, res) {
     try {
+      // return res.status(401).send('sdasdasd');
       const user = await User.findOne({
         where: { id: req.requester.id },
-        attributes: { exclude: ['password'] },
-        include: ['role', 'avatar'],
+        // attributes: { exclude: ['password'] },
+        // include: ['role', 'avatar'],
       });
       return res.json(user);
     } catch (error) {
@@ -46,5 +47,7 @@ class ProfileController {
     }
   }
 }
+
+console.log('http://localhost:5000/api/login'.endsWith('/login'));
 
 module.exports = new ProfileController();

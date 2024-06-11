@@ -38,7 +38,7 @@ class AuthController {
     if (!userData || !tokenFromDataBase) {
       throw ApiError.UnauthorizedError();
     }
-    const user = await User.findOne({ where: { id: userData.id } });
+    const user = await User.findOne({ where: { id: userData.id }, include: ['role'] });
     const userDto = new UserDto(user);
     const tokens = tokenService.generateTokens({ ...userDto });
 

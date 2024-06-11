@@ -51,7 +51,7 @@ class dashboardsMiddleware {
       const groups = await Group.findAll({
         where: groupsSearch,
       });
-      console.log(groups, groupsSearch, 32454);
+      // console.log(groups, groupsSearch, 32454);
 
       const managers = await User.findAll({
         include: [

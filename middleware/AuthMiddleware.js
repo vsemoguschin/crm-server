@@ -8,7 +8,7 @@ module.exports = async function (req, res, next) {
   // console.log(req);
   try {
     const authorizationHeader = req.headers.authorization;
-    // console.log(req.headers);
+    // console.log(req.headers.authorization, 2121212);
     if (!authorizationHeader) {
       return next(ApiError.UnauthorizedError());
     }
@@ -19,6 +19,10 @@ module.exports = async function (req, res, next) {
     }
 
     const userData = tokenService.validateAccessToken(accessToken);
+    // console.log(userData, 213454678);
+    if (!userData) {
+      return next(ApiError.UnauthorizedError());
+    }
     const currentUser = await User.findOne({
       //выдавать актуальные role и fullName
       where: {
