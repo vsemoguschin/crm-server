@@ -75,6 +75,9 @@ class dashboardsMiddleware {
           [Op.gt]: 0,
         },
       };
+      if (['MOP'].includes(requester.role)) {
+        throw ApiError.BadRequest('no access');
+      }
       if (['MOP', 'ROP', 'DO'].includes(requester.role)) {
         workspacesSearch.id = requester.workSpaceId;
       }
