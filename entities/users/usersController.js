@@ -120,18 +120,8 @@ class UsersController {
   //удаление пользователя
   async delete(req, res, next) {
     try {
-      const { rolesFilter } = req;
-      const { id } = req.params;
-      const user = await User.findOne({
-        include: ['role'],
-        where: {
-          id,
-          '$role.shortName$': rolesFilter,
-        },
-      });
-      if (!user) {
-        return res.status(404).json('user not found');
-      }
+      const { user } = req;
+      // return console.log('delete', user);
       const deletedUser = await user.destroy();
       if (deletedUser === 0) {
         console.log('Пользователь не удален');

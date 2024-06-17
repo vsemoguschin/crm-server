@@ -44,7 +44,7 @@ class UsersRouterMiddleware {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
     try {
       const requesterRole = req.requester.role;
-      if (!['ADMIN', 'G', 'KD', 'DO', 'ROP'].includes(requesterRole)) {
+      if (!['ADMIN', 'G', 'KD', 'DO', 'ROD'].includes(requesterRole)) {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
@@ -67,25 +67,31 @@ class UsersRouterMiddleware {
   async getOne(req, res, next) {
     try {
       const requesterRole = req.requester.role;
+      if (!['ADMIN', 'G', 'DO'].includes(requesterRole)) {
+        throw ApiError.Forbidden('Нет доступа');
+      }
       // const requesterRole = req.requester.role;
       const rolesFilter = PERMISSIONS.access[requesterRole];
       let { id, userId } = req.params;
       id = userId || id;
-      if (id === req.requester.id) {
-        req.user = await User.findOne({
-          include: ['role', 'group'],
-          where: {
-            id: id,
-          },
-        });
-        return next();
-      }
-      if (!rolesFilter) {
-        throw ApiError.Forbidden('Нет доступа');
-      }
+      // if (id === req.requester.id) {
+      //   req.user = await User.findOne({
+      //     include: ['role', 'group'],
+      //     where: {
+      //       id: id,
+      //     },
+      //   });
+      //   return next();
+      // }
+      // if (!rolesFilter) {
+      //   throw ApiError.Forbidden('Нет доступа');
+      // }
       const user = await User.findOne({
         include: ['role', 'group'],
-        where: { id: id, '$role.shortName$': rolesFilter },
+        where: {
+          id: id,
+          // '$role.shortName$': rolesFilter
+        },
       });
       if (!user) {
         return res.status(404).json('user not found');

@@ -60,8 +60,9 @@ class dashboardsMiddleware {
             where: workspacesSearch,
           },
         ],
+        paranoid: false,
       });
-      console.log(21213424);
+      // console.log(managers);
       return res.json({ workspaces, groups, managers });
     } catch (e) {
       next(e);
@@ -70,20 +71,23 @@ class dashboardsMiddleware {
   async workspaces(req, res, next) {
     try {
       const { requester } = req;
+      if (!['ADMIN', 'G', 'KD', 'DO', 'ROD'].includes(requester.role)) {
+        throw ApiError.BadRequest('no access');
+      }
       const workspacesSearch = {
         id: {
           [Op.gt]: 0,
         },
       };
-      if (['MOP'].includes(requester.role)) {
+      if (['MOP', 'DIZ'].includes(requester.role)) {
         throw ApiError.BadRequest('no access');
       }
-      if (['MOP', 'ROP', 'DO'].includes(requester.role)) {
+      if (['MOP', 'ROP', 'DO', 'ROD'].includes(requester.role)) {
         workspacesSearch.id = requester.workSpaceId;
       }
       const workspaces = await WorkSpace.findAll({
         where: {
-          department: 'COMMERCIAL',
+          // department: 'COMMERCIAL',
           ...workspacesSearch,
         },
         include: [
@@ -93,7 +97,8 @@ class dashboardsMiddleware {
             include: [
               {
                 model: User,
-                attributes: ['id', 'fullName', 'tg'],
+                attributes: ['id', 'fullName', 'tg', 'deletedAt'],
+                paranoid: false,
                 include: [
                   {
                     model: Role,
@@ -116,6 +121,9 @@ class dashboardsMiddleware {
   }
   async managers(req, res, next) {
     try {
+      if (!['ADMIN', 'G', 'KD', 'DO'].includes(requester.role)) {
+        throw ApiError.BadRequest('no access');
+      }
       const { period: req_period } = req.query;
       console.log(req_period, 42353);
       if (!req_period) {
@@ -161,6 +169,7 @@ class dashboardsMiddleware {
             where: groupsSearch,
           },
         ],
+        paranoid: false,
       });
       console.log(managers);
 

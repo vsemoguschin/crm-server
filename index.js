@@ -67,6 +67,7 @@ const start = async () => {
     // await presets.createRoles();
     // await presets.createStartDatas();
     // await presets.createLists();
+    await presets.createDizDatas()
     app.listen(PORT, () => console.log(`${PORT}`));
   } catch (error) {
     console.log(error);

@@ -549,6 +549,36 @@ class Presets {
       console.log(e);
     }
   }
+  async createDizDatas() {
+    const [workspace] = await WorkSpace.findOrCreate({
+      where: { title: 'Дизайн' },
+      defaults: {
+        title: 'Дизайн',
+        department: 'DESIGN',
+      },
+    });
+    const [group] = await Group.findOrCreate({
+      where: { title: 'Дизайнеры' },
+      defaults: {
+        title: 'Дизайнеры',
+        workSpaceId: workspace.id,
+      },
+    });
+    const rod = {
+      email: 'Lola96408',
+      fullName: 'Анна Сергеева',
+      password: '2329285',
+      tg: '@AnnaDesignCorel',
+      roleId: 9,
+      workSpaceId: workspace.id,
+      groupId: group.id,
+    };
+    rod.password = await bcrypt.hash(rod.password, 3);
+    await User.findOrCreate({
+      where: { email: rod.email },
+      defaults: rod,
+    });
+  }
 }
 
 module.exports = new Presets();

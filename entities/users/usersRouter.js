@@ -49,7 +49,7 @@ router.post('/', PERMISSIONS.create, usersRouterMiddleware.create, usersControll
 router.get('/:id', checkReqParamsIsNumber, usersRouterMiddleware.getOne, usersController.getOne);
 router.get('/', usersRouterMiddleware.getList, usersController.getList);
 router.patch('/:id', checkReqParamsIsNumber, usersRouterMiddleware.getOne, usersRouterMiddleware.update, usersController.update);
-router.delete('/:id', checkReqParamsIsNumber, usersRouterMiddleware.getOne, usersRouterMiddleware.delete, usersController.delete);
+router.delete('/:id', checkReqParamsIsNumber, usersRouterMiddleware.getOne, usersController.delete);
 
 router.get('/:id/clients', checkReqParamsIsNumber, usersRouterMiddleware.getOne, clientsRouterMiddleware.getList, clientsController.getList);
 router.get('/:id/deals', checkReqParamsIsNumber, usersRouterMiddleware.getOne, getListOfDeals, dealsController.getList);
