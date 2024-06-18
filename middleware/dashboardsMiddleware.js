@@ -121,7 +121,9 @@ class dashboardsMiddleware {
   }
   async managers(req, res, next) {
     try {
-      if (!['ADMIN', 'G', 'KD', 'DO'].includes(requester.role)) {
+      const requesterRole = req.requester.role;
+      console.log(requesterRole);
+      if (!['ADMIN', 'G', 'KD', 'DO'].includes(requesterRole)) {
         throw ApiError.BadRequest('no access');
       }
       const { period: req_period } = req.query;
@@ -129,7 +131,6 @@ class dashboardsMiddleware {
       if (!req_period) {
         throw ApiError.BadRequest('Invalid Date');
       }
-      const requesterRole = req.requester.role;
       const { requester } = req;
       //сделать разрешения
 

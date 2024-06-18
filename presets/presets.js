@@ -578,6 +578,39 @@ class Presets {
       where: { email: rod.email },
       defaults: rod,
     });
+    const users = [
+      { email: 'Romanova', fullName: 'Романова Анна', password: '674467', tg: '@paketikNuri)' },
+      { email: 'Kozlov', fullName: 'Козлов Владимир', password: '470873', tg: '@Disvo51)' },
+      { email: 'Zhmykhov', fullName: 'Жмыхов Михаил', password: '042073', tg: '@MIHAILL404)' },
+      { email: 'логин', fullName: 'Семёнова Яна', password: '354567', tg: '@hann_0)' },
+      { email: 'Nikolaeva', fullName: 'Николаева Юлия', password: '654784', tg: '@qworu_mail)' },
+      { email: 'Ilyasov', fullName: 'Ильясов Ильмир', password: '587137', tg: '@m_phoenix_art)' },
+      { email: 'Abramova', fullName: 'Абрамова Анастасия', password: '486447', tg: '@vassabi385)' },
+      { email: 'Efremova', fullName: 'Ефремова Алиса', password: '516547', tg: '@Alisson_Pattison)' },
+      { email: 'Finogeeva', fullName: 'Финогеева Дарья', password: '156775', tg: '@darfia)' },
+      { email: 'Vinichenko', fullName: 'Виниченко Анастасия', password: '356525', tg: '@mrs_vinichenko)' },
+      { email: 'Pechersk', fullName: 'Печерских Анастасия', password: '552563', tg: '@nstpech)' },
+      { email: 'Prelovskaya', fullName: 'Преловская Анастасия', password: '565873', tg: '@Rimigala)' },
+      { email: 'Vavilova', fullName: 'Вавилова Анастасия', password: '343587', tg: '@saraelenaroman)' },
+      { email: 'Muromtseva', fullName: 'Муромцева Ксения', password: '343587', tg: '@MuromtsevaKseniya)' },
+      { email: 'Shemetova', fullName: 'Шеметова Ангелина', password: '854567', tg: '@Mea0duw)' },
+      { email: 'Nikiforova', fullName: 'Никифорова Екатерина', password: '654517', tg: '@Chudowhale)' },
+      { email: 'Talipova', fullName: 'Талипова Алена', password: '648557', tg: '@alenaTALIPOVA)' },
+      { email: 'Mavrilova', fullName: 'Маврилова Виктория', password: '443658', tg: '@V_mavr)' },
+      { email: 'Alyokhina', fullName: 'Алехина Мария', password: '485056', tg: '@AAAlexina)' },
+      { email: 'Chezhegova', fullName: 'Чежегова Анна', password: '250577', tg: '@aversa_pars)' },
+      { email: 'Baghdarasyan', fullName: 'Багдарасян Адель', password: '847946', tg: '@anileds)' },
+    ];
+    for (let i = 0; i < users.length; i++) {
+      users[i].roleId = 10;
+      users[i].workSpaceId = workspace.id;
+      users[i].groupId = group.id;
+      users[i].password = await bcrypt.hash(users[i].password, 3);
+      await User.findOrCreate({
+        where: { email: users[i].email },
+        defaults: users[i],
+      });
+    }
   }
 }
 
