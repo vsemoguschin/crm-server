@@ -179,7 +179,7 @@ class UsersRouterMiddleware {
         throw ApiError.Forbidden('Нет доступа');
       }
       //получение доступных ролей
-      req.updateFields = ['fullName', 'password'];
+      req.updateFields = ['fullName', 'password', 'email'];
       next();
     } catch (e) {
       next(e);
