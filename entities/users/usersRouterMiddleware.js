@@ -133,6 +133,7 @@ class UsersRouterMiddleware {
         where: {
           ...searchFilter,
         },
+        attributes: { include: ['password'] },
         distinct: true,
       };
       if (req.baseUrl.includes('/workspaces')) {
@@ -173,24 +174,12 @@ class UsersRouterMiddleware {
   async update(req, res, next) {
     try {
       const requesterRole = req.requester.role;
-      const access = PERMISSIONS.access[requesterRole];
-      if (!access) {
+      if (requesterRole !== 'ADMIN') {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
       //получение доступных ролей
-      const availableRoles = access;
-      let reqRole = req.body.role; //переданная роль
-      if (reqRole && availableRoles.includes(reqRole)) {
-        reqRole = await Role.findOne({
-          where: {
-            shortName: reqRole,
-          },
-        });
-        req.reqRole = reqRole;
-      }
-      req.rolesFilter = availableRoles;
-      req.updateFields = ['fullName'];
+      req.updateFields = ['fullName', 'password'];
       next();
     } catch (e) {
       next(e);

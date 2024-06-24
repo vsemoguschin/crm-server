@@ -1,11 +1,10 @@
 const bcrypt = require('bcrypt');
-const { User, modelFields: usersModelFields, Group } = require('./usersModel');
+const { User, modelFields: usersModelFields } = require('./usersModel');
 const modelsService = require('../../services/modelsService');
 const getPagination = require('../../utils/getPagination');
 const getPaginationData = require('../../utils/getPaginationData');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
-const ApiError = require('../../error/apiError');
-const { ManagersPlan, WorkSpace } = require('../association');
+const { ManagersPlan } = require('../association');
 
 class UsersController {
   //создание менеджера
@@ -92,25 +91,21 @@ class UsersController {
   async update(req, res, next) {
     // patch-запрос  в теле запроса(body) передаем строку(raw) в формате JSON
     try {
-      const { rolesFilter, reqRole } = req;
       const { id } = req.params;
 
       const updates = await modelsService.checkUpdates([User, usersModelFields], req.body, req.updateFields);
-
+      if (updates.password) {
+        updates.password = await bcrypt.hash(updates.password, 3);
+      }
       const user = await User.findOne({
         where: {
           id,
-          '$role.shortName$': rolesFilter,
         },
-        include: ['role'],
       });
       if (!user) {
         return res.status(404).json('user not found');
       }
       await user.update(updates);
-      if (reqRole) {
-        await user.setRole(reqRole);
-      }
       return res.status(200).json('succes');
     } catch (e) {
       next(e);
