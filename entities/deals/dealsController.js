@@ -259,13 +259,8 @@ class DealsController {
       const updates = await modelsService.checkUpdates([Deal, dealsModelFields], body, updateFields);
 
       if (updates.price) {
-        const { dealers } = deal;
         const newPrice = updates.price;
-
-        if (dealers.length == 2) {
-          throw ApiError.BadRequest('delete one seller first');
-        }
-        await planService.updateDeal(deal, newPrice, next);
+        await planService.updateDeal(deal, newPrice);
       }
       if (updates.clothingMethod) {
         await ClothingMethods.findOrCreate({

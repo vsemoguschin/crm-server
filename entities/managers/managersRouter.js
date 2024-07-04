@@ -12,6 +12,5 @@ router.get('/:id', checkReqParamsIsNumber, managersRouterMiddleware.getOne, mana
 router.get('/:id/deals', checkReqParamsIsNumber, managersRouterMiddleware.getOne, dealsRouterMiddleware.getListOfDeals, dealsController.getList);
 
 router.post('/:id/plan', checkReqParamsIsNumber, managersRouterMiddleware.getOne, managersController.setPlan);
-router.post('/plan', managersController.setMainPlan);
 
 module.exports = router;

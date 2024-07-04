@@ -33,30 +33,34 @@ class PlanService {
   }
   async updateDeal(deal, newPrice) {
     try {
-      const { createdAt } = deal;
+      const { createdAt, dealers } = deal;
+      // console.log(createdAt, dealers, 12121);
 
       const period = createdAt.toISOString().slice(0, 7);
+      // return
+      const firstDealerPart = dealers[0].dealUsers.part;
+      const firstDealerNewPrice = +(firstDealerPart * newPrice).toFixed();
+      dealers.forEach(async (dealer, i) => {
+        const { dealUsers } = dealer;
+        const { price: oldPrice, userId } = dealUsers;
+        const dealerNewPrice = i == 0 ? firstDealerNewPrice : newPrice - firstDealerNewPrice;
+        // return console.log(dealer, dealUsers, oldPrice, firstDealerNewPrice, 11111);
 
-      const monthPlan = await ManagersPlan.findOne({
-        where: {
-          userId: 2,
-          period,
-        },
+        //часть диллера(сумма)
+        dealUsers.price = dealerNewPrice;
+        await dealUsers.save();
+
+        //план диллера
+        const dealerPlan = await ManagersPlan.findOne({
+          where: {
+            userId,
+            period,
+          },
+        });
+        dealerPlan.dealsSales -= oldPrice;
+        dealerPlan.dealsSales += dealerNewPrice;
+        await dealerPlan.save();
       });
-      monthPlan.dealsSales += newPrice - deal.price;
-      await monthPlan.save();
-
-      const dealer = await Dealers.findOne({ where: { dealId: deal.id } });
-      await dealer.update({ price: newPrice });
-
-      const dealerPlan = await ManagersPlan.findOne({
-        where: {
-          userId: dealer.userId,
-          period,
-        },
-      });
-      dealerPlan.dealsSales += newPrice - deal.price;
-      await dealerPlan.save();
     } catch (e) {
       throw ApiError.BadRequest(e);
     }
@@ -165,15 +169,6 @@ class PlanService {
 
       const period = createdAt.toISOString().slice(0, 7);
 
-      const monthPlan = await ManagersPlan.findOne({
-        where: {
-          userId: 2,
-          period,
-        },
-      });
-      monthPlan.dopsSales += newPrice - dop.price;
-      await monthPlan.save();
-
       const dealerPlan = await ManagersPlan.findOne({
         where: {
           userId: dop.userId,
@@ -208,7 +203,7 @@ class PlanService {
   }
   async createPayment(payment, dealCreatedAt) {
     try {
-      const { price, userId, dealId } = payment;
+      const { price, dealId } = payment;
 
       const period = dealCreatedAt.toISOString().slice(0, 7);
 
@@ -279,33 +274,6 @@ class PlanService {
       });
       // return console.log(dealers);
       return;
-    } catch (e) {
-      throw ApiError.BadRequest(e);
-    }
-  }
-  async updatePayment(payment, newPrice) {
-    try {
-      const { createdAt } = payment;
-
-      const period = createdAt.toISOString().slice(0, 7);
-
-      const monthPlan = await ManagersPlan.findOne({
-        where: {
-          userId: 2,
-          period,
-        },
-      });
-      monthPlan.receivedPayments += newPrice - payment.price;
-      await monthPlan.save();
-
-      const dealerPlan = await ManagersPlan.findOne({
-        where: {
-          userId: pa.userId,
-          period,
-        },
-      });
-      dealerPlan.dopsSales += newPrice - dop.price;
-      await dealerPlan.save();
     } catch (e) {
       throw ApiError.BadRequest(e);
     }

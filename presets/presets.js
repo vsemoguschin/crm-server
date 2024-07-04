@@ -582,7 +582,7 @@ class Presets {
       { email: 'Romanova', fullName: 'Романова Анна', password: '674467', tg: '@paketikNuri)' },
       { email: 'Kozlov', fullName: 'Козлов Владимир', password: '470873', tg: '@Disvo51)' },
       { email: 'Zhmykhov', fullName: 'Жмыхов Михаил', password: '042073', tg: '@MIHAILL404)' },
-      { email: 'логин', fullName: 'Семёнова Яна', password: '354567', tg: '@hann_0)' },
+      { email: 'Semenova', fullName: 'Семёнова Яна', password: '354567', tg: '@hann_0)' },
       { email: 'Nikolaeva', fullName: 'Николаева Юлия', password: '654784', tg: '@qworu_mail)' },
       { email: 'Ilyasov', fullName: 'Ильясов Ильмир', password: '587137', tg: '@m_phoenix_art)' },
       { email: 'Abramova', fullName: 'Абрамова Анастасия', password: '486447', tg: '@vassabi385)' },

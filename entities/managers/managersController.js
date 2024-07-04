@@ -148,36 +148,6 @@ class ManagersController {
       next(e);
     }
   }
-  //установка плана
-  async setMainPlan(req, res, next) {
-    try {
-      const { requester } = req;
-      if (!['ADMIN', 'G'].includes(requester.role)) {
-        throw ApiError.Forbidden('no access');
-      }
-      let { period, plan } = req.body;
-      if (!period || !plan || +plan < 0) {
-        throw ApiError.BadRequest('Забыл что то');
-      }
-      checkReqQueriesIsNumber({ plan });
-      plan = +plan;
-      const [newPlan, created] = await ManagersPlan.findOrCreate({
-        where: { period },
-        defaults: {
-          userId: 2,
-          period,
-          plan: +plan,
-        },
-      });
-      if (!created) {
-        await newPlan.update({ plan });
-      }
-
-      return res.json(newPlan);
-    } catch (e) {
-      next(e);
-    }
-  }
 }
 
 module.exports = new ManagersController();

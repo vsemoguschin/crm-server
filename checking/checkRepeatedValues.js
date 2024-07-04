@@ -6,7 +6,7 @@ const checkRepeatedValues = (exemplar, body) => {
       filteredFields[key] = body[key];
     }
   }
-  console.log(filteredFields);
+  // console.log(filteredFields);
   return filteredFields;
 };
 
