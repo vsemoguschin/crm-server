@@ -24,37 +24,37 @@ const profileRouter = require('./profileRouter');
 const productionRouter = require('../routes/productionRouter');
 const kaitenRouter = require('../routes/kaitenRouter');
 
-const allowedOrigins =
-  process.env.NODE_ENV === 'production'
-    ? ['https://easy-crm.pro', 'https://www.easy-crm.pro', 'http://easy-crm.pro', 'http://www.easy-crm.pro']
-    : ['http://localhost:3000', 'http://46.19.64.10'];
-
-router.use(
-  '/',
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: true,
-    optionsSuccessStatus: 200,
-  }),
-  authRouter,
-  AuthMiddleware,
-);
+// const allowedOrigins =
+//   process.env.NODE_ENV === 'production'
+//     ? ['https://easy-crm.pro', 'https://www.easy-crm.pro', 'http://easy-crm.pro', 'http://www.easy-crm.pro']
+//     : ['http://localhost:3000', 'http://46.19.64.10'];
 
 // router.use(
 //   '/',
 //   cors({
-//     // credentials: true,
-//     origin: ['http://localhost:3000', 'http://46.19.64.10:80', 'http://46.19.64.10', 'http://easy-crm.pro'],
+//     origin: (origin, callback) => {
+//       if (!origin || allowedOrigins.includes(origin)) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error('Not allowed by CORS'));
+//       }
+//     },
+//     credentials: true,
+//     optionsSuccessStatus: 200,
 //   }),
-//   authRouter, //роутер авторизации
-//   AuthMiddleware, //проверка авторизации
+//   authRouter,
+//   AuthMiddleware,
 // );
+
+router.use(
+  '/',
+  cors({
+    // credentials: true,
+    origin: ['http://localhost:3000', 'http://46.19.64.10:80', 'http://46.19.64.10', 'http://easy-crm.pro'],
+  }),
+  authRouter, //роутер авторизации
+  AuthMiddleware, //проверка авторизации
+);
 
 router.use('/dashboards', dashboardsRouter);
 router.use('/orders', ordersRouter);
