@@ -20,13 +20,7 @@ const createLog = (req, res, next) => {
 };
 app.use(cookieParser());
 
-// app.use(createLog);
-// app.use(
-//   cors({
-//     credentials: true,
-//     origin: ['http://localhost:3000'],
-//   }),
-// );
+
 
 app.use(
   express.json({
