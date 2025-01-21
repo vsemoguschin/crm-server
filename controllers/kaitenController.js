@@ -6,7 +6,7 @@ class KaitenController {
     try {
       // console.log(req.params.id);
       const datas = await getCard(req.params.id);
-      console.log(21212121, datas);
+      // console.log(21212121, datas);
       if (!datas) {
         return res.json('Nope');
         // throw ApiError.BadRequest('no cards found');

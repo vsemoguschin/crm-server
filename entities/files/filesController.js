@@ -38,7 +38,7 @@ class FilesController {
       if (req.baseUrl.includes('/orders') && req.params.id && !isNaN(+req.params.id)) {
         modelSearch = { orderId: +req.params.id };
       }
-      console.log(modelSearch);
+      // console.log(modelSearch);
       const { limit, offset } = getPagination(current, pageSize);
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
       const files = await File.findAndCountAll({
@@ -47,7 +47,7 @@ class FilesController {
         limit: 100000,
         offset,
       });
-      console.log(limit, offset, 324242);
+      // console.log(limit, offset, 324242);
       const response = getPaginationData(files, current, pageSize, 'files');
       return res.json(response || []);
     } catch (e) {
