@@ -52,6 +52,8 @@ class DealsRouterMiddleware {
           },
           'dealDate',
           'payments',
+          'preorder',
+          'orders',
           // 'dops',
           {
             model: Dop,
@@ -98,7 +100,7 @@ class DealsRouterMiddleware {
       };
 
       const searchFilter = await modelsService.dealListFilter(searchFields, req.query);
-      // console.log(searchFilter, 3232092049);
+      console.log(searchFilter, 3232092049);
       let searchParams = {
         where: {
           id: { [Op.gt]: 0 },

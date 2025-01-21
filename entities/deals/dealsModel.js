@@ -1,14 +1,13 @@
 const sequelize = require('../db');
 const { DataTypes } = require('sequelize');
 
-// const statusesOld = ['created', 'process', 'done'];
-// const statuses = ['created', 'process', 'done', 'readyToSend', 'sent', 'delivered'];
 const statuses = ['Создана', 'Изготовление', 'Готов', 'Готов к отправке', 'Отправлен', 'Доставлен'];
 const disconts = ['Без скидки', 'Желтая', 'ОПТ', 'Рассылка', 'Красная'];
 const maketTypes = ['Дизайнерский', 'заготовка из базы', 'рекламный', 'визуализатор', 'из рассылки'];
 
 const modelFields = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  card_id: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'ID карточки дизайна' },
   title: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Название сделки' },
   price: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'Стоимость без допов' }, // стоимость вывески без допа, но выводить еще вместе с допами общую
   status: { type: DataTypes.STRING, defaultValue: 'Создана', fieldType: 'string', validateFields: statuses, fullName: 'Статус' },
@@ -21,12 +20,10 @@ const modelFields = {
   sphere: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Сфера деятельности' },
   city: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Город' },
   region: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Регион' },
-  cardLink: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Ссылка на карточку' },
   paid: { type: DataTypes.BOOLEAN, defaultValue: false, fieldType: 'boolean', fullName: 'Оплачена?' },
-  maketType: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', validateFields: maketTypes, fullName: 'Ссылка на карточку' },
+  maketType: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', validateFields: maketTypes, fullName: 'Тип макета' },
+  maketPresentation: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Дата презентации макета' },
 };
-
-//status заменить на isDone
 
 const Deal = sequelize.define('deal', modelFields, {
   paranoid: true,

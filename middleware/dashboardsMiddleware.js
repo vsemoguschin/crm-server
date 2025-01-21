@@ -98,7 +98,7 @@ class dashboardsMiddleware {
               {
                 model: User,
                 attributes: ['id', 'fullName', 'tg', 'deletedAt'],
-                paranoid: false,
+                paranoid: true,
                 include: [
                   {
                     model: Role,

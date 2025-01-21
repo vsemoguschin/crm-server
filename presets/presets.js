@@ -145,7 +145,7 @@ class Presets {
   async createStages() {
     for (let i = 0; i < stageList.length; i++) {
       await Stage.findOrCreate({
-        where: { title: stageList[i].title },
+        where: { title: stageList[i].title, index: i },
         defaults: stageList[i],
       });
     }
@@ -544,6 +544,153 @@ class Presets {
         rop.workSpaceId = vk.id;
         rop.roleId = 5;
         await User.create(rop);
+      }
+
+      //Пользователи производства
+      const prod = await WorkSpace.create({
+        title: 'Производство',
+        department: 'PRODUCTION',
+      });
+      //Группы производств
+      const prodGroups = [{ title: 'Руководители' }, { title: 'Фрезеровка/Пленка' }, { title: 'Сборщики' }, { title: 'Упаковщики' }];
+      //пользователи производства
+      const prodUsers = [
+        //пользователи группы руководителей
+        [
+          {
+            email: 'grishchenko_k',
+            fullName: 'Константин Грищенко',
+            roleName: 'DP',
+            password: 'worship',
+            roleId: 11,
+            tg: '@grishchenko_k',
+          },
+          {
+            email: 'motyagrazy',
+            fullName: 'Матвей Савинов',
+            roleName: 'DP',
+            password: 'yager',
+            roleId: 12,
+            tg: '@motyagrazy',
+          },
+          {
+            email: 'AlexJul17',
+            fullName: 'Юля Пихтова',
+            roleName: 'LOGIST',
+            password: 'shreder',
+            roleId: 13,
+            tg: '@AlexJul17',
+          },
+        ],
+        //пользователи группы фрезеровщиков/Пленка
+        [
+          {
+            email: 'Serg_v_k',
+            fullName: 'Сергей Кутузов',
+            roleName: 'FRZ',
+            password: 'freza',
+            roleId: 14,
+            tg: '@Serg_v_k',
+          },
+          {
+            email: 'edgar8ml',
+            fullName: 'Эдгар Маргарян',
+            roleName: 'LAM',
+            password: 'plenka',
+            roleId: 15,
+            tg: '@edgar8ml',
+          },
+        ],
+        //пользователи группы сборщиков
+        [
+          {
+            email: 'Abakarov_Maks',
+            fullName: 'Максим Абакаров',
+            roleName: 'MASTER',
+            password: 'maksmaster',
+            roleId: 16,
+            tg: '@Abakarov_Maks',
+          },
+        ],
+        //пользователи группы упаковщиков
+        [
+          {
+            email: '@Kirieshkasad',
+            fullName: 'Юлия Лыкова',
+            roleName: 'PACKER',
+            password: 'paсker',
+            roleId: 17,
+            tg: '@Kirieshkasad',
+          },
+        ],
+      ];
+      for (let i = 0; i < prodGroups.length; i++) {
+        const group = await Group.create({
+          title: prodGroups[i].title,
+          workSpaceId: prod.id,
+        });
+        const groupUsers = prodUsers[i];
+        for (let j = 0; j < groupUsers.length; j++) {
+          await User.findOrCreate({
+            where: { email: groupUsers[j].email },
+            defaults: {
+              ...groupUsers[j],
+              password: await bcrypt.hash(groupUsers[j].password, 3),
+              workSpaceId: prod.id,
+              groupId: group.id,
+            },
+            paranoid: false,
+          });
+        }
+      }
+
+      //Пользователи отдела ведения
+      const ltv = await WorkSpace.create({
+        title: 'Ведение',
+        department: 'COMMERCIAL',
+      });
+      const ltvGroups = [{ title: 'Ведение' }];
+      const ltvGroup = await Group.create({
+        title: ltvGroups[0].title,
+        workSpaceId: ltv.id,
+      });
+      const ltvUsers = [
+        {
+          email: 'Михаил',
+          fullName: 'Михаил',
+          roleName: 'ROV',
+          password: 'ltv',
+          roleId: 7,
+          tg: '@Михаил',
+        },
+        {
+          email: 'tzshnik',
+          fullName: 'Заполнитель тз',
+          roleName: 'MTZ',
+          password: 'mtz',
+          roleId: 18,
+          tg: '@tzshnik',
+        },
+        {
+          email: 'mov',
+          fullName: 'менеджер ведения',
+          roleName: 'MOV',
+          password: 'mov',
+          roleId: 8,
+          tg: '@mov',
+        },
+      ];
+      for (let i = 0; i < ltvUsers.length; i++) {
+        await User.findOrCreate({
+          where: { email: ltvUsers[i].email },
+          defaults: {
+            ...ltvUsers[i],
+            password: await bcrypt.hash(ltvUsers[i].password, 3),
+            workSpaceId: ltv.id,
+            groupId: ltvGroup.id,
+          },
+          paranoid: false,
+        });
       }
     } catch (e) {
       console.log(e);

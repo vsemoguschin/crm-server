@@ -7,6 +7,8 @@ const filesRouterMiddleware = require('../files/filesRouterMiddleware');
 const filesController = require('../files/filesController');
 const ordersRouterMiddleware = require('../orders/ordersRouterMiddleware');
 const ordersController = require('../orders/ordersController');
+const preordersRouterMiddleware = require('../preorders/preordersRouterMiddleware');
+const preordersController = require('../preorders/preordersController');
 const deliveriesRouterMiddleware = require('../deliveries/deliveriesRouterMiddleware');
 const deliveriesController = require('../deliveries/deliveriesController');
 const dopsRouterMiddleware = require('../dops/dopsRouterMiddleware');
@@ -45,6 +47,10 @@ router.delete('/:id/dealers/:userId', checkReqParamsIsNumber, getDeal, usersRout
 
 //смена статуса
 router.patch('/:id/status/:new_status', getDeal, dealsController.changeStatus);
+
+//Создание преордера(карточка дизайна)
+router.post('/:id/preorders', checkReqParamsIsNumber, getDeal, preordersRouterMiddleware.create, preordersController.create);
+// router.get('/:id/preorders', checkReqParamsIsNumber, getDeal, preordersRouterMiddleware.getList, preordersController.getList);
 
 //создание и получение заказов внутри сделки
 router.post('/:id/orders', checkReqParamsIsNumber, getDeal, ordersRouterMiddleware.create, ordersController.create);

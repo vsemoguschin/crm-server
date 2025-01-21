@@ -5,6 +5,7 @@ const AuthMiddleware = require('../middleware/AuthMiddleware');
 const cors = require('cors');
 
 const authRouter = require('./authRouter');
+// const productionRouter = require('.entities/production');
 const dashboardsRouter = require('./dashboardsRouter');
 const usersRouter = require('../entities/users/usersRouter');
 const managersRouter = require('../entities/managers/managersRouter');
@@ -20,17 +21,41 @@ const neonsRouter = require('../entities/neons/neonsRouter');
 const filesRouter = require('../entities/files/filesRouter');
 const stagesRouter = require('../entities/stages/stagesRouter');
 const profileRouter = require('./profileRouter');
+const productionRouter = require('../routes/productionRouter');
+const kaitenRouter = require('../routes/kaitenRouter');
+
+const allowedOrigins =
+  process.env.NODE_ENV === 'production' ? ['http://easy-crm.pro', 'http://www.easy-crm.pro'] : ['http://localhost:3000', 'http://46.19.64.10'];
 
 router.use(
   '/',
   cors({
-    // credentials: true,
-    origin: ['http://localhost:3000', 'http://46.19.64.10:80', 'http://46.19.64.10', 'http://easy-crm.pro'],
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
   }),
-  authRouter, //роутер авторизации
-  AuthMiddleware, //проверка авторизации
+  authRouter,
+  AuthMiddleware,
 );
+
+// router.use(
+//   '/',
+//   cors({
+//     // credentials: true,
+//     origin: ['http://localhost:3000', 'http://46.19.64.10:80', 'http://46.19.64.10', 'http://easy-crm.pro'],
+//   }),
+//   authRouter, //роутер авторизации
+//   AuthMiddleware, //проверка авторизации
+// );
+
 router.use('/dashboards', dashboardsRouter);
+router.use('/orders', ordersRouter);
+router.use('/production', productionRouter);
 router.use('/users', usersRouter);
 router.use('/managers', managersRouter);
 router.use('/workspaces', workSpacesRouter);
@@ -45,7 +70,9 @@ router.use('/orders', ordersRouter);
 router.use('/neons', neonsRouter);
 router.use('/stages', stagesRouter);
 router.use('/profile', profileRouter);
-router.use('/', () => {
+router.use('/kaiten', kaitenRouter);
+router.use('/', (req) => {
+  console.log(req);
   throw ApiError.BadRequest('Wrong Path');
 });
 

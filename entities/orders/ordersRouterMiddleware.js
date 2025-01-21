@@ -1,8 +1,9 @@
 const ApiError = require('../../error/apiError');
 const modelsService = require('../../services/modelsService');
 const { modelFields: ordersModelFields, Order } = require('./ordersModel');
-const { User, WorkSpace, Stage, Deal } = require('../association');
+const { User, WorkSpace, Preorder } = require('../association');
 const { Op } = require('sequelize');
+const { Neon, modelFields: neonsModelFields } = require('../neons/neonsModel');
 
 const frontOptions = {
   modelFields: modelsService.getModelFields(ordersModelFields),
@@ -13,13 +14,23 @@ class OrdersRouterMiddleware {
   async create(req, res, next) {
     //пост-запрос, в теле запроса(body) передаем строку(raw) в формате JSON
     try {
+      // console.log(req.body.neons);
       const requesterRole = req.requester.role;
       //проверка на доступ к созданию
-      if (!permissions.includes(requesterRole)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
+      // if (!permissions.includes(requesterRole)) {
+      //   console.log(false, 'no acces');
+      //   throw ApiError.Forbidden('Нет доступа');
+      // }
       const newOrder = await modelsService.checkFields([Order, ordersModelFields], req.body);
+      const { neons } = req.body;
+      if (neons.length > 0) {
+        const res = [];
+        for (let i = 0; i < neons.length; i++) {
+          const neon = await modelsService.checkFields([Neon, neonsModelFields], neons[i]);
+          res.push(neon);
+        }
+        newOrder.neons = res;
+      }
       req.newOrder = newOrder;
       next();
     } catch (e) {
@@ -34,21 +45,7 @@ class OrdersRouterMiddleware {
         where: {
           id: orderId || id,
         },
-        include: [
-          'neons',
-          'files',
-          'delivery',
-          'stage',
-          'workSpace',
-          {
-            association: 'executors',
-            include: 'role',
-          },
-          {
-            model: Deal,
-            include: 'files',
-          },
-        ],
+        include: ['stage', 'neons', 'master', 'packer', 'frezer', 'laminater'],
       });
       if (!order) {
         throw ApiError.NotFound('Order not found');
@@ -72,7 +69,7 @@ class OrdersRouterMiddleware {
       if (req.baseUrl.includes('/deals')) {
         searchParams = {
           where: { dealId: req.params.id, ...searchFilter },
-          include: ['neons', 'executors', 'files', 'stage'],
+          include: ['neons', 'stage'],
         };
       }
       if (req.baseUrl.includes('/deliveries')) {
@@ -237,6 +234,19 @@ class OrdersRouterMiddleware {
       await order.removeExecutors(candidat);
       await order.update({ status: 'Доступен' });
       return res.status(200).json(200);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async preorders(req, res, next) {
+    try {
+      const preorders = await Preorder.findAll({
+        where: {
+          status: 'new',
+        },
+      });
+      req.preorders = preorders;
+      return res.json(preorders);
     } catch (e) {
       next(e);
     }

@@ -10,7 +10,7 @@ class ProfileController {
       const user = await User.findOne({
         where: { id: req.requester.id },
         // attributes: { include: ['password'] },
-        // include: ['role', 'avatar'],
+        include: ['role'],
       });
       return res.json(user);
     } catch (error) {

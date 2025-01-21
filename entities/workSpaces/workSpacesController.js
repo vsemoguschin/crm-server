@@ -53,7 +53,7 @@ class WorkSpaceController {
           ...filter,
           department: 'COMMERCIAL',
         },
-        include: ['users', 'groups'],
+        include: ['groups', 'users'],
         distinct: true,
         // limit,
         // offset,

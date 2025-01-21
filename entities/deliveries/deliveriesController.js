@@ -55,11 +55,12 @@ class DeliveriesController {
   }
 
   async update(req, res, next) {
-    const updateFields = ['method', 'type', 'description', 'city', 'recived', 'readyToSend'];
+    const updateFields = ['method', 'type', 'description', 'track', 'status', 'price'];
 
     try {
       const { delivery } = req;
       const body = checkRepeatedValues(delivery, req.body);
+      console.log(31323, body);
       const updates = await modelsService.checkUpdates([Delivery, deliveryModelFields], body, updateFields);
       await delivery.update(updates);
       return res.json(delivery);

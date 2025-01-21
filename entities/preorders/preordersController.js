@@ -1,27 +1,17 @@
-const { Order, modelFields: ordersModelFields } = require('./ordersModel');
+const { Preorder, modelFields: preordersModelFields } = require('./preordersModel');
 const modelsService = require('../../services/modelsService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
 const { Deal } = require('../association');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
 const checkRepeatedValues = require('../../checking/checkRepeatedValues');
-const { Neon } = require('../neons/neonsModel');
 
-class OrdersController {
+class PreordersController {
   async create(req, res, next) {
     try {
-      const { deal, newOrder } = req;
-      const { neons } = newOrder;
-      newOrder.userId = req.requester.id;
-      newOrder.stageId = 1;
-      const order = await deal.createOrder(newOrder);
-      if (neons.length > 0) {
-        for (let i = 0; i < neons.length; i++) {
-          await order.createNeon(neons[i]);
-        }
-      }
-      // console.log(newOrder);
-      return res.json(order);
+      const { deal, preorder: newPreorder } = req;
+      const preorder = await deal.createPreorder(newPreorder);
+      return res.json(preorder);
     } catch (e) {
       console.log(e);
       next(e);
@@ -38,25 +28,8 @@ class OrdersController {
   }
 
   async getList(req, res, next) {
-    const {
-      pageSize,
-      current,
-      key, //?
-      order: queryOrder,
-    } = req.query;
     try {
-      const { limit, offset } = getPagination(current, pageSize);
-      const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
-      const { searchParams } = req;
-
-      const orders = await Order.findAndCountAll({
-        ...searchParams,
-        order,
-        limit,
-        offset,
-      });
-      const response = getPaginationData(orders, current, pageSize, 'orders');
-      return res.json(response);
+      return res.json(req.preorders);
     } catch (e) {
       next(e);
     }
@@ -64,47 +37,31 @@ class OrdersController {
 
   async update(req, res, next) {
     const updateFields = [
-      'title',
+      'name',
+      'description',
       'material',
-      'boardWidth',
-      'boardHeight',
-      'holeType',
-      'stand',
-      'laminate',
-      'print',
-      'printQuality',
-      'acrylic',
-      'type',
-      'wireLength',
       'elements',
-      'gift',
-      'gift_elements',
-      'gift_metrs',
+      'boardHeight',
+      'boardWidth',
+      'wireLength',
+      'dimer',
+      'acrylic',
+      'print',
+      'laminate',
       'adapter',
       'plug',
-      'fitting',
-      'dimmer',
-      'giftPack',
-      'description',
+      'holeType',
+      'fittings',
+      'status',
     ];
     try {
       const { order } = req;
       let updates;
       if (req.baseUrl.includes('/orders')) {
-        console.log(21213, 'editOrder');
         const body = checkRepeatedValues(order, req.body);
         updates = await modelsService.checkUpdates([Order, ordersModelFields], body, updateFields);
-        console.log(updates, 2131);
       }
       await order.update(updates);
-      const neons = req.body.neons;
-      for (let i = 0; i < order.neons.length; i++) {
-        await order.neons[i].destroy();
-      }
-      for (let i = 0; i < neons.length; i++) {
-        await Neon.create({ ...neons[i], orderId: order.id });
-      }
-      // console.log(order.neons);
       return res.json(order);
     } catch (e) {
       next(e);
@@ -197,58 +154,6 @@ class OrdersController {
       next(e);
     }
   }
-
-  //назначение мастера
-  async setMaster(req, res, next) {
-    try {
-      const { order } = req;
-      const { masterId } = req.params;
-      await order.update({ masterId });
-
-      return res.status(200).json('success');
-    } catch (e) {
-      next(e);
-    }
-  }
-
-  //назначение фрезера
-  async setFrezer(req, res, next) {
-    try {
-      const { order } = req;
-      const { frezerId } = req.params;
-      await order.update({ frezerId });
-
-      return res.status(200).json('success');
-    } catch (e) {
-      next(e);
-    }
-  }
-
-  //назначение упаковщика
-  async setPacker(req, res, next) {
-    try {
-      const { order } = req;
-      const { packerId } = req.params;
-      await order.update({ packerId });
-
-      return res.status(200).json('success');
-    } catch (e) {
-      next(e);
-    }
-  }
-
-  //назначение пленщика
-  async setLaminater(req, res, next) {
-    try {
-      const { order } = req;
-      const { laminaterId } = req.params;
-      await order.update({ laminaterId });
-
-      return res.status(200).json('success');
-    } catch (e) {
-      next(e);
-    }
-  }
 }
 
-module.exports = new OrdersController();
+module.exports = new PreordersController();

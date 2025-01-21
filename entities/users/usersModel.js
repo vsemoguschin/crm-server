@@ -10,6 +10,7 @@ const modelFields = {
   password: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Пароль' },
   info: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Информация' },
   tg: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Ссылка на телеграм' },
+  tg_id: { type: DataTypes.INTEGER, defaultValue: 0, fieldType: 'number', fullName: 'телеграм id' },
   status: { type: DataTypes.STRING, defaultValue: '', validateFields: statuses, fieldType: 'string' },
 };
 

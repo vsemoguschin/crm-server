@@ -9,6 +9,12 @@ const { Deal, Dealers, DealSources, DealDates } = require('./deals/dealsModel');
 const { Payment } = require('./payments/paymentsModel');
 const { Dop, DopsTypes } = require('./dops/dopsModel');
 const { Delivery } = require('./deliveries/deliveriesModel');
+const { Order } = require('./orders/ordersModel');
+const { Neon } = require('./neons/neonsModel');
+const { Preorder } = require('./preorders/preordersModel');
+const { File } = require('./files/filesModel');
+
+const { Stage, stageList } = require('./stages/stagesModel');
 
 //Пользователи
 User.hasOne(TokenSchema);
@@ -92,6 +98,39 @@ Deal.belongsTo(WorkSpace);
 Group.hasMany(Deal); //для отдела комерции
 Deal.belongsTo(Group);
 
+Deal.hasMany(Order);
+Order.belongsTo(Deal);
+
+// Stage.hasMany(Order);
+// Order.belongsTo(Stage);
+
+Deal.hasOne(Preorder);
+Preorder.belongsTo(Deal);
+
+Stage.hasMany(Order);
+Order.belongsTo(Stage);
+
+Order.hasMany(Neon);
+Neon.belongsTo(Order);
+
+Order.belongsToMany(User, { through: 'ordersExecutors', as: 'executors', foreignKey: 'orderId' });
+User.belongsToMany(Order, { through: 'ordersExecutors', as: 'work', foreignKey: 'userId' });
+
+User.hasMany(Order);
+Order.belongsTo(User, { as: 'frezer' });
+Order.belongsTo(User, { as: 'master' });
+Order.belongsTo(User, { as: 'packer' });
+Order.belongsTo(User, { as: 'laminater' });
+
+Deal.hasMany(File);
+File.belongsTo(Deal);
+
+Order.hasMany(File);
+File.belongsTo(Order);
+
+// User.hasMany(File);
+// File.belongsTo(User);
+
 module.exports = {
   WorkSpace,
   Group,
@@ -105,4 +144,9 @@ module.exports = {
   Dealers,
   ManagersPlan,
   DopsTypes,
+  Order,
+  Preorder,
+  Stage,
+  stageList,
+  File,
 };

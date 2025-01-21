@@ -28,16 +28,16 @@ class DeliverysRouterMiddleware {
   async getOne(req, res, next) {
     try {
       const requesterRole = req.requester.role;
-      if (!permissions.includes(requesterRole) && !['DP', 'RP', 'PACKER'].includes(requesterRole)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
+      // if (!permissions.includes(requesterRole) && !['DP', 'RP', 'PACKER'].includes(requesterRole)) {
+      //   console.log(false, 'no acces');
+      //   throw ApiError.Forbidden('Нет доступа');
+      // }
       const { id } = req.params;
       const delivery = await Delivery.findOne({
         where: {
           id,
         },
-        include: ['orders', 'workSpace'],
+        // include: ['orders', 'workSpace'],
       });
       if (!delivery) {
         throw ApiError.NotFound('Доставка не найдена');
@@ -54,10 +54,10 @@ class DeliverysRouterMiddleware {
     try {
       const requesterRole = req.requester.role;
       const searchFilter = await modelsService.searchFilter(searchFields, req.query);
-      if (!permissions.includes(requesterRole) && !['DP', 'RP', 'PACKER'].includes(requesterRole)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
+      // if (!permissions.includes(requesterRole) && !['DP', 'RP', 'PACKER'].includes(requesterRole)) {
+      //   console.log(false, 'no acces');
+      //   throw ApiError.Forbidden('Нет доступа');
+      // }
       if (req.query.workSpaceId && !isNaN(req.query.workSpaceId)) {
         searchFilter.workSpaceId = req.query.workSpaceId;
       }
@@ -69,7 +69,7 @@ class DeliverysRouterMiddleware {
       };
       if (req.baseUrl.includes('/deals')) {
         searchParams.where = { dealId: +req.params.id, ...searchFilter };
-        searchParams.include = ['orders'];
+        // searchParams.include = ['orders'];
       }
       req.searchParams = searchParams;
       next();

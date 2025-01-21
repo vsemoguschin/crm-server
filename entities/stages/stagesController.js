@@ -12,13 +12,8 @@ class StageController {
   }
   async getList(req, res, next) {
     try {
-      let { filter } = req;
-      if (!filter) {
-        filter = { id: { [Op.gt]: 0 } };
-      }
-      const stages = await Stage.findAll({
-        where: filter,
-      });
+      const stages = await Stage.findAll({ order: [['index', 'ASC']] });
+      // console.log(stages);
       res.json(stages);
     } catch (e) {
       next(e);

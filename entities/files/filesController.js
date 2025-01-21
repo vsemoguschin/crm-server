@@ -44,9 +44,10 @@ class FilesController {
       const files = await File.findAndCountAll({
         where: modelSearch,
         order,
-        limit,
+        limit: 100000,
         offset,
       });
+      console.log(limit, offset, 324242);
       const response = getPaginationData(files, current, pageSize, 'files');
       return res.json(response || []);
     } catch (e) {

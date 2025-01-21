@@ -1,7 +1,7 @@
 const sequelize = require('../db');
 const { DataTypes } = require('sequelize');
 
-const width = ['6', '8'];
+const widths = ['6мм', '8мм', 'Подсветка'];
 const colors = [
   'красный',
   'синий',
@@ -18,14 +18,15 @@ const colors = [
   'rgb',
 ];
 
-const types = ['уличный', 'смарт', 'rgb', 'подсветка', 'обычный'];
+const types = ['Стандарт', 'Улица', 'РГБ', 'Подсветка', 'РГБ подсветка', 'Смарт'];
 
 const modelFields = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  width: { type: DataTypes.STRING, allowNull: false, valdateFields: width, fieldType: 'number', fullName: 'Толщина неона' },
+  width: { type: DataTypes.STRING, defaultValue: '6мм', valdateFields: widths, fieldType: 'string', fullName: 'Толщина неона' },
   length: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'Длина неона' },
-  color: { type: DataTypes.STRING, allowNull: false, valdateFields: colors, fieldType: 'string' },
-  type: { type: DataTypes.STRING, allowNull: false, valdateFields: types, fieldType: 'string' }, // берется из ордера или если цвет
+  color: { type: DataTypes.STRING, allowNull: false, valdateFields: colors, fieldType: 'string', fullName: 'Цвет неона' },
+  type: { type: DataTypes.STRING, defaultValue: types[0], valdateFields: types, fieldType: 'string', fullName: 'type' }, // берется из ордера или если цвет
+  elements: { type: DataTypes.INTEGER, defaultValue: 0, fieldType: 'number', fullName: 'Колличество элементов' }, // если комбинировать
 };
 
 const Neon = sequelize.define('neon', modelFields);

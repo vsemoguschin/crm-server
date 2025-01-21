@@ -239,25 +239,26 @@ class DealsController {
 
   async update(req, res, next) {
     const updateFields = [
+      'card_id',
       'title',
-      'chatLink',
-      'clothingMethod',
-      'deadline',
-      'description',
       'price',
+      'deadline',
+      'clothingMethod',
+      'description',
       'source',
       'adTag',
       'discont',
       'sphere',
       'city',
-      'region',
+      'maketType',
+      'maketPresentation',
     ];
 
     try {
       const { deal } = req;
       const body = checkRepeatedValues(deal, req.body);
       const updates = await modelsService.checkUpdates([Deal, dealsModelFields], body, updateFields);
-
+      // console.log(req.body);
       if (updates.price) {
         const newPrice = updates.price;
         await planService.updateDeal(deal, newPrice);

@@ -76,7 +76,7 @@ class DiskService {
         type: directory,
       };
     } catch (e) {
-      console.log(e);
+      // console.log(e);
       throw ApiError.BadRequest('Ошибка загрузки файла на диск');
     }
   }

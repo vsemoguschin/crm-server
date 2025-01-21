@@ -5,6 +5,7 @@ module.exports = function (req, res, next) {
     const { params } = req;
     for (const key in params) {
       if (isNaN(+params[key])) {
+        console.log(req);
         throw ApiError.Forbidden('wrong path');
       }
       req.params[key] = +params[key];

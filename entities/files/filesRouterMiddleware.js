@@ -1,6 +1,8 @@
 const checkFormat = require('../../checking/checkFormat');
 const ApiError = require('../../error/apiError');
 const { File } = require('./filesModel');
+const axios = require('axios');
+
 
 const permissions = ['ADMIN', 'G', 'KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
 
@@ -12,6 +14,7 @@ class FilesRouterMiddleware {
         console.log(false, 'no acces');
         throw ApiError.Forbidden('Нет доступа');
       }
+      console.log(req.files.file, 313242424);
       //проверка на file
       if (!req?.files?.file) {
         console.log(false, 'no files');
@@ -63,10 +66,10 @@ class FilesRouterMiddleware {
   async getList(req, res, next) {
     try {
       const requesterRole = req.requester.role;
-      if (!permissions.includes(requesterRole)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
+      // if (!permissions.includes(requesterRole)) {
+      //   console.log(false, 'no acces');
+      //   throw ApiError.Forbidden('Нет доступа');
+      // }
       next();
     } catch (e) {
       next(e);

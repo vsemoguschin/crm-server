@@ -56,14 +56,19 @@ const ROLES = {
   },
   //ПРОИЗВОДСТВО
   ['DP']: {
-    fullName: 'Директор производств',
+    fullName: 'Директор производства',
     department: 'PRODUCTION',
     availableRoles: ['RP', 'FRZ', 'MASTER', 'PACKER'],
   },
   ['RP']: {
-    fullName: 'Руководитель филиала',
+    fullName: 'Руководитель производства',
     department: 'PRODUCTION',
     availableRoles: ['FRZ', 'MASTER', 'PACKER'],
+  },
+  ['LOGIST']: {
+    fullName: 'Логист',
+    department: 'PRODUCTION',
+    availableRoles: [],
   },
   ['FRZ']: {
     fullName: 'Фрезеровщик',
@@ -82,6 +87,11 @@ const ROLES = {
   },
   ['PACKER']: {
     fullName: 'Упаковщик',
+    department: 'PRODUCTION',
+    availableRoles: [],
+  },
+  ['MTZ']: {
+    fullName: 'Менеджер ТЗ',
     department: 'PRODUCTION',
     availableRoles: [],
   },
