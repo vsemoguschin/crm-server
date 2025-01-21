@@ -25,7 +25,9 @@ const productionRouter = require('../routes/productionRouter');
 const kaitenRouter = require('../routes/kaitenRouter');
 
 const allowedOrigins =
-  process.env.NODE_ENV === 'production' ? ['https://easy-crm.pro', 'https://www.easy-crm.pro'] : ['http://localhost:3000', 'http://46.19.64.10'];
+  process.env.NODE_ENV === 'production'
+    ? ['https://easy-crm.pro', 'https://www.easy-crm.pro', 'http://easy-crm.pro', 'http://www.easy-crm.pro']
+    : ['http://localhost:3000', 'http://46.19.64.10'];
 
 router.use(
   '/',
