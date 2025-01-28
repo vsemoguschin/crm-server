@@ -68,7 +68,7 @@ class ClientController {
   //обновляем данные клиента
   async update(req, res, next) {
     // patch-запрос  в теле запроса(body) передаем строку(raw) в формате JSON
-    const updateFields = ['gender', 'type', 'fullName', 'chatLink', 'phone', 'info', 'inn', 'adLink', 'firstContact'];
+    const updateFields = ['gender', 'type', 'fullName', 'phone', 'info', 'inn', 'adLink', 'firstContact'];
     try {
       const { client } = req;
       const body = checkRepeatedValues(client, req.body);

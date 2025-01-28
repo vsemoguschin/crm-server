@@ -3,7 +3,7 @@ const { DataTypes } = require('sequelize');
 
 const statuses = ['Создана', 'Изготовление', 'Готов', 'Готов к отправке', 'Отправлен', 'Доставлен'];
 const disconts = ['Без скидки', 'Желтая', 'ОПТ', 'Рассылка', 'Красная'];
-const maketTypes = ['Дизайнерский', 'заготовка из базы', 'рекламный', 'визуализатор', 'из рассылки'];
+const maketTypes = ['Дизайнерский', 'Заготовка из базы', 'Рекламный', 'Визуализатор', 'Из рассылки'];
 
 const modelFields = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
@@ -23,6 +23,7 @@ const modelFields = {
   paid: { type: DataTypes.BOOLEAN, defaultValue: false, fieldType: 'boolean', fullName: 'Оплачена?' },
   maketType: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', validateFields: maketTypes, fullName: 'Тип макета' },
   maketPresentation: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Дата презентации макета' },
+  period: { type: DataTypes.STRING, defaultValue: new Date().toISOString().slice(0, 7), fieldType: 'string', fullName: 'Период' },
 };
 
 const Deal = sequelize.define('deal', modelFields, {

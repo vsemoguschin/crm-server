@@ -4,7 +4,7 @@ const { modelFields: dealsModelFields, Deal, Dealers } = require('./dealsModel')
 const { Client } = require('../clients/clientsModel');
 const dealsPermissions = require('./dealsPermissions');
 const { Op } = require('sequelize');
-const { Delivery, ManagersPlan, Dop } = require('../association');
+const { Delivery, ManagersPlan, Dop, User } = require('../association');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
 const { group } = require('console');
 
@@ -151,7 +151,15 @@ class DealsRouterMiddleware {
         searchParams.where.groupId = group.id;
       }
       if (req.baseUrl.includes('/managers')) {
-        searchParams.where.userId = manager.id;
+        // searchParams.where.userId = manager.id;
+        console.log('/managers/', 313232);
+        searchParams.include.push({
+          model: User,
+          as: 'dealers',
+          where: {
+            id: manager.id,
+          },
+        });
       }
       if (req.baseUrl.includes('/workspaces')) {
         searchParams.where.workSpaceId = workSpace.id;

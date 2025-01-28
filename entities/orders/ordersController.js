@@ -15,6 +15,9 @@ class OrdersController {
       newOrder.userId = req.requester.id;
       newOrder.stageId = 1;
       const order = await deal.createOrder(newOrder);
+      if (deal.status === 'Создана') {
+        await deal.update({ status: 'Изготовление' });
+      }
       if (neons.length > 0) {
         for (let i = 0; i < neons.length; i++) {
           await order.createNeon(neons[i]);

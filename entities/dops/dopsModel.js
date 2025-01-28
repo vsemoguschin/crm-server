@@ -7,6 +7,7 @@ const modelFields = {
   type: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Тип допа' },
   price: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'Стоимость' },
   description: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Описание' },
+  period: { type: DataTypes.STRING, defaultValue: new Date().toISOString().slice(0, 7), fieldType: 'string', fullName: 'Период' },
 };
 
 const Dop = sequelize.define('dop', modelFields, {

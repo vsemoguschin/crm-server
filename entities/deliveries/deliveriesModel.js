@@ -11,7 +11,7 @@ const modelFields = {
   method: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', validateFields: methods, fullName: 'Способ доставки' },
   type: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', validateFields: types, fullName: 'Платно/Бесплатно' },
   description: { type: 'VARCHAR(1000)', allowNull: false, fieldType: 'string', fullName: 'Данные/Описание' },
-  track: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Трек-номер' },
+  track: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Трек-номер' },
   status: { type: DataTypes.STRING, defaultValue: statuses[0], validateFields: statuses, fieldType: 'string' },
   // city: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Город получения' },
   // region: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Регион' },

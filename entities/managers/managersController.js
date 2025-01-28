@@ -28,7 +28,8 @@ class ManagersController {
 
         recievedPayments: plan.recievedPayments, // выручка(сумма оплат по продажам)
         dopsToSales, //процент допов от продаж
-        averageBill: (plan.dealsSales / plan.dealsAmount).toFixed(), //средний чек(продано/колличество заказов)
+        // averageBill: (plan.dealsSales / plan.dealsAmount).toFixed(), //средний чек(продано/колличество заказов)
+        averageBill: (totalSales / plan.dealsAmount).toFixed(), //средний чек(продано/колличество заказов)
         dealsAmount: plan.dealsAmount, //колличество сделок
 
         dealsSales: plan.dealsSales, // сумма сделок

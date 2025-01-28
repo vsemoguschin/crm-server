@@ -3,17 +3,16 @@ const ApiError = require('../../error/apiError');
 const { File } = require('./filesModel');
 const axios = require('axios');
 
-
 const permissions = ['ADMIN', 'G', 'KD', 'DO', 'ROP', 'MOP', 'ROV', 'MOV'];
 
 class FilesRouterMiddleware {
   async dealsFiles(req, res, next) {
     try {
       const requesterRole = req.requester.role;
-      if (!permissions.includes(requesterRole)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
+      // if (!permissions.includes(requesterRole)) {
+      //   console.log(false, 'no acces');
+      //   throw ApiError.Forbidden('Нет доступа');
+      // }
       console.log(req.files.file, 313242424);
       //проверка на file
       if (!req?.files?.file) {
@@ -56,6 +55,7 @@ class FilesRouterMiddleware {
       }
       const file = await File.findOne({
         where: { id: req.params.id },
+        include: ['user'],
       });
       if (!file) return res.status(404);
       req.fileName = `${file.type}/${file.ya_name}`;
@@ -79,10 +79,10 @@ class FilesRouterMiddleware {
     try {
       const requesterRole = req.requester.role;
       //проверка на доступ к созданию
-      if (!permissions.includes(requesterRole)) {
-        console.log(false, 'no acces');
-        throw ApiError.Forbidden('Нет доступа');
-      }
+      // if (!permissions.includes(requesterRole)) {
+      //   console.log(false, 'no acces');
+      //   throw ApiError.Forbidden('Нет доступа');
+      // }
       const file = await File.findOne({
         where: { id: req.params.id },
       });

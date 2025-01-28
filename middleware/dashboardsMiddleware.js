@@ -1,6 +1,6 @@
 const { Op } = require('sequelize');
 const checkReqQueriesIsNumber = require('../checking/checkReqQueriesIsNumber');
-const { WorkSpace, Group, User, Role, ManagersPlan } = require('../entities/association');
+const { WorkSpace, Group, User, Role, ManagersPlan, Deal } = require('../entities/association');
 const ApiError = require('../error/apiError');
 
 class dashboardsMiddleware {
@@ -138,6 +138,7 @@ class dashboardsMiddleware {
         id: {
           [Op.gt]: 0,
         },
+        department: ['COMMERCIAL'],
       };
       const groupsSearch = {
         id: {
@@ -153,11 +154,14 @@ class dashboardsMiddleware {
         where: workspacesSearch,
         // include: ['groups', 'users'],
       });
+      // console.log(workspaces, 313456);
+      const workspacesIds = workspaces.map((w) => w.id);
+      // groupsSearch.where.workSpaceId = workspacesIds;
 
       let groups = await Group.findAll({
         where: groupsSearch,
       });
-      console.log(groups, groupsSearch, 32454);
+      // console.log(groups, groupsSearch, 32454);
 
       const managers = await User.findAll({
         include: [
@@ -172,7 +176,7 @@ class dashboardsMiddleware {
         ],
         paranoid: false,
       });
-      console.log(managers);
+      // console.log(managers);
 
       const managersPlans = await Promise.all(
         managers.map(async (m) => {
@@ -197,6 +201,26 @@ class dashboardsMiddleware {
           const remainder = plan - totalSales;
           const dopsToSales = +((dopsSales / totalSales) * 100).toFixed() || 0; //процент допов от продаж
 
+          const dealsWithoutDisigners = await Deal.findAll({
+            where: {
+              maketType: { [Op.in]: ['Заготовка из базы', 'Рекламный', 'Из рассылки', 'Визуализатор'] },
+              period: period.slice(0, 7),
+            },
+            include: [
+              {
+                model: User,
+                as: 'dealers',
+                where: {
+                  id: m.id,
+                },
+              },
+            ],
+          });
+          console.log(period, 334343);
+          const dealsSalesWithoutDisigners = dealsWithoutDisigners.reduce((sum, deal) => {
+            return sum + (deal.price || 0); // Убедитесь, что `price` существует
+          }, 0);
+
           const result = {
             id: id,
             managerId: m.id,
@@ -218,6 +242,8 @@ class dashboardsMiddleware {
             dopsSales, // сумма допов
             dopsToSales, //процент допов от продаж
             dopsAmount, //колличество допов
+            dealsWithoutDisigners: dealsWithoutDisigners.length,
+            dealsSalesWithoutDisigners,
           };
           // console.log(result);
           return result;

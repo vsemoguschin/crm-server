@@ -67,9 +67,9 @@ class UsersRouterMiddleware {
   async getOne(req, res, next) {
     try {
       const requesterRole = req.requester.role;
-      if (!['ADMIN', 'G', 'DO', 'ROP', 'MOP'].includes(requesterRole)) {
-        throw ApiError.Forbidden('Нет доступа');
-      }
+      // if (!['ADMIN', 'G', 'DO', 'ROP', 'MOP'].includes(requesterRole)) {
+      //   throw ApiError.Forbidden('Нет доступа');
+      // }
       // const requesterRole = req.requester.role;
       // const rolesFilter = PERMISSIONS.access[requesterRole];
       let { id, userId } = req.params;

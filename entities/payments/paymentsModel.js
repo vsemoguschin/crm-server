@@ -11,6 +11,7 @@ const modelFields = {
   method: { type: DataTypes.STRING, allowNull: false, validateFields: methods, fieldType: 'string', fullName: 'Способ оплаты' },
   description: { type: DataTypes.STRING, defaultValue: '', fieldType: 'string', fullName: 'Описание' },
   reservation: { type: DataTypes.BOOLEAN, defaultValue: false, fieldType: 'boolean', fullName: 'Бронь' },
+  period: { type: DataTypes.STRING, defaultValue: new Date().toISOString().slice(0, 7), fieldType: 'string', fullName: 'Период' },
 };
 
 //добавить отправку по готовности

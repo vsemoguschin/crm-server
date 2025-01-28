@@ -1,7 +1,7 @@
 const { Op } = require('sequelize');
 const checkReqQueriesIsNumber = require('../checking/checkReqQueriesIsNumber');
 const modelsService = require('../services/modelsService');
-const { Order, Deal, Delivery, User, Role } = require('../entities/association');
+const { Order, Deal, Delivery, User, Role, Client, File } = require('../entities/association');
 const ApiError = require('../error/apiError');
 const { stages, orderUsers, orderStages } = require('../entities/orders/ordersModel');
 const { title } = require('process');
@@ -27,6 +27,12 @@ class ProductionRouterMiddleware {
             where: {
               stageId,
             },
+            include: [
+              {
+                model: File,
+                include: ['user'],
+              },
+            ],
           },
         ],
       };
@@ -52,7 +58,17 @@ class ProductionRouterMiddleware {
           'client',
           {
             model: Order,
-            include: ['files', 'neons'],
+            include: [
+              {
+                model: File,
+                include: ['user'],
+              },
+              'neons',
+              'master',
+              'packer',
+              'frezer',
+              'laminater',
+            ],
           },
         ],
       };
@@ -76,19 +92,54 @@ class ProductionRouterMiddleware {
 
       const searchParams = {
         where: {
-          title: { [Op.like]: `%${title}%` },
+          [Op.or]: [
+            { title: { [Op.like]: `%${title}%` } }, // Поиск по title
+            { '$client.chatLink$': { [Op.like]: `%${title}%` } }, // Поиск по client.chatLink
+            { '$deliveries.track$': { [Op.like]: `%${title}%` } }, // Поиск по deliveries.track
+          ],
         },
         include: [
+          {
+            model: Client,
+            as: 'client', // Убедитесь, что алиас совпадает с ассоциацией
+          },
           'preorder',
-          'files',
-          'deliveries',
-          'client',
+          {
+            model: Delivery,
+            as: 'deliveries', // Убедитесь, что алиас совпадает с ассоциацией
+          },
+          {
+            model: File,
+            include: ['user'],
+          },
           {
             model: Order,
-            include: ['files', 'neons'],
+            include: [
+              {
+                model: File,
+                include: ['user'],
+              },
+              'neons',
+            ],
           },
         ],
       };
+
+      // const searchParams = {
+      //   where: {
+      //     title: { [Op.like]: `%${title}%` },
+      //   },
+      //   include: [
+      //     'preorder',
+      //     'files',
+      //     'deliveries',
+      //     'client',
+      //     {
+      //       model: Order,
+      //       include: ['files', 'neons'],
+      //     },
+      //   ],
+      // };
       req.searchParams = searchParams;
       req.pageSize = pageSize;
       req.current = current;
@@ -166,6 +217,7 @@ class ProductionRouterMiddleware {
           },
           'dealDate',
           'files',
+          'client',
           // 'preorder',
           {
             model: Order,

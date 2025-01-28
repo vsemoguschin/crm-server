@@ -2,6 +2,7 @@ const { File } = require('./filesModel');
 const diskService = require('../../services/diskService');
 const getPaginationData = require('../../utils/getPaginationData');
 const getPagination = require('../../utils/getPagination');
+const { User } = require('../association');
 
 class FilesController {
   async create(req, res, next) {
@@ -43,6 +44,11 @@ class FilesController {
       const order = queryOrder ? [[key, queryOrder]] : ['createdAt'];
       const files = await File.findAndCountAll({
         where: modelSearch,
+        include: [
+          {
+            model: User,
+          },
+        ],
         order,
         limit: 100000,
         offset,

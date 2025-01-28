@@ -76,6 +76,9 @@ Payment.belongsTo(Deal);
 Deal.hasMany(Delivery);
 Delivery.belongsTo(Deal);
 
+// ManagersPlan.hasMany(Dop);
+// Dop.belongsTo(ManagersPlan);
+
 Delivery.belongsTo(User, { as: 'sender' });
 
 //Рабочие пространства
@@ -128,8 +131,8 @@ File.belongsTo(Deal);
 Order.hasMany(File);
 File.belongsTo(Order);
 
-// User.hasMany(File);
-// File.belongsTo(User);
+User.hasMany(File);
+File.belongsTo(User);
 
 module.exports = {
   WorkSpace,

@@ -60,7 +60,7 @@ class DeliveriesController {
     try {
       const { delivery } = req;
       const body = checkRepeatedValues(delivery, req.body);
-      console.log(31323, body);
+      console.log(31323, req.body);
       const updates = await modelsService.checkUpdates([Delivery, deliveryModelFields], body, updateFields);
       await delivery.update(updates);
       return res.json(delivery);

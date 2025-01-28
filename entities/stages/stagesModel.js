@@ -8,13 +8,15 @@ const stageList = [
   { title: 'Пленка' },
   { title: 'Сборка' },
   { title: 'В работе' },
-  { title: 'Проверить' },
-  { title: 'Упаковать' },
-  { title: 'Отправить' },
+  { title: 'ОКК' },
+  { title: 'ОКК(Оплачено)' },
+  { title: 'Упаковано' },
+  { title: 'Оплачено' },
   { title: 'Отправлен' },
   { title: 'На исправлении' },
   { title: 'Ремонт' },
   { title: 'Возврат' },
+  { title: 'Брак' },
 ];
 
 const modelFields = {
