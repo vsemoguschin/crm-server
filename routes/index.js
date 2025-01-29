@@ -50,7 +50,7 @@ router.use(
   '/',
   cors({
     // credentials: true,
-    origin: ['http://localhost:3000', 'http://46.19.64.10:80', 'http://46.19.64.10', 'http://easy-crm.pro'],
+    origin: ['http://localhost:3000', 'http://46.19.64.10:80', 'http://46.19.64.10:3000', 'http://46.19.64.10', 'http://easy-crm.pro'],
   }),
   authRouter, //роутер авторизации
   AuthMiddleware, //проверка авторизации
