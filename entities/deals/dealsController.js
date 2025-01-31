@@ -241,6 +241,7 @@ class DealsController {
     const updateFields = [
       'card_id',
       'title',
+      'saleDate',
       'price',
       'deadline',
       'clothingMethod',

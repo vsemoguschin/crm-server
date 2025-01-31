@@ -17,7 +17,7 @@ class KaitenController {
       // console.log(datas.files);
       let firstImageObject = datas.files.find((item) => {
         // console.log(item);
-        if (item.name.toLowerCase() === 'обложка.png') {
+        if (item.name.toLowerCase() === 'image.png') {
           return item.url;
         }
       });

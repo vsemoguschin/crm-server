@@ -3,6 +3,7 @@ const { DataTypes } = require('sequelize');
 
 const modelFields = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  saleDate: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Дата продажи' },
   // title: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Наименовае допа' },
   type: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Тип допа' },
   price: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'Стоимость' },

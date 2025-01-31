@@ -7,6 +7,7 @@ const maketTypes = ['Дизайнерский', 'Заготовка из баз�
 
 const modelFields = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  saleDate: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Дата продажи' },
   card_id: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'ID карточки дизайна' },
   title: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Название сделки' },
   price: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'Стоимость без допов' }, // стоимость вывески без допа, но выводить еще вместе с допами общую

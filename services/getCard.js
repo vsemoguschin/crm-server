@@ -16,6 +16,7 @@ module.exports = async (id) => {
         Authorization: `Bearer ${getToken()}`,
       },
     });
+    console.log(response.data, 2343567);
     return response.data;
   } catch (error) {
     return console.error('Error fetching data from Kaiten:');

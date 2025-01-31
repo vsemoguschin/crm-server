@@ -8,6 +8,8 @@ const types = ['Помещение', 'Улица'];
 const adapters = ['Помещение', 'Уличный', 'Нет'];
 const modelFields = {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  loadDate: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Дата выгрузки на производство' },
+  endDate: { type: DataTypes.STRING, fieldType: 'string', fullName: 'Дата готовности' },
   title: { type: DataTypes.STRING, allowNull: false, fieldType: 'string', fullName: 'Название заказа' },
   material: { type: DataTypes.STRING, defaultValue: materials[0], validateFields: materials, fieldType: 'string', fullName: 'Материал подложки' },
   boardWidth: { type: DataTypes.INTEGER, allowNull: false, fieldType: 'number', fullName: 'Ширина подложки' },
