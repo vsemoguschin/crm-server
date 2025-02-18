@@ -20,8 +20,6 @@ const createLog = (req, res, next) => {
 };
 app.use(cookieParser());
 
-
-
 app.use(
   express.json({
     limit: '5MB',
@@ -54,15 +52,15 @@ app.use(errorHandling);
 
 const start = async () => {
   try {
-    await sequelize.drop();
-    await sequelize.authenticate();
-    await sequelize.sync({ alter: true, force: true });
+    // await sequelize.drop();
+    // await sequelize.authenticate();
+    // await sequelize.sync({ alter: true, force: true });
 
-    await presets.createRoles();
-    await presets.createStartDatas();
-    await presets.createLists();
-    await presets.createDizDatas();
-    await presets.createStages()
+    // await presets.createRoles();
+    // await presets.createStartDatas();
+    // await presets.createLists();
+    // await presets.createDizDatas();
+    // await presets.createStages()
     app.listen(PORT, () => console.log(`${PORT}`));
   } catch (error) {
     console.log(error);

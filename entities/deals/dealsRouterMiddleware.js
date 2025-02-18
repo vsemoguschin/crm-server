@@ -6,7 +6,6 @@ const dealsPermissions = require('./dealsPermissions');
 const { Op } = require('sequelize');
 const { Delivery, ManagersPlan, Dop, User } = require('../association');
 const checkReqQueriesIsNumber = require('../../checking/checkReqQueriesIsNumber');
-const { group } = require('console');
 
 const frontOptions = {
   modelFields: modelsService.getModelFields(dealsModelFields),

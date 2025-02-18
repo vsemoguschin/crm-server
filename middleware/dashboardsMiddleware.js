@@ -1,7 +1,8 @@
 const { Op } = require('sequelize');
-const checkReqQueriesIsNumber = require('../checking/checkReqQueriesIsNumber');
-const { WorkSpace, Group, User, Role, ManagersPlan, Deal } = require('../entities/association');
+const { WorkSpace, Group, User, Role, ManagersPlan, Deal, Client, Payment, Dop, Dealers, DopsTypes } = require('../entities/association');
 const ApiError = require('../error/apiError');
+const { DealSources, AdTags, ClothingMethods } = require('../entities/deals/dealsModel');
+const { Spheres } = require('../entities/clients/clientsModel');
 
 class dashboardsMiddleware {
   async deals(req, res, next) {
@@ -115,6 +116,42 @@ class dashboardsMiddleware {
       });
 
       return res.json(workspaces);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async datas(req, res, next) {
+    try {
+      const workspaces = await WorkSpace.findAll();
+      const groups = await Group.findAll();
+      const users = await User.findAll({ paranoid: true });
+      const clients = await Client.findAll();
+      const deals = await Deal.findAll();
+      const payments = await Payment.findAll();
+      const dops = await Dop.findAll();
+      const doptypes = await DopsTypes.findAll();
+      const dealers = await Dealers.findAll();
+      const dealSources = await DealSources.findAll();
+      const tag = await AdTags.findAll();
+      const clothingMethods = await ClothingMethods.findAll();
+      const spheres = await Spheres.findAll();
+      const manplan = await ManagersPlan.findAll();
+      return res.json({
+        workspaces,
+        groups,
+        users,
+        clients,
+        deals,
+        payments,
+        dops,
+        doptypes,
+        dealers,
+        dealSources,
+        tag,
+        clothingMethods,
+        spheres,
+        manplan,
+      });
     } catch (e) {
       next(e);
     }

@@ -4,6 +4,7 @@ const dashboardsMiddleware = require('../middleware/dashboardsMiddleware');
 // const dashboardsController = require('../controllers/dashboardsController');
 
 router.get('/workspaces', dashboardsMiddleware.workspaces);
+router.get('/datas', dashboardsMiddleware.datas);
 router.get('/deals', dashboardsMiddleware.deals);
 router.get('/managers', dashboardsMiddleware.managers);
 
