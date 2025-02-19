@@ -122,35 +122,43 @@ class dashboardsMiddleware {
   }
   async datas(req, res, next) {
     try {
-      const workspaces = await WorkSpace.findAll();
-      const groups = await Group.findAll();
-      const users = await User.findAll({ paranoid: true });
-      const clients = await Client.findAll();
-      const deals = await Deal.findAll();
-      const payments = await Payment.findAll();
-      const dops = await Dop.findAll();
+      const workspaces = await WorkSpace.findAll({
+        include: [
+          {
+            model: Group,
+            include: [
+              {
+                model: User.scope(null),
+                include: [
+                  {
+                    model: Client,
+                    include: [
+                      {
+                        model: Deal,
+                        include: ['dops', 'payments', 'dealers'],
+                      },
+                    ],
+                  },
+                  {
+                    model: ManagersPlan,
+                  },
+                ],
+              },
+            ],
+          },
+          { model: DealSources },
+        ],
+      });
       const doptypes = await DopsTypes.findAll();
-      const dealers = await Dealers.findAll();
-      const dealSources = await DealSources.findAll();
       const tag = await AdTags.findAll();
       const clothingMethods = await ClothingMethods.findAll();
       const spheres = await Spheres.findAll();
-      const manplan = await ManagersPlan.findAll();
       return res.json({
         workspaces,
-        groups,
-        users,
-        clients,
-        deals,
-        payments,
-        dops,
         doptypes,
-        dealers,
-        dealSources,
         tag,
         clothingMethods,
         spheres,
-        manplan,
       });
     } catch (e) {
       next(e);
